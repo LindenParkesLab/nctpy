@@ -6,7 +6,7 @@ Home-page: https://github.com/BassettLab/control_package
 Author: Jennifer Stiso
 Author-email: danibassettlab@gmail.com
 License: UNKNOWN
-Project-URL: Bug Tracker, hhttps://github.com/BassettLab/control_package/issues
+Project-URL: Bug Tracker, https://github.com/BassettLab/control_package/issues
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License

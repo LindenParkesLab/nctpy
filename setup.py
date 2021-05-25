@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/BassettLab/control_package",
     project_urls={
-        "Bug Tracker": "hhttps://github.com/BassettLab/control_package/issues",
+        "Bug Tracker": "https://github.com/BassettLab/control_package/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
