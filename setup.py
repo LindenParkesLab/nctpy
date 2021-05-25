@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="network_control",
-    version="0.0.1",
+    version="0.0.2",
     author="Jennifer Stiso",
     author_email="danibassettlab@gmail.com",
     description="Python implementation of concepts from network control theory",
