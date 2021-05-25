@@ -30,9 +30,9 @@ def ave_control(A, c=1):
     N = A.shape[0]
     P = np.diag(1 - np.matmul(v, v.transpose()))
     P = np.tile(P.reshape([N, 1]), (1, N))
-    values = sum(np.divide(midMat, P))
+    ac = sum(np.divide(midMat, P))
 
-    return values
+    return ac
 
 
 def modal_control(A, c=1):
@@ -47,7 +47,7 @@ def modal_control(A, c=1):
             normalization constant, default=1
 
     Returns:
-        ac: np.array (n_parcels,)
+        phi: np.array (n_parcels,)
             vector of modal controllability values for each node
 
     @author lindenmp
