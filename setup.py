@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="network-control",
+    name="network_control",
     version="0.0.1",
     author="Jennifer Stiso",
     author_email="danibassettlab@gmail.com",
