@@ -10,7 +10,7 @@ def sim_state_eq( A, B, xi, U):
      user, and B selects the control set (stimulating electrodes)
     
     Original matlab code by Jason Kim
-       Inputs
+       Args
      A             : NxN state matrix (numpy array), where N is the number of nodes in your
                    network (for example, a structural connectivity matrix 
                    constructed from DTI). A should be stable to prevent
@@ -36,7 +36,7 @@ def sim_state_eq( A, B, xi, U):
                    also enter U's that vary with time, or are different
                    accross frequency bands.
     
-       Outputs
+       Returns
      x             : x is the NxMxT trajectory (numpy array) that results from simulating
                    x(t+1) = Ax(t) + Bu(t) the equation with the parameters
                    above.
@@ -78,7 +78,7 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
      JStiso 2021
          Translated to Python
 
-     Inputs:
+     Args:
      A     (NxN numpy array) Structural connectivity matrix
      B     (NxN numpy array) Input matrix: selects which nodes to put input into. Define
            so there is a 1 on the diagonal of elements you want to add input to, 
@@ -91,7 +91,7 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
     rho   (float) weights energy and distance constraints. Small rho leads to larger
            energy
     
-     Outputs:
+     Returns:
      X_opt    (TxN numpy array) The optimal trajectory through state space
      U_opt    (TxN numpy array) The optimal energy
      n_err    (float) the error associated with this calculation. Errors will be larger when B is not identity, 
@@ -158,13 +158,14 @@ def minimum_energy(A, T, B, x0, xf):
      This is a python adaptation of code originally written by Jason Kim
      
      Computes minimum control energy for state transition.
+     Args
       A: System adjacency matrix:         N x N
       B: Control input matrix:            N x k
       x0: Initial state:                  N x 1
       xf: Final state:                    N x 1
       T: Control horizon                  1 x 1
       
-      Outputs
+    Returns
       x: State Trajectory
       u: Control Input
     '''
