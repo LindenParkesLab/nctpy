@@ -64,22 +64,25 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
      Fabio, Tommy September 2017
 
      Args:
-     A     (NxN numpy array) Structural connectivity matrix
-     B     (NxN numpy array) Input matrix: selects which nodes to put input into. Define
+     A: (NxN numpy array) Structural connectivity matrix
+     B: (NxN numpy array) Input matrix: selects which nodes to put input into. Define
            so there is a 1 on the diagonal of elements you want to add input to, 
            and 0 otherwise 
-     S     (NxN numpy array) Selects nodes whose distance you want to constrain, Define so
+     S: (NxN numpy array) Selects nodes whose distance you want to constrain, Define so
            that there is a 1 on the diagonal of elements you want to
            constrain, and a zero otherwise
-     T     (float) Time horizon: how long you want to control for. Too large will give
+     T: (float) Time horizon: how long you want to control for. Too large will give
            large error, too short will not give enough time for control
-    rho   (float) weights energy and distance constraints. Small rho leads to larger
+    rho: (float) weights energy and distance constraints. Small rho leads to larger
            energy
     
      Returns:
-     X_opt    (TxN numpy array) The optimal trajectory through state space
-     U_opt    (TxN numpy array) The optimal energy
-     n_err    (float) the error associated with this calculation. Errors will be larger when B is not identity, 
+     X_opt: (TxN numpy array) 
+          The optimal trajectory through state space
+     U_opt: (TxN numpy array) 
+          The optimal energy
+     n_err: (float) 
+          the error associated with this calculation. Errors will be larger when B is not identity, 
               and when A is large. Large T and rho will also tend to increase the error
     
     -------------- Change Log -------------
@@ -159,15 +162,22 @@ def minimum_energy(A, T, B, x0, xf):
      
      Computes minimum control energy for state transition.
      Args:
-      A: System adjacency matrix:         N x N
-      B: Control input matrix:            N x k
-      x0: Initial state:                  N x 1
-      xf: Final state:                    N x 1
-      T: Control horizon                  1 x 1
+      A: numpy array (N x N)
+            System adjacency matrix 
+      B: numpy array (N x N)
+            Control input matrix 
+      x0: numpy array (N x t)
+             Initial state 
+      xf: numpy array (N x t)
+            Final state 
+      T: float (1 x 1) 
+           Control horizon 
       
     Returns:
-      x: State Trajectory
-      u: Control Input
+      x: numpy array (N x t)
+            State Trajectory 
+      u: numpy array (N x t)
+           Control Input 
     """
 
     # System Size
