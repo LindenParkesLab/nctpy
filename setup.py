@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="network-control",
-    version="0.0.1",
+    name="network_control",
+    version="0.0.2",
     author="Jennifer Stiso",
     author_email="danibassettlab@gmail.com",
     description="Python implementation of concepts from network control theory",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/BassettLab/control_package",
     project_urls={
-        "Bug Tracker": "hhttps://github.com/BassettLab/control_package/issues",
+        "Bug Tracker": "https://github.com/BassettLab/control_package/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
