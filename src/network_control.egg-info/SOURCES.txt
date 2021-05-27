@@ -3,9 +3,9 @@ README.md
 pyproject.toml
 setup.cfg
 setup.py
-src/network-control/__init__.py
-src/network-control/energies.py
-src/network-control/metrics.py
+src/network_control/__init__.py
+src/network_control/energies.py
+src/network_control/metrics.py
 src/network_control.egg-info/PKG-INFO
 src/network_control.egg-info/SOURCES.txt
 src/network_control.egg-info/dependency_links.txt
