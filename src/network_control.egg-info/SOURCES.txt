@@ -9,4 +9,5 @@ src/network_control/metrics.py
 src/network_control.egg-info/PKG-INFO
 src/network_control.egg-info/SOURCES.txt
 src/network_control.egg-info/dependency_links.txt
+src/network_control.egg-info/requires.txt
 src/network_control.egg-info/top_level.txt
