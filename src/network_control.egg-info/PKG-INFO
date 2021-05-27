@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: network-control
-Version: 0.0.2
+Version: 0.0.3
 Summary: Python implementation of concepts from network control theory
 Home-page: https://github.com/BassettLab/control_package
 Author: Jennifer Stiso
