@@ -14,8 +14,8 @@ throughout the brain to drive changes in brain states? Do different brain region
 ways? Given a set of control nodes, how can the system be driven to specific target state, or switch between a pair of
 states, by means of internal or external control input?
 
-``network_control`` is a Python toolbox that aims to provide researchers with a set of tools to conduct some of the
-common NCT analyses reported in the literature. Below we list a set of select publications that serve as a primer to
+``network_control`` is a Python toolbox that provides researchers with a set of tools to conduct some of the
+common NCT analyses reported in the literature. Below, we list select publications that serve as a primer for
 these tools and their use cases:
 
 1. Gu, S., Pasqualetti, F., Cieslak, M. et al. Controllability of structural brain networks.
@@ -59,3 +59,9 @@ the following:
 .. code-block:: bash
 
     pip install network_control
+
+Questions
+---------
+
+If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes)
+or Jennifer Stiso (https://twitter.com/JenniferStiso).
