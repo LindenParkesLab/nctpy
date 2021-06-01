@@ -56,7 +56,10 @@ def reg_plot(x, y, xlabel, ylabel, ax, c='gray', add_spearman=False):
     except:
         pass
     sns.regplot(x=x, y=y, ax=ax, scatter=False, color=color_blue)
-    ax.scatter(x=x, y=y, c=c, s=5, alpha=0.5)
+    if type(c) == str:
+        ax.scatter(x=x, y=y, c=c, s=5, alpha=0.5)
+    else:
+        ax.scatter(x=x, y=y, c=c, cmap='viridis', s=5, alpha=0.5)
     ax.set_xlabel(xlabel, labelpad=-0.5)
     ax.set_ylabel(ylabel, labelpad=-0.5)
     ax.tick_params(pad=-2.5)

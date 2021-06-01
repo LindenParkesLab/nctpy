@@ -1,6 +1,25 @@
 import numpy as np
 from scipy.linalg import schur
 
+
+def node_strength(A):
+    """ Returns strength of the nodes of a network.
+
+    Args:
+        A: np.array (n_parcels, n_parcels)
+            Adjacency matrix from structural connectome
+
+    Returns:
+        s: np.array (n_parcels,)
+            vector of strength values across nodes
+
+    @author lindenmp
+    """
+    s = np.sum(A, axis=0)
+
+    return s
+
+
 def ave_control(A_norm):
     """ Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
     network. Average controllability measures the ease by which input at that node can steer the system into many
