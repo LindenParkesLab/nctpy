@@ -1,5 +1,5 @@
 import numpy as np 
-import scipy.linalg as sp
+import scipy as sp
 
 def sim_state_eq( A, B, xi, U):
     """This function caclulates the trajectory for the network given our model
@@ -108,7 +108,7 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
     Atilde = np.concatenate((np.concatenate((A, np.dot(-B,B.T)/(2*rho)), axis=1), 
                             np.concatenate((-2*S, -A.T), axis=1)), axis=0)
 
-    M = sp.expm(Atilde*T)
+    M = sp.linalg.expm(Atilde*T)
     M11 = M[0:n,0:n]
     M12 = M[0:n,n:]
     M21 = M[n:,0:n]
@@ -135,7 +135,7 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
     U = np.dot(np.ones((np.size(t),1)),2*xf.T)
 
     # Discretize continuous-time input for convolution
-    Atilde_d = sp.expm(Atilde*STEP)
+    Atilde_d = sp.linalg.expm(Atilde*STEP)
     Btilde_d = np.linalg.solve(Atilde,
                                np.dot((Atilde_d-np.eye(2*n)),np.concatenate((np.zeros((n,n)),S), axis=0)))
 
@@ -187,7 +187,7 @@ def minimum_energy(A, T, B, x0, xf):
     AT = np.concatenate((np.concatenate((A, -.5*(B.dot(B.T))), axis=1), 
                          np.concatenate((np.zeros(np.shape(A)), -A.T), axis=1)), axis=0)
 
-    E = sp.expm(AT*T)
+    E = sp.linalg.expm(AT*T)
 
     # Compute Costate Initial Condition
     E12 = E[0:n,n:]
@@ -203,7 +203,7 @@ def minimum_energy(A, T, B, x0, xf):
 
     v0 = np.concatenate((x0, p0), axis=0)          # Initial Condition
     v = np.zeros((2*n,len(t)))          # Trajectory
-    Et = sp.expm(AT*T/(len(t)-1))
+    Et = sp.linalg.expm(AT*T/(len(t)-1))
     v[:,0] = v0.T
 
     # Simulate State and Costate Trajectories
