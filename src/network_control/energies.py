@@ -230,3 +230,73 @@ def minimum_energy(A, T, B, x0, xf):
     x = x.T
 
     return x, u, n_err
+
+
+def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
+    """ This function computes the minimum energy required to transition between all pairs of brain states
+    encoded in (x0_mat,xf_mat)
+
+     Args:
+      A: numpy array (N x N)
+            System adjacency matrix
+      B: numpy array (N x N)
+            Control input matrix
+      x0_mat: numpy array (N x n_transitions)
+             Initial states (see expand_states)
+      xf_mat: numpy array (N x n_transitions)
+            Final states (see expand_states)
+      T: float (1 x 1)
+           Control horizon
+
+    Returns:
+      E: numpy array (N x n_transitions)
+            Regional energy for all state transition pairs.
+            Notes,
+                np.sum(E, axis=0)
+                    collapse over regions to yield energy associated with all transitions.
+                np.sum(E, axis=0).reshape(n_states, n_states)
+                    collapse over regions and reshape into a state by state transition matrix.
+    """
+
+    # System Size
+    n_parcels = A.shape[0]
+
+    if type(x0_mat[0][0]) == np.bool_:
+        x0_mat = x0_mat.astype(float)
+    if type(xf_mat[0][0]) == np.bool_:
+        xf_mat = xf_mat.astype(float)
+
+    # Number of integration steps
+    nt = 1000
+    dt = T/nt
+
+    # Numerical integration with Simpson's 1/3 rule
+    # Integration step
+    dE = sp.linalg.expm(A * dt)
+    # Accumulation of expm(A * dt)
+    dEA = np.eye(n_parcels)
+    # Gramian
+    G = np.zeros((n_parcels, n_parcels))
+
+    for i in np.arange(1, nt/2):
+        # Add odd terms
+        dEA = np.matmul(dEA, dE)
+        p1 = np.matmul(dEA, B)
+        # Add even terms
+        dEA = np.matmul(dEA, dE)
+        p2 = np.matmul(dEA, B)
+        G = G + 4 * (np.matmul(p1, p1.transpose())) + 2 * (np.matmul(p2, p2.transpose()))
+
+    # Add final odd term
+    dEA = np.matmul(dEA, dE)
+    p1 = np.matmul(dEA, B)
+    G = G + 4 * (np.matmul(p1, p1.transpose()))
+
+    # Divide by integration step
+    E = sp.linalg.expm(A * T)
+    G = (G + np.matmul(B, B.transpose()) + np.matmul(np.matmul(E, B), np.matmul(E, B).transpose())) * dt / 3
+
+    delx = xf_mat - np.matmul(E, x0_mat)
+    E = np.multiply(np.matmul(np.linalg.pinv(G), delx), delx)
+
+    return E
