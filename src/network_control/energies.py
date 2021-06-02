@@ -102,6 +102,12 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
 
     n = np.shape(A)[1]
 
+    # state vectors to float if they're bools
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+    if type(xf[0]) == np.bool_:
+        xf = xf.astype(float)
+
     Sbar = np.eye(n) - S
     np.shape(np.dot(-B,B.T)/(2*rho))
 
@@ -182,6 +188,12 @@ def minimum_energy(A, T, B, x0, xf):
 
     # System Size
     n = np.shape(A)[0]
+
+    # state vectors to float if they're bools
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+    if type(xf[0]) == np.bool_:
+        xf = xf.astype(float)
 
     # Compute Matrix Exponential
     AT = np.concatenate((np.concatenate((A, -.5*(B.dot(B.T))), axis=1), 
