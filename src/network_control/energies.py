@@ -1,5 +1,5 @@
 import numpy as np 
-import scipy.linalg as sp
+import scipy as sp
 
 def sim_state_eq( A, B, xi, U):
     """This function caclulates the trajectory for the network given our model
@@ -102,13 +102,19 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
 
     n = np.shape(A)[1]
 
+    # state vectors to float if they're bools
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+    if type(xf[0]) == np.bool_:
+        xf = xf.astype(float)
+
     Sbar = np.eye(n) - S
     np.shape(np.dot(-B,B.T)/(2*rho))
 
     Atilde = np.concatenate((np.concatenate((A, np.dot(-B,B.T)/(2*rho)), axis=1), 
                             np.concatenate((-2*S, -A.T), axis=1)), axis=0)
 
-    M = sp.expm(Atilde*T)
+    M = sp.linalg.expm(Atilde*T)
     M11 = M[0:n,0:n]
     M12 = M[0:n,n:]
     M21 = M[n:,0:n]
@@ -135,7 +141,7 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
     U = np.dot(np.ones((np.size(t),1)),2*xf.T)
 
     # Discretize continuous-time input for convolution
-    Atilde_d = sp.expm(Atilde*STEP)
+    Atilde_d = sp.linalg.expm(Atilde*STEP)
     Btilde_d = np.linalg.solve(Atilde,
                                np.dot((Atilde_d-np.eye(2*n)),np.concatenate((np.zeros((n,n)),S), axis=0)))
 
@@ -183,11 +189,17 @@ def minimum_energy(A, T, B, x0, xf):
     # System Size
     n = np.shape(A)[0]
 
+    # state vectors to float if they're bools
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+    if type(xf[0]) == np.bool_:
+        xf = xf.astype(float)
+
     # Compute Matrix Exponential
     AT = np.concatenate((np.concatenate((A, -.5*(B.dot(B.T))), axis=1), 
                          np.concatenate((np.zeros(np.shape(A)), -A.T), axis=1)), axis=0)
 
-    E = sp.expm(AT*T)
+    E = sp.linalg.expm(AT*T)
 
     # Compute Costate Initial Condition
     E12 = E[0:n,n:]
@@ -203,7 +215,7 @@ def minimum_energy(A, T, B, x0, xf):
 
     v0 = np.concatenate((x0, p0), axis=0)          # Initial Condition
     v = np.zeros((2*n,len(t)))          # Trajectory
-    Et = sp.expm(AT*T/(len(t)-1))
+    Et = sp.linalg.expm(AT*T/(len(t)-1))
     v[:,0] = v0.T
 
     # Simulate State and Costate Trajectories
@@ -218,3 +230,73 @@ def minimum_energy(A, T, B, x0, xf):
     x = x.T
 
     return x, u, n_err
+
+
+def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
+    """ This function computes the minimum energy required to transition between all pairs of brain states
+    encoded in (x0_mat,xf_mat)
+
+     Args:
+      A: numpy array (N x N)
+            System adjacency matrix
+      B: numpy array (N x N)
+            Control input matrix
+      x0_mat: numpy array (N x n_transitions)
+             Initial states (see expand_states)
+      xf_mat: numpy array (N x n_transitions)
+            Final states (see expand_states)
+      T: float (1 x 1)
+           Control horizon
+
+    Returns:
+      E: numpy array (N x n_transitions)
+            Regional energy for all state transition pairs.
+            Notes,
+                np.sum(E, axis=0)
+                    collapse over regions to yield energy associated with all transitions.
+                np.sum(E, axis=0).reshape(n_states, n_states)
+                    collapse over regions and reshape into a state by state transition matrix.
+    """
+
+    # System Size
+    n_parcels = A.shape[0]
+
+    if type(x0_mat[0][0]) == np.bool_:
+        x0_mat = x0_mat.astype(float)
+    if type(xf_mat[0][0]) == np.bool_:
+        xf_mat = xf_mat.astype(float)
+
+    # Number of integration steps
+    nt = 1000
+    dt = T/nt
+
+    # Numerical integration with Simpson's 1/3 rule
+    # Integration step
+    dE = sp.linalg.expm(A * dt)
+    # Accumulation of expm(A * dt)
+    dEA = np.eye(n_parcels)
+    # Gramian
+    G = np.zeros((n_parcels, n_parcels))
+
+    for i in np.arange(1, nt/2):
+        # Add odd terms
+        dEA = np.matmul(dEA, dE)
+        p1 = np.matmul(dEA, B)
+        # Add even terms
+        dEA = np.matmul(dEA, dE)
+        p2 = np.matmul(dEA, B)
+        G = G + 4 * (np.matmul(p1, p1.transpose())) + 2 * (np.matmul(p2, p2.transpose()))
+
+    # Add final odd term
+    dEA = np.matmul(dEA, dE)
+    p1 = np.matmul(dEA, B)
+    G = G + 4 * (np.matmul(p1, p1.transpose()))
+
+    # Divide by integration step
+    E = sp.linalg.expm(A * T)
+    G = (G + np.matmul(B, B.transpose()) + np.matmul(np.matmul(E, B), np.matmul(E, B).transpose())) * dt / 3
+
+    delx = xf_mat - np.matmul(E, x0_mat)
+    E = np.multiply(np.matmul(np.linalg.pinv(G), delx), delx)
+
+    return E
