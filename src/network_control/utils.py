@@ -62,3 +62,42 @@ def get_p_val_string(p_val):
         p_str = "$\mathit{:}$ = {:.3f}".format('{p}', p_val)
 
     return p_str
+
+
+def expand_states(states):
+    """
+    This function takes a list of integer values that designate a distinct set of binary brain states and returns
+    a pair of matrices (x0_mat, xf_mat) that encode all possible pairwise transitions between those states
+    Args:
+        states: numpy array (N x 1)
+            a vector of integers that designate which regions belong to which states. Note, regions cannot belong to
+            more than one brain state. For example, assuming N = 12, if:
+                states = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+            then the first 4 regions belong to state 0, the next 4 to state 1, and the final 4 to state 2
+
+    Returns:
+        x0_mat: boolean array (N, n_transitions)
+            boolean array of initial states. In each column, True designates regions belonging to a given initial state
+        xf_mat: boolean array (N, n_transitions)
+            boolean array of target states. In each column, True designates regions belonging to a given target state
+    """
+
+    unique, counts = np.unique(states, return_counts=True)
+    n_parcels = len(states)
+    n_states = len(unique)
+
+    x0_mat = np.zeros((n_parcels, 1)).astype(bool)
+    xf_mat = np.zeros((n_parcels, 1)).astype(bool)
+
+    for i in np.arange(n_states):
+        for j in np.arange(n_states):
+            x0 = states == i
+            xf = states == j
+
+            x0_mat = np.append(x0_mat, x0.reshape(-1, 1), axis=1)
+            xf_mat = np.append(xf_mat, xf.reshape(-1, 1), axis=1)
+
+    x0_mat = x0_mat[:, 1:]
+    xf_mat = xf_mat[:, 1:]
+
+    return x0_mat, xf_mat
