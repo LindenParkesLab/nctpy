@@ -4,7 +4,7 @@ import scipy as sp
 def sim_state_eq( A, B, xi, U):
     """This function caclulates the trajectory for the network given our model
      if there are no constraints, and the target state is unknown, using the
-     control equation precess dx = Ax(t) + BU(t). x(t) is the state vector, A is
+     control equation precess x(t+1) = Ax(t) + BU(t). x(t) is the state vector, A is
      the adjacency matrix, U(t) is the time varying input as specified by the
      user, and B selects the control set (stimulating electrodes)
     
@@ -49,8 +49,8 @@ def sim_state_eq( A, B, xi, U):
     xt = xi
     for t in range(T):
         x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
-        dx = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
-        xt = xt + dx
+        xt_1 = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+        xt = xt_1
     return x
 
 def optimal_energy(A, T, B, x0, xf, rho, S):
