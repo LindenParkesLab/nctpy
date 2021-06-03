@@ -3,6 +3,8 @@ network_control: A toolbox for implementing Network Control Theory analyses in p
 
 Overview
 --------
+.. image:: https://zenodo.org/badge/370716682.svg
+   :target: https://zenodo.org/badge/latestdoi/370716682ß
 
 Network Control Theory (NCT) is a branch of physical and engineering sciences that treats a network as a dynamical
 system. Generally, the system is controlled through signals that originate at a control point (or control points) and

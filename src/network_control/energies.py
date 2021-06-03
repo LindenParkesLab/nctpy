@@ -4,11 +4,10 @@ import scipy as sp
 def sim_state_eq( A, B, xi, U):
     """This function caclulates the trajectory for the network given our model
      if there are no constraints, and the target state is unknown, using the
-     control equation precess dx = Ax(t) + BU(t). x(t) is the state vector, A is
+     control equation precess x(t+1) = Ax(t) + BU(t). x(t) is the state vector, A is
      the adjacency matrix, U(t) is the time varying input as specified by the
      user, and B selects the control set (stimulating electrodes)
     
-    Original matlab code by Jason Kim
     Args:
      A             : NxN state matrix (numpy array), where N is the number of nodes in your
                    network (for example, a structural connectivity matrix 
@@ -22,21 +21,18 @@ def sim_state_eq( A, B, xi, U):
                    matrix of zeros, but B(1,1) = 1. then energy will only be
                    applied at the first node.
      
-     xi            : NxM initial state (numpy array) of your system where N is the number of
-                   nodes, and M is the number of independent states (ie 
-                   frequency bands). xi MUST have N rows, however, the number
-                   of state measurements can change (and can be equal to 1). 
+     xi            : Nx1 initial state (numpy array) of your system where N is the number of
+                   nodes. xi MUST have N rows. 
     
-     U             : NxMxT matrix of Energy (numpy array), where N is the number of nodes, M
-                   is the number of state measurements, and T is the number of
+     U             : NxT matrix of Energy (numpy array), where N is the number of nodes
+                   and T is the number of
                    time points. For example, if you want to simulate the
                    trajectory resulting from stimulation, U could have
                    log(StimFreq)*StimAmp*StimDur as every element. You can
-                   also enter U's that vary with time, or are different
-                   accross frequency bands.
+                   also enter U's that vary with time
     
       Returns:
-     x             : x is the NxMxT trajectory (numpy array) that results from simulating
+     x             : x is the NxT trajectory (numpy array) that results from simulating
                    x(t+1) = Ax(t) + Bu(t) the equation with the parameters
                    above.
     
@@ -45,17 +41,16 @@ def sim_state_eq( A, B, xi, U):
     """
 
     # Simulate trajectory
-    T = np.size(U,2)
+    T = np.size(U,1)
     N = np.size(A,0)
-    M = np.size(xi,1)
 
     # initialize x
-    x = np.zeros((N, M, T))
+    x = np.zeros((N, T))
     xt = xi
     for t in range(T):
-        x[:,:,t] = xt
-        dx = np.matmul(A,xt) + np.matmul(B,(U[:,:,t]) )# state equation
-        xt = xt + dx
+        x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
+        xt_1 = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+        xt = xt_1
     return x
 
 def optimal_energy(A, T, B, x0, xf, rho, S):
