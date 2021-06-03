@@ -80,7 +80,7 @@ simulations can be run using the `sim_state_eq` function"
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: ../example_figs/A_stable.png
+.. image:: example_figs/A_stable.png
    :scale: 70%
    :align: center
 
@@ -94,7 +94,7 @@ Let's see what happens with an unstable matrix:
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: ../example_figs/A_unstable.png
+.. image:: example_figs/A_unstable.png
    :scale: 70%
    :align: center
 
