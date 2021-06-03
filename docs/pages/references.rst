@@ -5,7 +5,8 @@ References
 
 When using BrainSpace, please cite the following:
 
-* [![DOI](https://zenodo.org/badge/370716682.svg)](https://zenodo.org/badge/latestdoi/370716682)
+.. image:: https://zenodo.org/badge/370716682.svg
+   :target: https://zenodo.org/badge/latestdoi/370716682
 
 Useful introductions: 
 

@@ -25,7 +25,7 @@ Alternatively, you can install the most up-to-date version of from GitHub:
 .. code-block:: bash
 
    git clone https://github.com/BassettLab/control_package.git
-   cd netwrok_control
+   cd control_package
    pip install .
 
 .. important::
