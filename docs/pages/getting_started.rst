@@ -112,12 +112,11 @@ Average contrallability can be calculated using the `ave_control` function:
 
    .. code-tab:: py
 
-        >>> from network_control.matrics import ave_control
+        >>> from network_control.metrics import ave_control
 
-        >>> labeling = load_parcellation('schaefer', scale=400, join=True)
-        >>> m = load_group_fc('schaefer', scale=400)
-        >>> m.shape
-        (400, 400)
+        >>> ac = ave_control(A)
+        >>> ac
+        array([1.09336323, 1.14427943, 1.09627313, 1.07053423, 1.11398205])
 
 
 The second metric included is modal controllability. Modal controlability tells you how wellmuch changing activity at a single node will impact all modes
@@ -129,19 +128,12 @@ the faster modes, which have less influece on average controllability. Modal con
 
    .. code-tab:: py
 
-        >>> from network_control.matrics import ave_control
+        >>> from network_control.metrics import modal_control
 
-        >>> # Build gradients using diffusion maps and normalized angle
-        >>> gm = GradientMaps(n_components=2, approach='dm', kernel='normalized_angle')
+        >>> mc = modal_control(A)
+        >>> mc
+        array([0.93504088, 0.90081559, 0.93130413, 0.9501653 , 0.9209])
 
-        >>> # and fit to the data
-        >>> gm.fit(m)
-        GradientMaps(alignment=None, approach='dm', kernel='normalized_angle',
-                     n_components=2, random_state=None)
-
-        >>> # The gradients are in
-        >>> gm.gradients_.shape
-        (400, 2)
 
 
 Let's say that we now want to know how well our system can transition between two specific states. We can calculate both the mininmum amount of 
@@ -151,15 +143,15 @@ energy that would need to be input into our system to get between a starting sta
 
    .. code-tab:: py
 
-        >>> from network_control.energies import mini
-        >>> from brainspace.utils.parcellation import map_to_labels
+        >>> from network_control.energies import minimum_energy
 
-        >>> # map to original size
-        >>> grad = map_to_labels(gm.gradients_[:, 0], labeling, mask=labeling != 0,
-        ...                      fill=np.nan)
-
-        >>> # Plot first gradient on the cortical surface.
-        >>> plot_hemispheres(surf_lh, surf_rh, array_name=grad, size=(800, 200))
+        >>> # define states and time horizon
+        >>> x0 = np.random.rand(5,1)
+        >>> xf = np.random.rand(5,1)
+        >>> T = 5
+        >>> x, u, n_err = minimum_energy(A,T,B,x0,xf)
+        >>> n_err
+        9.729507111180988e-15
 
 The function returns a matrix (u) that gives the energy at each time point for each node. Typically, to summarize over these values, you will
 calculate the area under the curve, or sum of squared values divded by the number of time points, for each node. The same goes for the state
@@ -171,15 +163,12 @@ are consistent with those reported in other papers. Let's look at an example tha
 
    .. code-tab:: py
 
-        >>> from network_control.energies import mini
-        >>> from brainspace.utils.parcellation import map_to_labels
-
-        >>> # map to original size
-        >>> grad = map_to_labels(gm.gradients_[:, 0], labeling, mask=labeling != 0,
-        ...                      fill=np.nan)
-
-        >>> # Plot first gradient on the cortical surface.
-        >>> plot_hemispheres(surf_lh, surf_rh, array_name=grad, size=(800, 200))
+        >>> # sparse B
+        >>> B_sparse = np.zeros((5,5))
+        >>> B_sparse[0,0] = 1
+        >>> x, u, n_err = minimum_energy(A,T,B_sparse,x0,xf)
+        >>> n_err
+        1.1806792811420392e-07
 
 Note that a faster version of minimal energy is also included (`minimum_energy_fast`) that only returns the energy.
 
@@ -191,18 +180,19 @@ state, you can use the `optimal_control` function:
 
    .. code-tab:: py
 
-        >>> from network_control.energies import mini
-        >>> from brainspace.utils.parcellation import map_to_labels
+        >>> from network_control.energies import optimal_energy
 
-        >>> # map to original size
-        >>> grad = map_to_labels(gm.gradients_[:, 0], labeling, mask=labeling != 0,
-        ...                      fill=np.nan)
+        >>> # new parameters
+        >>> rho = 1
+        >>> S = np.eye(5)
+        >>> x, u, n_err = optimal_energy(A,T,B,x0,xf,rho,S)
+        >>> n_err
+        8.874675925196695e-14
 
-        >>> # Plot first gradient on the cortical surface.
-        >>> plot_hemispheres(surf_lh, surf_rh, array_name=grad, size=(800, 200))
 
-Optimal control takes an additional parameter, rho. This parameter scales how important energy minimization is relative to staying 'close' to 
-your target state. If rho is infinity, topimal control becomes the same as minimum control
+Optimal control takes two additional parameters, rho and S. The parameter rho scales how important energy minimization is relative to staying 'close' to 
+your target state. If rho is infinity, topimal control becomes the same as minimum control. The parameter S can be used to contrain only a subset of 
+state values.
 
 
 That concludes this getting started section. For more full examples see :ref:`examples`.
