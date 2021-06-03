@@ -10,7 +10,7 @@ Introduction to Network Control
 Classically, many neuroimaging studies have been interested in how the brain can be driven to specific, diverse patterns of activity.
 Network control theory is a powerful tool from physical energineering sciences that can provide instight into these questions. Network 
 control theory provides a specific, dynamical equation that defines how the activity of the brain will spread along white matter connections
-in response to some input. Important to these tools is the definition of the system 9here, the brain) as network, with nodes connected by edges, and
+in response to some input. Important to these tools is the definition of the system (here, the brain) as network, with nodes connected by edges, and
 defined by an adjacency matrix A. In human neuroimaging, much of the application of these tools is divided into two categories: metrics and energies.
 Metrics are statistics of a structural brain network, or node in the network that summarise information about control to many, nonspecific states.
 Energies, on the other hand, provide quantification of how easily the network can transition between two specific states. For a more detailed
@@ -80,11 +80,11 @@ simulations can be run using the `sim_state_eq` function"
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: ./example_figs/A_stable.png
+.. image:: ../example_figs/A_stable.png
    :scale: 70%
    :align: center
 
-Let's see what happen with an unstable matrix:
+Let's see what happens with an unstable matrix:
 
 .. doctest::
 
@@ -94,7 +94,7 @@ Let's see what happen with an unstable matrix:
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: ./example_figs/A_unstable.png
+.. image:: ../example_figs/A_unstable.png
    :scale: 70%
    :align: center
 
