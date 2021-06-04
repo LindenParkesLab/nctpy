@@ -86,6 +86,4 @@ Lastly we'll plot the linear relationship between age and each metric
 
 The above shows that whole-brain average and modal controllability both increase throughout development (between the ages
 of 10 and 20 years). This is consistent Tang et al. 2017
-(`see their Fig 2c <https://www.nature.com/articles/s41467-017-01254-4.pdf>`_) for average controllability.
-
-But what about regional effects?
+(`see Fig 2c <https://www.nature.com/articles/s41467-017-01254-4.pdf>`_) for average controllability.
