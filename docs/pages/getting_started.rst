@@ -19,14 +19,19 @@ introduction, see :ref:`theory`.
 network_control is compact python toolbox that implements commonly used analyses from network control theory in human neuroimaging in Python.
 It requires only numpy and scipy to install. In this overview, we will walk through some of the bsic functions, and important considerations
 for using network control theory. The steps below will help you to get
-started. If you haven't done so yet, we recommend you install the package (:ref:`install_page`) so you can follow along with the examples. 
+started. If you haven't done so yet, we recommend you install the package (:ref:`installation_setup`) so you can follow along with the examples. 
 
 Calculating control statistics and energies
 --------------------------------------------------------
 
-We can start by intializing a random adjacency matrix (A) the will serve as our structural connectivity matrix.
-The matrix A defines the possible paths of activity spread for our dynamical system (the brain). The dynamics of our system will evolve according to the equation x(t+1) = Ax(t) + Bu(t)
-where x is the state (or regional brain activity) of the system over time, u is the input to the system, and B defines which nodes (or brain regions) receive input:
+We can start by intializing a random adjacency matrix (:math:`\mathbf{A}`) the will serve as our structural connectivity matrix.
+The matrix A defines the possible paths of activity spread for our dynamical system (the brain). The dynamics of our system will evolve according to the equation:
+
+.. math::
+
+    x(t+1) = \mathbf{A}x(t) + \mathbf{B}u(t) 
+
+where :math:`x` is the state (or regional brain activity) of the system over time, :math:`u` is the input to the system, and :math:`\mathbf{B}` defines which nodes (or brain regions) receive input:
 
 .. doctest::
 
@@ -80,8 +85,7 @@ simulations can be run using the `sim_state_eq` function"
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: example_figs/A_stable.png
-   :scale: 70%
+.. image:: ./example_figs/A_stable.png
    :align: center
 
 Let's see what happens with an unstable matrix:
@@ -94,8 +98,7 @@ Let's see what happens with an unstable matrix:
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
 
-.. image:: example_figs/A_unstable.png
-   :scale: 70%
+.. image:: ./example_figs/A_unstable.png
    :align: center
 
 Now that our matrix is scaled, we're ready to calculate some control metrics. The first metric included in the package is
@@ -131,7 +134,7 @@ the faster modes, which have less influece on average controllability. Modal con
 Let's say that we now want to know how well our system can transition between two specific states. We can calculate both the mininmum amount of 
 energy that would need to be input into our system to get between a starting state (xi) and a final state (xf) using the function `minimum_control`:
 
-.. docktest::
+.. doctest::
 
      >>> from network_control.energies import minimum_energy
 
@@ -144,9 +147,9 @@ energy that would need to be input into our system to get between a starting sta
      
      9.729507111180988e-15
 
-The function returns a matrix (u) that gives the energy at each time point for each node. Typically, to summarize over these values, you will
+The function returns a matrix (`u`) that gives the energy at each time point for each node. Typically, to summarize over these values, you will
 calculate the area under the curve, or sum of squared values divded by the number of time points, for each node. The same goes for the state
-values at every time point (x). The function also returns an error value, which the numerical error associated with the calculation of energy.
+values at every time point (`x`). The function also returns an error value, which the numerical error associated with the calculation of energy.
 Have large A matrices, sparse B matrices, and large T values will increase this value. It is genreally a good idea to make sure you error values
 are consistent with those reported in other papers. Let's look at an example that will lead to higher error:
 
@@ -179,8 +182,8 @@ state, you can use the `optimal_control` function:
      8.874675925196695e-14
 
 
-Optimal control takes two additional parameters, rho and S. The parameter rho scales how important energy minimization is relative to staying 'close' to 
-your target state. If rho is infinity, topimal control becomes the same as minimum control. The parameter S can be used to contrain only a subset of 
+Optimal control takes two additional parameters, `rho` and `S`. The parameter `rho` scales how important energy minimization is relative to staying 'close' to 
+your target state. If `rho` is infinity, optimal control becomes the same as minimum control. The parameter `S` can be used to contrain only a subset of 
 state values.
 
 
