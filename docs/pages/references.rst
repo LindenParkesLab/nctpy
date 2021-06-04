@@ -3,14 +3,14 @@
 References
 ==============================
 
-When using BrainSpace, please cite the following:
+When using network_control, please cite the following:
 
 .. image:: https://zenodo.org/badge/370716682.svg
    :target: https://zenodo.org/badge/latestdoi/370716682
 
 Useful introductions: 
 
-User guide targetted at researchers in neoruscience and psychology
+User guide targeted at researchers in neuroscience and psychology
 
 * `Karrer, T. M., Kim, J. Z., Stiso, J., Kahn, A. E., Pasqualetti, F., Habel, U., & Bassett, D. (2020). A practical guide to methodological considerations in the controllability of structural brain networks. Journal of Neural Engineering. <https://doi.org/10.1088/1741-2552/ab6e8b>`_
 
