@@ -8,6 +8,8 @@ Overview
 .. image:: https://readthedocs.org/projects/control-package/badge/?version=latest
    :target: https://control-package.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+.. image:: https://img.shields.io/pypi/l/ansicolortags.svg
+   :target: https://pypi.python.org/pypi/ansicolortags/
 
 Network Control Theory (NCT) is a branch of physical and engineering sciences that treats a network as a dynamical
 system. Generally, the system is controlled through signals that originate at a control point (or control points) and
@@ -66,7 +68,7 @@ the following:
     pip install network_control
 
 What's New
---------
+----------
     - v0.0.1: initial package release for network_control
 
 
