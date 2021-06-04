@@ -20,12 +20,3 @@ Contents
     pages/examples/index
     pages/theory/index
     pages/theory/jason
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
