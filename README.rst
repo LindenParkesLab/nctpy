@@ -49,7 +49,8 @@ Currently, ``network_control`` works with Python 3.6 and requires the following 
 There are some additional (optional) dependencies you can install (note, these are only used for i/o and plotting and
 only need to be installed if you want to run the notebooks in ``network_control/tests/``):
 
-    - pandas (test on 1.1.5)
+    - pandas (tested on 1.1.5)
+    - statsmodels (tested on 0.12.2)
     - matplotlib (tested on 3.3.4)
     - seaborn (tested on 0.11.1), and
     - jupyterlab (tested on 3.0.16)
