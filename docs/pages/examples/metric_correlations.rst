@@ -10,10 +10,10 @@ Relationships between regional Network Control Theory metrics
 
 In this example, we illustrate how average and modal controllability correlate to weighted degree and to each other.
 The data used here are structural connectomes taken from the
-`Philadelphia Neurodevelopment Cohort <https://www.sciencedirect.com/science/article/pii/S1053811913008331?via%3Dihub>`_.
+`Philadelphia Neurodevelopmental Cohort <https://www.sciencedirect.com/science/article/pii/S1053811913008331?via%3Dihub>`_.
 
-Here, our python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
-with nodes along dimensions 0/1 and subjects along dimension 3.
+Here, our Python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
+with 200 nodes along dimensions 0 and 1 and subjects along dimension 3.
 
 .. code-block:: default
 
@@ -24,7 +24,8 @@ with nodes along dimensions 0/1 and subjects along dimension 3.
     Out:
     (200, 200, 1068)
 
-With these data, we'll start by calculating average and modal controllability for each subject.
+With these data, we'll start by calculating weighted degree (strength), average controllability, and modal
+controllability for each subject.
 
 .. code-block:: default
 
@@ -49,22 +50,22 @@ With these data, we'll start by calculating average and modal controllability fo
         ac[i, :] = ave_control(a_norm)
         mc[i, :] = modal_control(a_norm)
 
-Then we'll average over subjects to produce a single estimate of weight degree, average controllability, and modal
-controllability for each node.
+Then we'll average over subjects to produce a single estimate of weighted degree, average controllability, and modal
+controllability at each node.
 
 .. code-block:: default
 
     # mean over subjects
     s_subj_mean = np.mean(s, axis=0)
-    s_subj_mean = rank_int(s_subj_mean)
-
     ac_subj_mean = np.mean(ac, axis=0)
-    ac_subj_mean = rank_int(ac_subj_mean)
-
     mc_subj_mean = np.mean(mc, axis=0)
+
+    # normalize
+    s_subj_mean = rank_int(s_subj_mean)
+    ac_subj_mean = rank_int(ac_subj_mean)
     mc_subj_mean = rank_int(mc_subj_mean)
 
-Lastly we'll illustrate the relationships between metrics
+Lastly, we'll illustrate the correlations between metrics
 
 .. code-block:: default
 
@@ -77,5 +78,5 @@ Lastly we'll illustrate the relationships between metrics
 .. image:: ./metric_correlations.png
     :align: center
 
-The above results consistent Gu et al. 2015
-(`see Figure 2 <https://www.nature.com/articles/ncomms9414.pdf>`_).
+The above results are consistent with Gu et al. 2015
+(see `Figure 2 <https://www.nature.com/articles/ncomms9414.pdf>`_).
