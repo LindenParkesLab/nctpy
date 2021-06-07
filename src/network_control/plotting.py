@@ -30,7 +30,7 @@ def set_plotting_params(format='png'):
     sns.set(style='whitegrid', context='paper', font_scale=1, font='Public Sans')
 
 
-def reg_plot(x, y, xlabel, ylabel, ax, c='gray', add_spearman=False):
+def reg_plot(x, y, xlabel, ylabel, ax, c='gray', add_spearman=False, kdeplot=True, regplot=True):
     if x.shape == y.shape:
         mask_x = ~np.isnan(x)
         mask_y = ~np.isnan(y)
@@ -51,11 +51,15 @@ def reg_plot(x, y, xlabel, ylabel, ax, c='gray', add_spearman=False):
         pass
 
     color_blue = sns.color_palette("Set1")[1]
-    try:
-        sns.kdeplot(x=x, y=y, ax=ax, color='gray', thresh=0.05, alpha=0.25)
-    except:
-        pass
-    sns.regplot(x=x, y=y, ax=ax, scatter=False, color=color_blue)
+    if kdeplot:
+        try:
+            sns.kdeplot(x=x, y=y, ax=ax, color='gray', thresh=0.05, alpha=0.25)
+        except:
+            pass
+
+    if regplot:
+        sns.regplot(x=x, y=y, ax=ax, scatter=False, color=color_blue)
+
     if type(c) == str:
         ax.scatter(x=x, y=y, c=c, s=5, alpha=0.5)
     else:
