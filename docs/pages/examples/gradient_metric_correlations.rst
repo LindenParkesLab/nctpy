@@ -8,11 +8,13 @@ Inter-metric coupling across the principal gradient of functional connectivity
 
     Relevant publication: `Parkes et al. 2021 Biological Psychiatry <https://www.sciencedirect.com/science/article/pii/S0006322321011756>`_
 
-In this example, we illustrate how the cross-subject correlations between regional strength and average controllability,
-as well as between strength and modal controllability, vary as a function of the
+In this example, we illustrate how the cross-subject correlations between weighted degree and average controllability,
+as well as between weighted degree and modal controllability, vary as a function of the
 `principal cortical gradient of functional connectivity <https://www.pnas.org/content/pnas/113/44/12574.full.pdf>`_.
+The data used here are structural connectomes taken from the
+`Philadelphia Neurodevelopmental Cohort <https://www.sciencedirect.com/science/article/pii/S1053811913008331?via%3Dihub>`_.
 
-Here, our python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
+Here, our Python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
 with 200 nodes along dimensions 0 and 1 and subjects along dimension 3.
 
 .. code-block:: default
@@ -36,12 +38,15 @@ situated along the cortical gradient.
     Out:
     (200,)
 
-With these data, we'll start by calculating strength, average controllability, and modal controllability for each subject.
+With these data, we'll start by calculating weighted degree (strength), average controllability, and
+modal controllability for each subject.
 
 .. code-block:: default
 
     from network_control.metrics import node_strength, ave_control, modal_control
     from network_control.utils rank_int, matrix_normalization
+    from network_control.plotting import set_plotting_params, reg_plot
+    set_plotting_params()
 
     n_nodes = A.shape[0] # number of nodes (200)
     n_subs = A.shape[2] # number of subjects (1068)
@@ -81,7 +86,8 @@ Finally, for each region, we'll calculate the cross-subject correlation between 
         corr_s_ac[i] = sp.stats.pearsonr(s[:, i], ac[:, i])[0]
         corr_s_mc[i] = sp.stats.pearsonr(s[:, i], mc[:, i])[0]
 
-Plotting time!
+Plotting time! Below we illustrate how the above correlations vary over the cortical gradient spanning unimodal to
+transmodal cortex.
 
 .. code-block:: default
 

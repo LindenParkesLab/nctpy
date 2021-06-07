@@ -10,10 +10,10 @@ Effect of development on average and modal controllability
 
 In this example, we illustrate how average and modal controllability vary as a function of age in a developing sample.
 The data used here are structural connectomes taken from the
-`Philadelphia Neurodevelopment Cohort <https://www.sciencedirect.com/science/article/pii/S1053811913008331?via%3Dihub>`_.
+`Philadelphia Neurodevelopmental Cohort <https://www.sciencedirect.com/science/article/pii/S1053811913008331?via%3Dihub>`_.
 
-Here, our python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
-with nodes along dimensions 0/1 and subjects along dimension 3.
+Here, our Python workspace contains subject-specific structural connectomes stored in ``A``, a ``numpy.array``
+with 200 nodes along dimensions 0 and 1 and subjects along dimension 3.
 
 .. code-block:: default
 
@@ -47,6 +47,8 @@ With these data, we'll start by calculating average and modal controllability fo
 
     from network_control.metrics import ave_control, modal_control
     from network_control.utils rank_int, matrix_normalization
+    from network_control.plotting import set_plotting_params, reg_plot
+    set_plotting_params()
 
     n_nodes = A.shape[0] # number of nodes (200)
     n_subs = A.shape[2] # number of subjects (1068)
@@ -57,11 +59,12 @@ With these data, we'll start by calculating average and modal controllability fo
 
     # loop over subjects
     for i in np.arange(n_subs):
-        ac[i, :] = ave_control(matrix_normalization(A[:, :, i]))
-        mc[i, :] = modal_control(matrix_normalization(A[:, :, i]))
+        a_norm = matrix_normalization(A[:, :, i])
+        ac[i, :] = ave_control(a_norm)
+        mc[i, :] = modal_control(a_norm)
 
 
-Then we'll average over nodes to produce whole-brain estimates of average and modal controllability for each subject.
+Then we'll average over nodes to produce estimates of whole-brain average and modal controllability for each subject.
 
 .. code-block:: default
 
@@ -69,18 +72,18 @@ Then we'll average over nodes to produce whole-brain estimates of average and mo
     ac_node_mean = np.mean(ac, axis=1)
     mc_node_mean = np.mean(mc, axis=1)
 
-Lastly we'll plot the linear relationship between age and each metric
+Lastly, we'll plot the correlation between age and each metric
 
 .. code-block:: default
 
     f, ax = plt.subplots(1, 2, figsize=(5, 2.5))
-    reg_plot(x=df['ageAtScan1']/12, y=ac_node_mean, xlabel='Age', ylabel='Mean average ctrb.', ax=ax[0])
-    reg_plot(x=df['ageAtScan1']/12, y=mc_node_mean, xlabel='Age', ylabel='Mean modal ctrb.', ax=ax[1])
+    reg_plot(x=df['ageAtScan1']/12, y=ac_node_mean, xlabel='Age (years)', ylabel='Mean average ctrb.', ax=ax[0])
+    reg_plot(x=df['ageAtScan1']/12, y=mc_node_mean, xlabel='Age (years)', ylabel='Mean modal ctrb.', ax=ax[1])
     plt.show()
 
-.. image:: ./age_effects_metrics_corr(age,ac_node_mean).png
+.. image:: ./age_effects_metrics.png
     :align: center
 
-The above shows that whole-brain average and modal controllability both increase throughout development (between the ages
-of 10 and 20 years). This is consistent Tang et al. 2017
-(`see Figure 2c <https://www.nature.com/articles/s41467-017-01254-4.pdf>`_) for average controllability.
+The above figure shows that whole-brain average and modal controllability both increase throughout development.
+This is consistent Tang et al. 2017 (see `Figure 2c <https://www.nature.com/articles/s41467-017-01254-4.pdf>`_
+for average controllability).
