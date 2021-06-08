@@ -64,7 +64,7 @@ are assigned to multiple states.
 
 So the first 10 nodes of ``A`` will belong to state 0, the next 10 to state 1, and so on and so forth. Using these states,
 we'll first compute the minimum control energy required to transition between all possible pairs using our standard
-approach (:func:`network_control.minimum_energy`).
+approach, :func:`network_control.energies.minimum_energy`.
 
 .. code-block:: default
 
@@ -98,10 +98,10 @@ approach (:func:`network_control.minimum_energy`).
 
 The standard approach took ~30 seconds to calculate the control energy associated with completing 400 state
 transitions. Now we'll compare that to our alternative approach, which can be accessed via
-:func:`network_control.minimum_energy_fast`.
+:func:`network_control.energies.minimum_energy_fast`.
 
 In order to use this variant of minimum control energy, we first
-have to use our :func:`network_control.expand_states` function to convert ``states`` into a pair of boolean
+have to use our :func:`network_control.utils.expand_states` function to convert ``states`` into a pair of boolean
 matrices, ``x0_mat`` and ``xf_mat``, that together encode all possible pairwise state transitions.
 
 .. code-block:: default
