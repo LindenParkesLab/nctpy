@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = u'network_control'
-copyright = u'2021, Jennifer Stiso and Linden Parkes'
-author = u'Jennifer Stiso and Linden Parkes'
+copyright = u'2021, Jennifer Stiso, Linden Parkes and Jason Kim'
+author = u'Jennifer Stiso, Linden Parkes and Jason Kim'
 
 # The short X.Y version
 version = u''

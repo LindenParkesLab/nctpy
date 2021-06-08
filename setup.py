@@ -7,8 +7,8 @@ setuptools.setup(
     name="network_control",
     version="0.0.4",
 
-    author="Jennifer Stiso and Linden Parkes",
-    author_email="jeni.stiso@gmail.com, lindenmp@seas.upenn.edu",
+    author="Jennifer Stiso, Linden Parkes and Jason Kim",
+    author_email="jeni.stiso@gmail.com, lindenmp@seas.upenn.edu, jinsu1@seas.upenn.edu",
 
     description="Python implementation of concepts from network control theory",
     long_description=long_description,

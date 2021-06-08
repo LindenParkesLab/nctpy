@@ -76,5 +76,6 @@ What's New
 Questions
 ---------
 
-If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes)
-or Jennifer Stiso (https://twitter.com/JenniferStiso).
+If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes),
+ Jennifer Stiso (https://twitter.com/JenniferStiso) or Jason Kim (). For questions or clarifications
+ about the theory pages of the documentation, please contact Jason Kim ().
