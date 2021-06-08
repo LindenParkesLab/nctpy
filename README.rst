@@ -70,7 +70,7 @@ the following:
 
 What's New
 ----------
-    - v0.0.1: initial package release for network_control
+    - v0.0.4: initial package release for network_control
 
 
 Questions

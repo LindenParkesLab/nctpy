@@ -1,11 +1,13 @@
 LICENSE
-README.md
+README.rst
 pyproject.toml
 setup.cfg
 setup.py
 src/network_control/__init__.py
 src/network_control/energies.py
 src/network_control/metrics.py
+src/network_control/plotting.py
+src/network_control/utils.py
 src/network_control.egg-info/PKG-INFO
 src/network_control.egg-info/SOURCES.txt
 src/network_control.egg-info/dependency_links.txt
