@@ -16,3 +16,4 @@ Contents
     pages/getting_started
     pages/examples/index
     pages/theory/index
+    pages/numerics/index
