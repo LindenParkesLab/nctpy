@@ -3,6 +3,11 @@
 Theory
 -------
 
+.. note::
+    :class: sphx-glr-download-link-note
+
+    Relevant publication: `Kim et al. 2020 Neural Engineering <https://link.springer.com/chapter/10.1007/978-3-030-43395-6_17>`_. Much of the inspiration for the derivations came from `Dr. George Pappas' <https://www.georgejpappas.org/>`_ course ESE 500 on Linear Systems Theory at UPenn.
+
 When we talk about the "control" of a system, we broadly refer to some input or change to the system that alters its behavior in a desired way. To more precisely discuss control, we first have to discuss the object that is being controlled: the system. In the network control framework, what is being controlled is a **dynamical system**.
 
 |
@@ -26,7 +31,7 @@ When we say dynamic (states are changing), we mean to say that the states are ch
 
 "in geometric space"
 __________________________
-When we say "geometric," we *usually* mean the colloquial usage of the word. That is, Euclidean space. We live in 3-dimensional Euclidean space, where every point is described by 3 coordinates: :math:`(x,y,z)`. In a dynamical system, there is no need to restrict ourselves to 3 dimensions. In the train example, we can represent the position of the train along the track, :math:`x`, on a number line. Even if the track itself is not straight, we can "straighten out" the track to form a 1-dimensional line. As another exmple, the FitzHugh-Nagumo model is a 2-dimensional simplification of a Hodgkin-Huxley neuron, with two states, :math:`v` and :math:`w`. We can plot these states separately over time (left,center), or we can plot them together in a 2-dimensional space, where each axis represents either :math:`v` or :math:`w` (right). 
+When we say "geometric," we *usually* mean the colloquial usage of the word. That is, Euclidean space. We live in 3-dimensional Euclidean space, where every point is described by 3 coordinates: :math:`(x,y,z)`. In a dynamical system, there is no need to restrict ourselves to 3 dimensions. In the train example, we can represent the position of the train along the track, :math:`x`, on a number line. Even if the track itself is not straight, we can "straighten out" the track to form a 1-dimensional line. As another exmple, the FitzHugh-Nagumo model is a 2-dimensional simplification of a Hodgkin-Huxley neuron, with two states, :math:`v` and :math:`w`. We can plot these states separately over time (left,center), or we can plot them together in a 2-dimensional geometric space, where each axis represents either :math:`v` or :math:`w` (right).
 
 .. image:: ./fig_cycle.gif
    :align: center
@@ -111,8 +116,8 @@ For convenience, we will name all of our state varibles :math:`x_1,x_2,\dotsm,x_
 |
 |
 
-Linear Dynamics
-===============
+Linear State-Space Systems
+==============================
 Now that we have a better idea of what a dynamical system is, we would like to move on to control. However, there is a fundamental limitation when attempting to control a system, which is that we do not know how the system will naturally evolve. At any given state, :math:`\mathbf{x}(t),` we can use the dynamical equations to know where the state will *immediately* go, :math:`\frac{\mathrm{d}\mathbf{x}(t)}{\mathrm{d}t}.` However, we generally cannot know where the state will end up after a *finite* amount of time, at :math:`\mathbf{x}(t+T).` This problem extends to any perturbation we perform on the system, where we cannot know how the perturbation will affect the state after a finite amount of time.
 
 However, there is a class of dynamical systems where we can know both where the states will end up, and how a perturbation will change the states after a finite amount of time. These systems are called `linear time-invariant systems <https://en.wikipedia.org/wiki/Linear_time-invariant_system>`_, or LTI systems. 
@@ -147,7 +152,7 @@ Finally, we exponentiate both sides to pull out :math:`x(t)`:
 .. math::
     x(t) = Ce^{at},
 
-where the constant :math:`C` is the initial condition, :math:`C = x(0).` Hence, we can write our final trajectory as
+where the constant :math:`C` is the initial condition, :math:`C = x(0).` This is because when we plug in :math:`t=0,` the exponential becomes :math:`e^{a0} = 1.` Hence, we can write our final trajectory as
 
 .. math::
     x(t) = x(0) e^{at},
@@ -192,9 +197,11 @@ Hence, the trajectory of a vector LTI system is given simply by
 
 In general, :math:`e^{At}` is called the *impulse response* of the system, because for any impulse :math:`\mathbf{x}(0),` the impulse response tells us precisely how the system will evolve.
 
+|
+|
 
-what makes a system linear?
-_________________________________
+The Potential of Linear Response
+=================================
 Until now, we have written down several examples of systems that we have called linear. Drawing on our prior coursework in linear algebra, we recall that the adjective *linear* is used to describe a particular property of some operator :math:`f(\cdot)` acting on some objects :math:`x_1,x_2.` That is, if 
 
 .. math::
@@ -219,6 +226,9 @@ then
 
 which is true by the distributive property. 
 
+
+a 2-state example
+______________________
 While this property might not seem so impressive at first glance, the implications are actually quite powerful. Specifically, this linearity allows us to write all possible trajectories of our system as a simple weighted sum of initial conditions. Hence, rather than having to simulate all initial states to see if we reach a particular final state, we can reconstruct the initial state that yields a desired final state. To demonstrate, consider the following simple 2-dimensional system
 
 .. math::
@@ -269,16 +279,207 @@ due to the properties of linearity such that
 
 As we can see, we did not have to do any guesswork in solving for the initial state that yielded the desired final state. Instead, we reconstructed the final state from a basis of final states, and took advantage of the linear property of the impulse response to apply that reconstruction to the initial states. This reconstruction using basis vectors and linearity is the core principle behind network control theory.
 
+an easier approach
+_____________________________________
+While the previous reconstruction example was useful, the linearity of the impulse response actually allows us to solve the problem *much* faster, because at the end of the day, the impulse response is simply a linear system of equations,
+
+.. math::
+    \mathbf{x}(T) = e^{AT}\mathbf{x}(0).
+
+So, we know :math:`A,` and we know the desired target state, :math:`\mathbf{x}(T),` so we just multiply both sides of the equation by the inverse of :math:`e^{AT}` to yield the correct initial state
+
+.. math::
+    \mathbf{x}(0) = e^{-AT} \mathbf{x}(T) = \begin{bmatrix} -0.7\\ -0.5 \end{bmatrix}.
+
+And... that's kind of it. And fundamentally, the control of these systems uses the exact same idea. That is, we find some *linear* operation that takes us from the control input to the final state, then solve for the input using some fancy versions of matrix inverses.
+
+
 |
 |
+
 
 Controlled Dynamics
 ============================
-Now that we have the natural evolution of our system, we are now ready to think about the behavior of our system after some controlling perturbation. 
+Until now, we have worked with LTI dynamics, which we write as
+
+.. math::
+    \dot{\mathbf{x}} = A\mathbf{x}.
+
+When we say *control*, we intend to perturb the system using some external inputs, :math:`u_1(t), u_2(t),\dotsm,u_k(t),` that we will collect into a vector :math:`\mathbf{u}(t).` These inputs might be electromagnetic stimulation from transcranial magnetic stimulation (TMS), some modulation of neurotransmitters through medication, or sensory inputs. And of course, these inputs don't randomly affect all brain states separately, but have a specific pattern of effect based on the site of stimulation, neurotransmitter distribution, or sensory neural pathways. We represent this mapping from stimuli to brain regions through vectors :math:`\mathbf{b}_1,\mathbf{b}_2,\dotsm,\mathbf{b}_k,` which we collect into an :math:`N\times k` matrix :math:`B.` Then our new controlled dynamics become
+
+.. math::
+    \dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}.
+
+So now we have a bit of a problem. We would like to write :math:`\mathbf{x}(t)` as some nice linear function as before, but how do we do this? The derivation requires a bit of algebra, so feel free to skip it!
+
+derivation of the controlled response
+________________________________________
+So the first thing we will try to do is, as before, move all of the same variables to one side. So first, we will subtract both sides by :math:`A\mathbf{x}`
+
+.. math::
+    \dot{\mathbf{x}} - A\mathbf{x} = B\mathbf{u}.
+
+Then, as before, we want to integrate the time derivative. However, simply integrating both sides will yield a :math:`\int A\mathbf{x}` term, which we do not want. To combine the :math:`\dot{\mathbf{x}}` and :math:`A\mathbf{x}` terms, we will first mutiply the equation by :math:e^{-At},
+
+.. math::
+    e^{At}\dot{\mathbf{x}} - e^{At}A\mathbf{x} = e^{At}B\mathbf{u},
+
+and notice that we can actually perform the reverse of the product rule on the left-hand side. Specifically, :math:`\frac{\mathrm{d}}{\mathrm{d}t} e^{At}\mathbf{x} = e^{At}\dot{\mathbf{x}} - e^{At}A\mathbf{x}` (small note, :math:`e^{-At}A = Ae^{-At}` because a matrix and functions of that matrix `commute <https://en.wikipedia.org/wiki/Commuting_matrices>`_). Substituting this expression into the left-hand side, we get
+
+.. math::
+    \frac{\mathrm{d}}{\mathrm{d}t} e^{At}\mathbf{x} = e^{At}B\mathbf{u}
+
+Now we are almost done, as we integrate both sides from :math:`t = 0` to :math:`t = T` to yield
+
+.. math::
+    e^{-AT} \mathbf{x}(T) - \mathbf{x}(0) = \int_0^T e^{-At} B\mathbf{u}(t) \mathrm{d}t
+    
+Finally, we isolate the term :math:`\mathbf{x}(T)` by adding both sides of the equation by :math:`\mathbf{x}(0),` and multiplying through by :math:`e^{AT}` to yield
+
+.. math::
+    \underbrace{\mathbf{x}(T)}_{\mathrm{target}} = \underbrace{e^{AT}\mathbf{x}(0)}_{\mathrm{natural}} + \underbrace{\int_0^T e^{A(T-t)} B\mathbf{u}(t) \mathrm{d}t}_{\mathrm{controlled}}
+
+We notice that the first term, the "natural" term, is actually our original, uncontrolled impulse response. We also notice that the second term, the "controlled" term, is just a convolution of our input, :math:`\mathbf{u}(t),` with the impulse response. For conciseness, we will write the convolution using a fancy letter :math:`\mathcal{L}(\mathbf{u}) = \int_0^T e^{A(T-t)} B\mathbf{u}(t) \mathrm{d}t,` and rewrite our controlled response as
+
+.. math::
+    \underbrace{\mathbf{x}(T)}_{\mathrm{target}} = \underbrace{e^{AT}\mathbf{x}(0)}_{\mathrm{natural}} + \underbrace{\mathcal L(\mathbf{u}(t))}_{\mathrm{controlled}}
 
 
+some intuition for the controlled response
+_______________________________________________
+We can gain some simple intuition by rearranging the controlled response a little
+
+.. math::
+    \underbrace{\mathbf{x}(T)}_{\mathrm{target}} - \underbrace{e^{AT}\mathbf{x}(0)}_{\mathrm{natural}} = \underbrace{\mathcal L(\mathbf{u}(t))}_{\mathrm{controlled}}
+
+If we look closely, we notice that the controlled response simply makes up the *difference* between the natural evolution of the system from its initial state, and the desired target state. To visualize this equation in our previous 2-dimensional example, we mark the initial state and natural evolution of the initial state in orange, and the desired target state in purple. The controlled response is algebraically responsible for making up the gap between the initial and target state.
+
+.. image:: ./fig_controlled_response.png
+   :align: center
+
+|
+|
+
+The Potential of Linear Controlled Response
+==================================================
+So now we reach the final question: **how do we design the controlled response,** :math:`\mathbf{u}(t),` **that brings our system from an initial state** :math:`\mathbf{x}(0)` **to a desired target state** :math:`\mathbf{x}(T)` **?** And the great thing about this question is that we already know how to do it because the controlled response is *linear*. By linear, we again mean that for some input :math:`\mathbf{u}_1(t)` that yields an output :math:`\mathbf{y}_1 = \mathcal L(\mathbf{u}_1(t)),` and another input :math:`\mathbf{u}_2(t)` that yields an output :math:`\mathbf{y}_2 = \mathcal L(\mathbf{u}_2(t)),` we have that
+
+.. math::
+    a\mathbf{y}_1 + b\mathbf{y}_2 = \mathcal L(a\mathbf{u}_1 + b\mathbf{u}_2)
 
 
+This fact comes from the fact that the `convolution <https://en.wikipedia.org/wiki/Convolution>`_ operator is *linear*. 
+
+
+a simple 2-state example
+________________________________
+So let's try to derive some intuition with the same 2-state example as before, but now our system will have a controlled input such that
+
+.. math::
+    \underbrace{\begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\ x_2\end{bmatrix}}_{\mathbf{x}} + \underbrace{\begin{bmatrix} 1 & 0\\ 0 & 1 \end{bmatrix}}_{B} \underbrace{\begin{bmatrix} u_1\\u_2 \end{bmatrix}}_{\mathbf{u}}.
+
+The natural trajectory of the system is shown as the blue curve, while the first controlled trajectory when :math:`u_1=1` is shown in the red curve, and the second controlled trajectory when :math:`u_2=1` is shown in the yellow curve (left).
+
+.. image:: ./fig_control_reconstruction.png
+   :align: center
+
+Now, we have to be careful about exactly *what* is linear. And the thing that is linear is the convolution operator, :math:`\mathcal{L}(\mathbf{u}) = \int_0^T e^{A(T-t)} B\mathbf{u}(t) \mathrm{d}t.` This operator takes the control input, :math:`\mathbf{u}(t),` as its input, and outputs the *difference* between the final state, :math:`\mathbf{x}(T),` and the natural, uncontrolled evolution, :math:`e^{AT} \mathbf{x}(0).` Hence, we have to speak about the states *relative* to the natural, uncontrolled evolution. 
+
+So when we look at the effect of the first controlling input :math:`u_1=1,` we are looking at the difference between the controlled final state (open orange circle) from the natural final state (open blue circle). Similarly, when we look at the effect of the second controlling input :math:`u_2 = 1,` we are looking at the difference between the controlled final state (open yellow circle) from the natural final state (open blue circle). And if we want to reach a new target state (open purple circle), we use these differences in controlled trajectories (dashed red and yellow lines) as the basis vectors, and find the weighted sums that yield the difference between the target state and the natural final state (dashed purple line), which yields :math:`u_1 = -0.3, u_2 = -1.1.` And when we control our system using this linear combination of inputs, we see that the trajectory indeed reaches the desired target state (right).
+
+|
+|
+
+Minimum Energy Control
+==================================
+Of course, this process is all a bit tedious, because we first have to simulate controlled trajectories, then take combinations of those trajectories. Is there a faster and easier way to solve for control inputs that perform a state transition without having to run simulations? The answer is yes, because the controlled response operator :math:`\mathcal L(\mathbf{u})` is linear, but requires a bit of care.
+
+So first, let's think about a typical linear regression problem, :math:`M\mathbf{v} = \mathbf{b},` where :math:`M` is an :math:`k \times n` matrix, :math:`\mathbf{v}` is an :math:`n` dimensional vector, and :math:`\mathbf{b}` is an :math:`k` dimensional vector,
+
+.. math::
+    \underbrace{\begin{bmatrix} m_{11} & m_{12} & m_{13} & \dotsm & m_{1n}\\ m_{21} & m_{22} & m_{23} & \dotsm & m_{2n}\\ \vdots & \vdots & \vdots & \ddots & \vdots \\ m_{k1} & m_{k2} & m_{k3} & \dotsm & m_{kn} \end{bmatrix}}_{M} \underbrace{\begin{bmatrix} v_1\\v_2\\v_3\\ \vdots\\ v_n \end{bmatrix}}_{\mathbf{v}} = \underbrace{\begin{bmatrix}b_1\\b_2\\ \vdots \\b_k \end{bmatrix}}_{\mathbf{b}}.
+
+One solution to this regression problem is :math:`\mathbf{v}^* = A^\top (AA^\top)^{-1} \mathbf{b},` where :math:`A^+ = A^\top (AA^\top)` is called the `pseudoinverse <https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse>`_. In fact, this pseudoinverse is quite special, because when a solution to the system of equations exists, :math:`\mathbf{v}^*` is the *smallest*, or *least squares* solution, where the magnitude is measured simply by the inner product, which in the case of :math:`n`-dimensional vectors is
+
+.. math::
+    <\mathbf{a},\mathbf{b}>_{\mathbb R^n} = \mathbf{a}^\top \mathbf{b} = a_1b_1 + a_2b_2 + \dotsm + a_nb_n,
+
+where the subscript :math:`\mathbb R^n` indicates that the inner product is on the space of :math:`n`-dimensional vectors. We can extend the exact same equations to our control problem. Explicitly, instead of a matrix :math:`M,` we will use our control response operator :math:`\mathcal L.` Instead of a vector of numbers :math:`\mathbf{v},` we will use a vector of functions :math:`\mathbf{u}(t).` And instead of dependent variable :math:`\mathbf{b},` we will use the state transition :math:`\mathbf{x}(T) - e^{AT}\mathbf{x}_0.` Then the solution to our least squares solution will be
+
+.. math::
+    \mathbf{u}^*(t) = \mathcal L^* (\mathcal L \mathcal L^*)^{-1} (\mathbf{x}(T) - e^{AT}\mathbf{x}(0)).
+
+Now, you may have noticed a slight problem, which has to do with the fact that our inputs are no longer vectors of *numbers*, but rather vectors of *functions*. This problem shows up in the transpose, or `adjoint <https://en.wikipedia.org/wiki/Hermitian_adjoint>`_ :math:`M^\top.` In our linear regression example, because the operator :math:`M` is a matrix, it makes sense to take it's tranpose. And this transpose satisfies an important property, which is that it preserves the *inner product* of input and output vectors. So if :math:`M\mathbf{v}` is an :math:`n`-dimensional vector, and :math:`M^\top\mathbf{b}` is an :math:`k`-dimensional vector, then :math:`M^\top` is defined such that
+
+.. math::
+    <M\mathbf{v},\mathbf{b}>_{\mathbb R^k} &= <\mathbf{v},M^\top \mathbf{b}>_{\mathbb R^n}\\
+    (M\mathbf{v})^\top \mathbf{b} &= \mathbf{v}^\top (M^\top \mathbf{b})\\
+    \mathbf{v}^\top M^\top \mathbf{b} &= \mathbf{v}^\top M^\top \mathbf{b}
+
+And when we are thinking about our control response operator :math:`\mathcal L,` we can actually do the same thing! First, we see that :math:`\mathcal L` is not mapping vectors to vectors as :math:`M,` but rather maps *functions* :math:`\mathbf{u}(t)` to vectors. So we first need to define the `inner product <https://en.wikipedia.org/wiki/Inner_product_space>`_ of functions, which is simply
+
+.. math::
+    <\mathbf{a}(t),\mathbf{b}(t)>_{\mathbb \Omega^k} = \int_0^T \mathbf{a}(t)^\top \mathbf{b}(t) \mathrm{d}t = \int_0^T a_1(t)b_1(t) + a_2(t)b_2(t) + \dotsm + a_k(t)b_k(t) \mathrm{d}t,
+
+where the subscript :math:`\mathbb \Omega^k` indicates that the inner product is on the space of :math:`k`-dimensional functions. Now, to find the adjoint of operator :math:`\mathcal L,` we have to satisfy the same inner product relationship (where we call :math:`\mathbf{b} = \mathbf{x}(T)-e^{AT}\mathbf{x}(0)` for brevity)
+
+.. math::
+    <\mathcal L(\mathbf{u}(t)),\mathbf{b}>_{\mathbb R^n} &= <\mathbf{u}(t),\mathcal L^* (\mathbf{b})>_{\mathbb \Omega^k}\\
+    \mathcal L(\mathbf{u}(t))^\top \mathbf{b} &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t\\
+    \left(\int_0^T e^{A(T-t)}B\mathbf{u}(t)\right)^\top \mathrm{d}t \mathbf{b} &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t\\
+    \int_0^T \mathbf{u}(t)^\top B^\top e^{A^\top (T-t)} \mathbf{b} \mathrm{d}t &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t,
+
+and we see that for the left and right sides to be equal, the adjoint must be equal to :math:`\mathcal L^* = B^\top e^{A^\top (T-t)}.` Intuitively, this makes sense because if the original operator :math:`\mathcal L` took functions of time as inputs and output a vector of numbers, then the adjoint should take vectors of numbers as inputs and output functions of time. Finally, plugging this adjoint back into our solution, we get
+
+.. math::
+    \mathbf{u}^*(t) &= \mathcal L^* (\mathcal L \mathcal L^*)^{-1} \mathbf{b}\\
+                            &= B^\top e^{A^\top (T-t)} \left(\underbrace{\int_0^T e^{A(T-t)}B B^\top e^{A^\top (T-t)} \mathrm{d}t}_{W_c}\right)^{-1} \mathbf{b},
+
+where for convenience, we will refer to the bracketed quantity as the *controllability Gramian*. To compute the magnitude of this control input, we simply take the norm of this solution to get
+
+.. math::
+    E^* = <\mathbf{u}^*(t), \mathbf{u}^*(t)> &= \int_0^T e^{A(T-t)} B B^\top e^{A^\top (T-t)} W_c^{-1} \mathbf{b} ~\mathrm{d}t\\
+                                                         &= \mathbf{b}^\top W_c^{-1} \int_0^T e^{A(T-t)} B B^\top e^{A^\top (T-t)} \mathrm{d}t ~W_c^{-1} \mathbf{b}\\
+                                                         &= \mathbf{b}^\top W_c^{-1} W_c W_c^{-1} \mathbf{b}\\
+                                                         &= \mathbf{b}^\top W_c^{-1} \mathbf{b}.
+
+final equations
+____________________
+So here we are! After some derivations, we can compute the control input :math:`\mathbf{u}^*(t)` that brings our system :math:`\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}` from an initial state :math:`\mathbf{x}(0)` to a final state :math:`\mathbf{x}(T)` with minimal norm input as
+
+.. math::
+    \mathbf{u}^*(t) = B^\top e^{A^\top (T-t)} W_c^{-1} (\mathbf{x}(T) - e^{AT}\mathbf{x}(0)),
+
+which costs the minimum energy
+
+.. math::
+    E^* = (\mathbf{x}(T) - e^{AT}\mathbf{x}(0))^\top W_c^{-1} (\mathbf{x}(T) - e^{AT}\mathbf{x}(0))
+
+a simple 2-dimensional example
+_________________________________________
+To provide a bit of intuition for the control process, we look again at our simple 2-dimensional linear example, but with only one control input, :math:`u_1(t),` along the :math:`x_1` direction
+
+.. math::
+    \underbrace{\begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\ x_2\end{bmatrix}}_{\mathbf{x}} + \underbrace{\begin{bmatrix} 1 \\ 0\end{bmatrix}}_{B} \underbrace{\begin{bmatrix} u_1 \end{bmatrix}}_{\mathbf{u}}.
+
+This means that we can only push our system along the :math:`x_1` direction, and have to rely on the internal dynamics to change the :math:`x_2` state. The natural trajectory (blue), controlled trajectory (orange), and control input (orange arrows) are shown in the left subplot below.
+
+.. image:: ./fig_min_energy_control.png
+   :align: center
+
+We observe that the state takes a rather roundabout trajectory to reach the target state, because the only way for the system state :math:`x_2` to move downward is to push the state :math:`x_1` to a regime where the natural dynamics allow :math:`x_2` to decrease. Now, if we define a different control system where we can only influence the dynamics along the :math:`x_2` state such that
+
+.. math::
+    \underbrace{\begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\ x_2\end{bmatrix}}_{\mathbf{x}} + \underbrace{\begin{bmatrix} 0 \\ 1\end{bmatrix}}_{B} \underbrace{\begin{bmatrix} u_1 \end{bmatrix}}_{\mathbf{u}},
+
+then we get the trajectory in the center subplot. Notice that the dynamics don't push the system straight downard, but rather follows the natura dynamics upwards for a while before moving downard. This is because it costs less energy (input) to fight the weaker natural upward dynamics near the center of the vector field, as opposed to fighting the stronger natural upward dynamics near the right of the vector field.
+
+Finally, if we are able to independently influence both of the system states,
+
+.. math::
+    \underbrace{\begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\ x_2\end{bmatrix}}_{\mathbf{x}} + \underbrace{\begin{bmatrix} 1 & 0\\ 0 & 1 \end{bmatrix}}_{B} \underbrace{\begin{bmatrix} u_1 \\ u_2 \end{bmatrix}}_{\mathbf{u}},
+
+then we get the controlled trajectory and inputs in the right subplot. 
 
 
 

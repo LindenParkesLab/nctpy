@@ -1,10 +1,13 @@
 %% Prepare Space
 clear; clc;
-set(groot,'defaulttextinterpreter','none');
 FS = 16;
+set(groot,'defaulttextinterpreter','none');
 
 
 %% Figure 1: Fitzhugh-Nagumo model
+clear; clc;
+FS = 16;
+
 % Parameters
 dt = .01;
 T = 100;
@@ -76,6 +79,9 @@ end
 
 
 %% Figure 2: 1-D example
+clear; clc;
+FS = 16;
+
 % Parameters
 dt = .01;
 T = 5;
@@ -153,6 +159,9 @@ end
 
 
 %% Figure 3: 2D vector field
+clear; clc;
+FS = 16;
+
 % Parameters
 dt = .01;
 T = 40;
@@ -223,6 +232,9 @@ end
 
 
 %% Figure 4, State reconstruction
+clear; clc;
+FS = 16;
+
 A = [-1 -2; 1 0];
 
 delT = .01;
@@ -373,3 +385,322 @@ fig.PaperSize = fSize;
 saveas(fig, fName, 'png');
 
 
+%% Figure 5, controlled response
+clear; clc;
+FS = 16;
+
+A = [-1 -2; 1 0];
+
+delT = .01;
+T = 1;
+t = delT:delT:T;
+X1 = zeros(2,length(t)); X1(:,1) = [1;0];
+X3 = [.5;-.5];
+
+% Simulate
+for i = 2:length(t)
+    X1(:,i) = expm(A*t(i))*X1(:,1);
+end
+
+fig = figure(5); clf;
+set(gcf,'color','w');
+fSize = [30,10];
+fName = 'fig_controlled_response.png';
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+dT = 0.05;
+
+nSV = 1;
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+vSep = .33;
+vWid = .27;
+C = lines(4);
+[Xv,Yv] = meshgrid(linspace(-1.7,1.7,31),linspace(-1.7,1.7,31));
+
+subplot('position',[.05 .17 vWid .8] + [vSep 0 0 0]); cla;
+hold on;
+plot(X1(1,1),X1(2,1),'.','markersize',20,'color',C(2,:));
+plot(X1(1,:),X1(2,:),'linewidth',1,'color',C(2,:));
+plot(X1(1,end),X1(2,end),'o','markersize',8,'linewidth',2,'color',C(2,:));
+plot(X3(1),X3(2),'o','markersize',8,'linewidth',2,'color',C(4,:));
+plot(0,0,'k.','markersize',10);
+plot([X1(1,end) X3(1)],[X1(2,end) X3(2)], '--','color',C(3,:),'linewidth',1);
+quiver(Xv,Yv,A(1,1)*Xv+A(1,2)*Yv,A(2,1)*Xv+A(2,2)*Yv,1.0,'color',C(1,:),...
+       'linewidth',.3);
+hold off;
+text(X1(1,1),X1(2,1)-.2,'$\mathbf{x}(0)$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(2,:));
+text(X1(1,end),X1(2,end)+.2,'$e^{AT}\mathbf{x}(0)$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(2,:));
+text(X3(1),X3(2)-.22,'$\mathbf{x}(T)$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(4,:));
+text(.05,-.2,'$\mathcal{L}(\mathbf{u})$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(3,:));
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.2);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+drawnow;
+
+% Save
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+saveas(fig, fName, 'png');
+
+
+%% Figure 6, State reconstruction
+clear; clc;
+FS = 16;
+
+A = [-1 -2; 1 0];
+
+delT = .01;
+T = 1;
+t = delT:delT:T;
+X0 = zeros(2,length(t)); X0(:,1) = [1;0];
+X1 = zeros(2,length(t)); X1(:,1) = [1;0];
+X2 = zeros(2,length(t)); X2(:,1) = [1;0];
+X3 = zeros(2,length(t)); X3(:,1) = [1;0]; X3(:,end) = [0.5;-0.5];
+
+% Simulate
+for i = 2:length(t)
+    X0(:,i) = X0(:,i-1) + (A*X0(:,i-1) + [0;0])*delT;
+    X1(:,i) = X1(:,i-1) + (A*X1(:,i-1) + [1;0])*delT;
+    X2(:,i) = X2(:,i-1) + (A*X2(:,i-1) + [0;1])*delT;
+end
+
+% Reconstruct
+delX1 = X1(:,end)-X0(:,end);
+delX2 = X2(:,end)-X0(:,end);
+delX3 = X3(:,end)-X0(:,end);
+u = [delX1 delX2]\delX3;
+
+for i = 2:length(t)-1
+    X3(:,i) = X3(:,i-1) + (A*X3(:,i-1) + u)*delT;
+end
+
+fig = figure(6); clf;
+set(gcf,'color','w');
+fSize = [30,10];
+fName = 'fig_control_reconstruction.png';
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+dT = 0.05;
+
+nSV = 1;
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+vSep = .33;
+vWid = .27;
+C = lines(4);
+
+subplot('position',[.05 .17 vWid .8]); cla;
+hold on;
+plot(X0(1,:),X0(2,:),'linewidth',1,'color',C(1,:));
+plot(X1(1,:),X1(2,:),'linewidth',1,'color',C(2,:));
+plot(X2(1,:),X2(2,:),'linewidth',1,'color',C(3,:));
+plot(X3(1,end),X3(2,end),'o','markersize',8,'linewidth',2,'color',C(4,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X1(1,end),X1(2,end),'o','markersize',8,'linewidth',2,'color',C(2,:));
+plot(X2(1,end),X2(2,end),'o','markersize',8,'linewidth',2,'color',C(3,:));
+plot(0,0,'k.','markersize',10);
+hold off;
+text(X0(1,1),X0(2,1)-.22,'$\mathbf{x}(0)$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(1,:));
+text(X0(1,end),X0(2,end)-.22,'$e^{AT}\mathbf{x}(0)$','interpreter','latex',...
+          'fontsize',FS,'horizontalalignment','center','color',C(1,:));
+legend('$u_1=0,~u_2=0$','$u_1=1,~u_2=0$','$u_1=0,~u_2=1$',...
+       'target: $\mathbf{x}(T)$',...
+       'numcolumns',1,'location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+
+
+subplot('position',[.05 .17 vWid .8] + [vSep 0 0 0]); cla;
+hold on;
+plot([X0(1,end) X1(1,end)],[X0(2,end) X1(2,end)],'--',...
+     'linewidth',1,'color',C(2,:));
+plot([X0(1,end) X2(1,end)],[X0(2,end) X2(2,end)],'--',...
+     'linewidth',1,'color',C(3,:));
+plot([X0(1,end) X3(1,end)],[X0(2,end) X3(2,end)],'--',...
+     'linewidth',1,'color',C(4,:));
+plot(X0(1,end)+[0 delX1(1)*u(1)],X0(2,end)+[0 delX1(2)*u(1)],'--',...
+     'linewidth',1,'color',C(2,:));
+plot(delX1(1)*u(1)+X0(1,end)+[0 delX2(1)*u(2)],delX1(2)*u(1)+X0(2,end)+[0 delX2(2)*u(2)],'--',...
+     'linewidth',1,'color',C(3,:));
+plot(X0(1,:),X0(2,:),'linewidth',.1,'color',C(1,:));
+plot(X1(1,:),X1(2,:),'linewidth',.1,'color',C(2,:));
+plot(X2(1,:),X2(2,:),'linewidth',.1,'color',C(3,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X1(1,end),X1(2,end),'o','markersize',8,'linewidth',2,'color',C(2,:));
+plot(X2(1,end),X2(2,end),'o','markersize',8,'linewidth',2,'color',C(3,:));
+plot(X3(1,end),X3(2,end),'o','markersize',8,'linewidth',2,'color',C(4,:));
+plot(0,0,'k.','markersize',10);
+hold off;
+text(-1.1,0.4,'$a=-0.3$','fontsize',FS,'interpreter','latex','color',C(2,:));
+text(-0.6,-0.3,'$b=-1.1$','fontsize',FS,'interpreter','latex','color',C(3,:));
+legend('$\mathcal L(u_1=1,u_2=0)$','$\mathcal L(u_1=1,u_2=0)$','$\mathbf{x}(T)-e^{AT}\mathbf{x}(0)$',...
+       'numcolumns',1,'location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+
+
+subplot('position',[.05 .17 vWid .8] + 2*[vSep 0 0 0]); cla;
+
+hold on;
+plot(X3(1,:),X3(2,:),'linewidth',1,'color',C(4,:));
+plot(X0(1,:),X0(2,:),'linewidth',.1,'color',C(1,:));
+plot(X1(1,:),X1(2,:),'linewidth',.1,'color',C(2,:));
+plot(X2(1,:),X2(2,:),'linewidth',.1,'color',C(3,:));
+plot(X3(1,end),X3(2,end),'o','markersize',8,'linewidth',2,'color',C(4,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X1(1,end),X1(2,end),'o','markersize',8,'linewidth',2,'color',C(2,:));
+plot(X2(1,end),X2(2,end),'o','markersize',8,'linewidth',2,'color',C(3,:));
+plot(0,0,'k.','markersize',10);
+hold off;
+legend('$u_1=-0.3, ~u_2 = -1.1$','location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+drawnow;
+
+% Save
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+saveas(fig, fName, 'png');
+
+
+%% Figure 7, Minimum Energy
+clear; clc;
+FS = 16;
+
+A = [-1 -2; 1 0];
+B1 = [1;0];
+B2 = [0;1];
+B3 = [1 0; 0 1];
+
+% Time parameters
+delT = .01;
+T = 1;
+t = delT:delT:T;
+X0 = zeros(2,length(t)); X0(:,1) = [1;0];
+X1 = zeros(2,length(t)); X1(:,1) = [1;0]; X1(:,end) = [0.5;-0.5];
+X2 = zeros(2,length(t)); X2(:,1) = [1;0]; X2(:,end) = [0.5;-0.5];
+X3 = zeros(2,length(t)); X3(:,1) = [1;0]; X3(:,end) = [0.5;-0.5];
+
+% Construct Gramian
+Wc1 = integral(@(t) (expm(A*t)*B1)*(expm(A*t)*B1)',0,1,'ArrayValued',1);
+Wc2 = integral(@(t) (expm(A*t)*B2)*(expm(A*t)*B2)',0,1,'ArrayValued',1);
+Wc3 = integral(@(t) (expm(A*t)*B3)*(expm(A*t)*B3)',0,1,'ArrayValued',1);
+Wc1I = inv(Wc1);
+Wc2I = inv(Wc2);
+Wc3I = inv(Wc3);
+b = X1(:,end) - expm(A*T)*X1(:,1);
+
+u1 = zeros(1,length(t));
+u2 = zeros(1,length(t));
+u3 = zeros(2,length(t));
+for i = 1:length(t)
+    u1(i) = B1'*expm(A'*(T-t(i)))*Wc1I * b;
+    u2(i) = B2'*expm(A'*(T-t(i)))*Wc2I * b;
+    u3(:,i) = B3'*expm(A'*(T-t(i)))*Wc3I * b;
+end
+
+% Simulate
+for i = 2:length(t)
+    X0(:,i) = X0(:,i-1) + (A*X0(:,i-1) + [0;0])*delT;
+    X1(:,i) = X1(:,i-1) + (A*X1(:,i-1) + B1*u1(i-1))*delT;
+    X2(:,i) = X2(:,i-1) + (A*X2(:,i-1) + B2*u2(i-1))*delT;
+    X3(:,i) = X3(:,i-1) + (A*X3(:,i-1) + B3*u3(:,i-1))*delT;
+end
+
+fig = figure(6); clf;
+set(gcf,'color','w');
+fSize = [30,10];
+fName = 'fig_min_energy_control.png';
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+dT = 0.05;
+
+nSV = 1;
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+set(gcf,'renderer','opengl','Position',[fig.Position(1:2) fSize],'Units','centimeters');
+vSep = .33;
+vWid = .27;
+C = lines(4);
+tPlot = 1:length(t)/10:length(t);
+[Xv,Yv] = meshgrid(linspace(-1.7,1.7,31),linspace(-1.7,1.7,31));
+
+subplot('position',[.05 .17 vWid .8] + 0*[vSep 0 0 0]); cla;
+hold on;
+plot(X0(1,:),X0(2,:),'linewidth',1,'color',C(1,:));
+plot(X1(1,:),X1(2,:),'linewidth',1,'color',C(2,:));
+quiver(X1(1,tPlot),X1(2,tPlot),u1(1,tPlot),u1(1,tPlot)*0,1.0,...
+       'color',C(2,:),'linewidth',.5,'marker','.','markersize',10);
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X1(1,end),X1(2,end),'o','markersize',8,'linewidth',2,'color',C(2,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(0,0,'k.','markersize',10);
+quiver(Xv,Yv,A(1,1)*Xv+A(1,2)*Yv,A(2,1)*Xv+A(2,2)*Yv,1.0,'color',C(1,:),...
+       'linewidth',.3);
+hold off;
+legend('natural','minimum control','input along $x_1$',...
+       'numcolumns',1,'location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+
+
+subplot('position',[.05 .17 vWid .8] + 1*[vSep 0 0 0]); cla;
+hold on;
+plot(X0(1,:),X0(2,:),'linewidth',1,'color',C(1,:));
+plot(X2(1,:),X2(2,:),'linewidth',1,'color',C(3,:));
+quiver(X2(1,tPlot),X2(2,tPlot),u2(1,tPlot)*0,u2(1,tPlot),1.0,...
+       'color',C(3,:),'linewidth',.5,'marker','.','markersize',10);
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X2(1,end),X2(2,end),'o','markersize',8,'linewidth',2,'color',C(3,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(0,0,'k.','markersize',10);
+quiver(Xv,Yv,A(1,1)*Xv+A(1,2)*Yv,A(2,1)*Xv+A(2,2)*Yv,1.0,'color',C(1,:),...
+       'linewidth',.3);
+hold off;
+legend('natural','minimum control','input along $x_2$',...
+       'numcolumns',1,'location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+
+
+subplot('position',[.05 .17 vWid .8] + 2*[vSep 0 0 0]); cla;
+hold on;
+plot(X0(1,:),X0(2,:),'linewidth',1,'color',C(1,:));
+plot(X3(1,:),X3(2,:),'linewidth',1,'color',C(4,:));
+quiver(X3(1,tPlot),X3(2,tPlot),u3(1,tPlot),u3(2,tPlot),1.0,...
+       'color',C(4,:),'linewidth',.5,'marker','.','markersize',10);
+plot(X0(1,end),X0(2,end),'o','markersize',8,'linewidth',2,'color',C(1,:));
+plot(X3(1,end),X3(2,end),'o','markersize',8,'linewidth',2,'color',C(4,:));
+plot(X0(1,1),X0(2,1),'.','markersize',20,'color',C(1,:));
+plot(0,0,'k.','markersize',10);
+quiver(Xv,Yv,A(1,1)*Xv+A(1,2)*Yv,A(2,1)*Xv+A(2,2)*Yv,1.0,'color',C(1,:),...
+       'linewidth',.3);
+hold off;
+legend('natural','minimum control','input along $x_1$ and $x_2$',...
+       'numcolumns',1,'location','southwest','interpreter','latex');
+xlabel('x1'); ylabel('x2'); axis([-1 1 -1 1]*1.5);
+set(gca,'xtick',[-1 1],'ytick',[-1 1],'fontsize',FS);
+
+% Save
+fig.PaperPositionMode = 'manual';
+fig.PaperUnits = 'centimeters';
+fig.PaperPosition = [0 0 fSize];
+fig.PaperSize = fSize;
+saveas(fig, fName, 'png');
