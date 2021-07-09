@@ -18,7 +18,7 @@ the following:
     pip install network_control
 
 GitHub installation
-==================
+===================
 
 Alternatively, you can install the most up-to-date version of from GitHub:
 
