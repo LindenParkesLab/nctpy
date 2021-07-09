@@ -45,7 +45,8 @@ controllability for each subject.
     # loop over subjects
     for i in np.arange(n_subs):
         a = A[:, :, i]
-        a_norm = matrix_normalization(a)
+        # normalize subject's A matrix for a discrete-time system
+        a_norm = matrix_normalization(a, version='discrete')
         s[i, :] = node_strength(a)
         ac[i, :] = ave_control(a_norm)
         mc[i, :] = modal_control(a_norm)

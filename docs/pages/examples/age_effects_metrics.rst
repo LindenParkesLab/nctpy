@@ -59,7 +59,8 @@ With these data, we'll start by calculating average and modal controllability fo
 
     # loop over subjects
     for i in np.arange(n_subs):
-        a_norm = matrix_normalization(A[:, :, i])
+        # normalize subject's A matrix for a discrete-time system
+        a_norm = matrix_normalization(A[:, :, i], version='discrete')
         ac[i, :] = ave_control(a_norm)
         mc[i, :] = modal_control(a_norm)
 
