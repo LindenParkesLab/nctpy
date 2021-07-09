@@ -72,9 +72,12 @@ approach, :func:`network_control.energies.minimum_energy`.
     from network_control.energies import minimum_energy
 
     # settings
-    T = 1 # time horizon
-    B = np.eye(n_nodes) # set all nodes as control nodes
-    A = matrix_normalization(A) # normalize A matrix
+    # time horizon
+    T = 1
+    # set all nodes as control nodes
+    B = np.eye(n_nodes)
+    # normalize A matrix for a continuous-time system
+    A = matrix_normalization(A, version='continuous')
 
     import time
     start_time = time.time() # start timer
@@ -94,9 +97,9 @@ approach, :func:`network_control.energies.minimum_energy`.
 .. code-block:: none
 
     Out:
-    time elapsed in seconds: 30.17
+    time elapsed in seconds: 38.15
 
-The standard approach took ~30 seconds to calculate the control energy associated with completing 400 state
+The standard approach took ~40 seconds to calculate the control energy associated with completing 400 state
 transitions. Now we'll compare that to our alternative approach, which can be accessed via
 :func:`network_control.energies.minimum_energy_fast`.
 
@@ -136,7 +139,7 @@ a specific **state transition**. Equipped with these state transition matrices, 
 .. code-block:: none
 
     Out:
-    time elapsed in seconds: 0.66
+    time elapsed in seconds: 0.61
 
 This time we managed to compute all of our transition energies in <1 second! So our X approximation is fast, but is it
 equivalent?
@@ -181,4 +184,4 @@ equivalent?
 In the above figure, the left subplot shows that the energy (summed over regions) associated with each of 400 state
 transitions is correlated across the two approaches at :math:`r=1` and :math:`\rho=1`. Note, energy does differ by
 several orders of magnitude. The right subplot shows how regional energy estimates correlate across approaches for each
-state transition separately. Here, most :math:`r` values are :math:`> 0.98`.
+state transition separately. Here, most :math:`r` values are :math:`> 0.99`.
