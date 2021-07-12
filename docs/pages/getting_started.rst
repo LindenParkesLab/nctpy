@@ -64,7 +64,9 @@ generally a good idea to check that your results hold for a couple different vau
      >>> from network_control.utils import matrix_normalization
 
      >>> A = matrix_normalization(A, c=1, version='discrete')
+     >>> A
      
+     Normalizing A for a discrete-time system
      array([[0.18918473, 0.14564604, 0.03242993, 0.10317831, 0.20275555],
     [0.13260665, 0.04741035, 0.22149322, 0.24792643, 0.25541104],
     [0.0500074 , 0.25192887, 0.06093459, 0.00683903, 0.24551001],
@@ -81,7 +83,7 @@ simulations can be run using the `sim_state_eq` function"
      >>> import matplotlib.pyplot as plt
 
      >>> U = np.zeros((5,20)) # the input to the system
-     >>> U[:,0] = 1# impulse, 1 energy at the first time point
+     >>> U[:,0] = 1# impulse, 1 input at the first time point
      >>> B = np.eye(5)
      >>> x0 = np.ones((5,1))
      >>> x = sim_state_eq( A, B, x0, U, version='discrete')
@@ -97,7 +99,7 @@ Let's see what happens with an unstable matrix:
 .. doctest::
 
      >>> A_unstable = np.random.rand(5,5)
-     >>> x = sim_state_eq( A_unstable, B, x0, U)
+     >>> x = sim_state_eq( A_unstable, B, x0, U, version='discrete')
      >>> fig,ax = plt.subplots(1,1, figsize=(6,6))
      >>> ax.plot(np.squeeze(x.T))
      >>> plt.show()
@@ -120,7 +122,7 @@ Average contrallability can be calculated using the `ave_control` function:
      array([1.09336323, 1.14427943, 1.09627313, 1.07053423, 1.11398205])
 
 
-The second metric included is modal controllability (also defined for discrete-time systems). Modal controlability tells you how wellmuch changing activity at a single node will impact all modes
+The second metric included is modal controllability (also defined for discrete-time systems). Modal controlability tells you how much changing activity at a single node will impact all modes
 of your system. Modes are similar to time scales, and some modes are faster or slower than others. Modal controllability is weighted towards 
 the faster modes, which have less influece on average controllability. Modal controllability can be calculated with `modal_control` :
 
@@ -143,7 +145,7 @@ to scale our matrix to be stable in continuous time:
 
 .. doctest::
 
-     >>> from network_control.energies import minimum_energy
+     >>> from network_control.energies import minimum_input
 
      >>> A_cont = matrix_normalization(A, c=1, version='continuous')
      >>> # define states and time horizon
@@ -152,12 +154,13 @@ to scale our matrix to be stable in continuous time:
      >>> T = 5
      >>> x, u, n_err = minimum_input(A_cont,T,B,x0,xf)
      >>> n_err
+
+     Normalizing A for a continuous-time system
      
      9.729507111180988e-15
 
-The function returns a matrix (`u`) that gives the energy at each time point for each node. Typically, to summarize over these values, you will
-calculate the area under the curve, or sum of squared values divded by the number of time points, for each node. The same goes for the state
-values at every time point (`x`). The function also returns an error value, which the numerical error associated with the calculation of energy.
+The function returns a matrix (`u`) that gives the input at each time point for each node. Integrating over this output will give you the minimum energy at each node (see `integrate_u`).
+ The same goes for the state values at every time point (`x`). The function also returns an error value, which the numerical error associated with the calculation of input.
 Have large A matrices, sparse B matrices, and large T values will increase this value. It is genreally a good idea to make sure you error values
 are consistent with those reported in other papers. Let's look at an example that will lead to higher error:
 
@@ -171,11 +174,17 @@ are consistent with those reported in other papers. Let's look at an example tha
 
      1.1806792811420392e-07
 
-We now have the minimum input required to travel between our states. If we want to transform this input into energy, we must integrate
+If we are confident that our error is small enough, we now have the minimum input required to travel between our states. If we want to transform this input into energy, we must integrate
 over the optimal input. This integration can be done using the `integrate_u` function:
 
 .. doctest::
+ 
+ >>> from network_control.energies import integrate_u
 
+ >>> energy = integrate_u(u)
+ >>> np.mean(energy)
+
+ 1406708439148.7031
 
 Note that a faster version of minimal energy is also included (`minimum_energy_fast`) that only returns the energy (not the input, error, or state trajectory).
 
@@ -185,12 +194,12 @@ state, you can use the `optimal_input` function on continuous-time systems:
 
 .. doctest::
 
-     >>> from network_control.energies import optimal_energy
+     >>> from network_control.energies import optimal_input
 
      >>> # new parameters
      >>> rho = 1
      >>> S = np.eye(5)
-     >>> x, u, n_err = optimal_energy(A_cont,T,B,x0,xf,rho,S)
+     >>> x, u, n_err = optimal_input(A_cont,T,B,x0,xf,rho,S)
      >>> n_err
 
      8.874675925196695e-14
