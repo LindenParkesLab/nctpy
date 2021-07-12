@@ -23,7 +23,7 @@ def node_strength(A):
 def ave_control(A_norm):
     """ Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
     network. Average controllability measures the ease by which input at that node can steer the system into many
-    easily-reachable states.
+    easily-reachable states. Expects input to be a DISCRETE system
 
     Args:
         A_norm: np.array (n_parcels, n_parcels)
@@ -53,7 +53,7 @@ def ave_control(A_norm):
 def modal_control(A_norm):
     """ Returns values of MODAL CONTROLLABILITY for each node in a network, given the adjacency matrix for that network.
     Modal controllability indicates the ability of that node to steer the system into difficult-to-reach states,
-    given input at that node.
+    given input at that node. Expects input to be a DISCRETE system
 
     Args:
         A_norm: np.array (n_parcels, n_parcels)
