@@ -50,8 +50,12 @@ where :math:`x` is the state (or regional brain activity) of the system over tim
 
 Most work will first scale this matrix to be stable before starting any network control analyses. If our matrix is stable, it means that 
 after adding a single unit of input, the activity will spread but eventually die down, and the system will reach a stable state. An unstable
-system would have states that continued growing forever. Practically this is done by dividing all elements of the matrix by some positive constant 
-c, times the largest eigenvalue and subtracting the identity. The exact number that you scale your matrix by can be thought of as a free parameter, and it is
+system would have states that continued growing forever. Practically this is done differently depending on if our system is continuous or discrete.
+For discrete systems, all eigenvalues must be less than 1 for the system to be stable and for continuous systems all eigenvalues must be less than 0. 
+Some functions in this package are only defined for one time system (i.e. optimal_input is only defined for continuous systems). Check the documentation
+of the functions you're interested in to see which time systems it is defined for. Here, we will arbitrarily define our system to be in discrete time.
+
+As long as the above stability requirements are met, the exact number that you scale your matrix by can be thought of as a free parameter, and it is
 generally a good idea to check that your results hold for a couple different vaues. Scaling can be done using the `matrix_normalization` function:
 
 
@@ -59,7 +63,7 @@ generally a good idea to check that your results hold for a couple different vau
 
      >>> from network_control.utils import matrix_normalization
 
-     >>> A = matrix_normalization(A, c=1)
+     >>> A = matrix_normalization(A, c=1, )
      
      array([[0.18918473, 0.14564604, 0.03242993, 0.10317831, 0.20275555],
     [0.13260665, 0.04741035, 0.22149322, 0.24792643, 0.25541104],

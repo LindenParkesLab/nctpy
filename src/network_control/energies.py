@@ -1,12 +1,12 @@
 import numpy as np 
 import scipy as sp
 
-def sim_state_eq( A, B, xi, U):
+def sim_state_eq( A, B, xi, U, version=None):
     """This function caclulates the trajectory for the network given our model
      if there are no constraints, and the target state is unknown, using the
      control equation precess x(t+1) = Ax(t) + BU(t). x(t) is the state vector, A is
      the adjacency matrix, U(t) is the time varying input as specified by the
-     user, and B selects the control set (stimulating electrodes)
+     user, and B selects the control set (stimulating electrodes). This code assumes a DISCRETE system
     
     Args:
      A             : NxN state matrix (numpy array), where N is the number of nodes in your
@@ -24,12 +24,16 @@ def sim_state_eq( A, B, xi, U):
      xi            : Nx1 initial state (numpy array) of your system where N is the number of
                    nodes. xi MUST have N rows. 
     
-     U             : NxT matrix of Energy (numpy array), where N is the number of nodes
+     U             : NxT matrix of input (numpy array), where N is the number of nodes
                    and T is the number of
                    time points. For example, if you want to simulate the
                    trajectory resulting from stimulation, U could have
                    log(StimFreq)*StimAmp*StimDur as every element. You can
                    also enter U's that vary with time
+
+     version        :options: 'continuous' or 'discrete' (str). default=None
+                    string variable that determines whether A is a continuous-time system or a discrete-time
+                    system
     
       Returns:
      x             : x is the NxT trajectory (numpy array) that results from simulating
@@ -39,6 +43,21 @@ def sim_state_eq( A, B, xi, U):
      @author JStiso 
      June 2017
     """
+    # check inouts
+    if version == 'continuous':
+            print("Simulating for a continuous-time system")
+    elif version == 'discrete':
+        print("Simulating for a discrete-time system")
+    elif version == None:
+        raise Exception("Time system not specified. "
+                            "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                            "(see matrix_normalization for help).")
+    # state vectors to float if they're bools
+    if type(xi[0]) == np.bool_:
+        x0 = xi.astype(float)
+    # check dimensions of states
+    if xi.ndim == 1:
+        xi = xi.reshape(-1, 1)
 
     # Simulate trajectory
     T = np.size(U,1)
@@ -47,16 +66,22 @@ def sim_state_eq( A, B, xi, U):
     # initialize x
     x = np.zeros((N, T))
     xt = xi
-    for t in range(T):
-        x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
-        xt_1 = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
-        xt = xt_1
+    if version == 'discrete':
+        for t in range(T):
+            x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
+            xt_1 = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+            xt = xt_1
+    elif version == 'continuous':
+        for t in range(T):
+            x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
+            dt = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+            xt = dt + xt
     return x
 
-def optimal_energy(A, T, B, x0, xf, rho, S):
+def optimal_input(A, T, B, x0, xf, rho, S):
     """This is a python adaptation of matlab code originally written by Tomaso Menara and Jason Kim
      compute optimal inputs/trajectories for a system to transition between two states
-     Fabio, Tommy September 2017
+     Fabio, Tommy September 2017. This code assumes a CONTINUOUS system
 
      Args:
      A: (NxN numpy array) Structural connectivity matrix
@@ -102,6 +127,11 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
         x0 = x0.astype(float)
     if type(xf[0]) == np.bool_:
         xf = xf.astype(float)
+    # check dimensions of states
+    if x0.ndim == 1:
+        x0 = x0.reshape(-1, 1)
+    if xf.ndim == 1:
+        xf = xf.reshape(-1, 1)
 
     Sbar = np.eye(n) - S
     np.shape(np.dot(-B,B.T)/(2*rho))
@@ -156,12 +186,14 @@ def optimal_energy(A, T, B, x0, xf, rho, S):
     
     return X_opt, U_opt, n_err
 
-def minimum_energy(A, T, B, x0, xf):
-    """ This function computes the minimum energy required to transition between two states
+def minimum_input(A, T, B, x0, xf):
+    """ This function computes the minimum input required to transition between two states
      
      This is a python adaptation of code originally written by Jason Kim
      
-     Computes minimum control energy for state transition.
+     Computes minimum control input for state transition.
+
+     This code assumes a CONTINUOUS system
      Args:
       A: numpy array (N x N)
             System adjacency matrix 
@@ -189,7 +221,12 @@ def minimum_energy(A, T, B, x0, xf):
         x0 = x0.astype(float)
     if type(xf[0]) == np.bool_:
         xf = xf.astype(float)
-
+    # check dimensions of states
+    if x0.ndim == 1:
+        x0 = x0.reshape(-1, 1)
+    if xf.ndim == 1:
+        xf = xf.reshape(-1, 1)
+    
     # Compute Matrix Exponential
     AT = np.concatenate((np.concatenate((A, -.5*(B.dot(B.T))), axis=1), 
                          np.concatenate((np.zeros(np.shape(A)), -A.T), axis=1)), axis=0)
@@ -295,3 +332,24 @@ def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
     E = np.multiply(np.matmul(np.linalg.pinv(G), delx), delx)
 
     return E
+
+def integrate_u(U):
+    """ This function integrates over some input squared to calculate energy using Simpson's integration.
+
+    If your control set (B) is the identity this will likely give energies that are nearly identical to those calculated using a Reimann sum.
+    However, when control sets are sparse inputs can be super curvy, so this method will be a bit more accurate.
+     Args:
+      U: numpy array (N x T)
+            Input to the system (likely the output from minimum_input or optimal_input)
+      
+    Returns:
+      energy: numpy array (N x 1)
+            energy input into each node
+    """
+
+    if sp.__version__ < '1.6.0':
+        energy = sp.integrate.simps(U.T**2)
+    else:
+        energy = sp.integrate.simpson(U.T**2)
+    return energy
+
