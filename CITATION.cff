@@ -1,0 +1,8 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Stiso, Parkes, Kim
+    given-names: Jennifer, Linden, Jason Z.
+title: "network_control: A toolbox for implementing Network Control Theory analyses in python"
+version: 0.0.4
+doi: 10.5281/zenodo.4973760
