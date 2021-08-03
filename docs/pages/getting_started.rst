@@ -160,7 +160,7 @@ to scale our matrix to be stable in continuous time:
      9.729507111180988e-15
 
 The function returns a matrix (`u`) that gives the input at each time point for each node. Integrating over this output will give you the minimum energy at each node (see `integrate_u`).
- The same goes for the state values at every time point (`x`). The function also returns an error value, which the numerical error associated with the calculation of input.
+he same goes for the state values at every time point (`x`). The function also returns an error value, which the numerical error associated with the calculation of input.
 Have large A matrices, sparse B matrices, and large T values will increase this value. It is genreally a good idea to make sure you error values
 are consistent with those reported in other papers. Let's look at an example that will lead to higher error:
 

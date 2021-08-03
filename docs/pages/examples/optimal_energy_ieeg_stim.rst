@@ -1,7 +1,7 @@
 .. optimal_energy_ieeg_stim:
 
 Replication from White Matter Network Architecture Guides Direct Electrical Stimulation through Optimal State Transitions
-========================================================
+============================================================================================================================
 
 Direct electrical brain stimulation is useful treatment for some neurological disorders (most famously, Parkinson's). However, 
 we still don't really have a good way of predicting how stimulation at single region will influnce the rest of the brain. Here, 
