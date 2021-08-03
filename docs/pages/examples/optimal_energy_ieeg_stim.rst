@@ -196,7 +196,7 @@ After a long time this will finish. Let's first demonstrate that we have small e
                 ax=ax, palette='Blues_r', legend=False)
 
 
-.. image:: ./example_figs/optim_error.png
+.. image:: ../example_figs/optim_error.png
    :align: center
 
 All the different datasets are in different shades of blue. And we can see here that everyone has low error values. 
@@ -208,7 +208,7 @@ Now lets check our actual hypothesis.
           height=8, aspect=2, legend=False)
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
-.. image:: ./example_figs/optim_mem_state.png
+.. image:: ../example_figs/optim_mem_state.png
    :align: center
 
 This plot looks a little different from the one in the paper because we don't normalize the output. But as we can see, 
