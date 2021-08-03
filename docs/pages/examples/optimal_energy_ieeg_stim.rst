@@ -2,6 +2,7 @@
 
 Replication from White Matter Network Architecture Guides Direct Electrical Stimulation through Optimal State Transitions
 ============================================================================================================================
+Stiso, J., Khambhati, A. N., Menara, T., Kahn, A. E., Stein, J. M., Das, S. R., … Bassett, D. S. (2019). White Matter Network Architecture Guides Direct Electrical Stimulation Through Optimal State Transitions. Cell Reports, 28(10), 2554–2566. https://doi.org/10.1101/313304
 
 Direct electrical brain stimulation is useful treatment for some neurological disorders (most famously, Parkinson's). However, 
 we still don't really have a good way of predicting how stimulation at single region will influnce the rest of the brain. Here, 
