@@ -10,3 +10,4 @@ Examples
     age_effects_metrics
     gradient_metric_correlations
     minimum_energy_fast
+    optimal_energy_ieeg_stim

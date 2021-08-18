@@ -1,0 +1,14 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Stiso
+    given-names: Jennifer
+    orcid:orcid: "https://orcid.org/0000-0002-3295-586X"
+  - family-names: Parkes
+    given-names: Linden
+  - family-names: Kim
+    given-names: Jason Z.
+given-names: Jennifer
+title: "network_control: A toolbox for implementing Network Control Theory analyses in python"
+version: 0.0.4
+doi: 10.5281/zenodo.4973760
