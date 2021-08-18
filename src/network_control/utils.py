@@ -1,6 +1,12 @@
 import numpy as np
 import scipy as sp
+import scipy.linalg as la
 from scipy.linalg import svd
+from scipy.linalg import eig
+from numpy import matmul as mm
+from scipy.linalg import expm as expm
+from numpy import transpose as tp
+
 
 def rank_to_normal(data, c, n):
     # Standard quantile function
@@ -121,3 +127,4 @@ def expand_states(states):
     xf_mat = xf_mat[:, 1:]
 
     return x0_mat, xf_mat
+
