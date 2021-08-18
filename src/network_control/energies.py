@@ -165,7 +165,7 @@ def optimal_input_gen(A, T, B, x0, xf, rho, S):
     n_err = np.linalg.norm(mm(M12,p0) - (xf - mm(M11,x0) - c1)) # norm(error)
 
     STEP = 0.001
-    t = np.arange(0,(T+STEP),STEP)
+    t = np.arange(0,(T+STEP/2),STEP)
 
     U = np.dot(np.ones((np.size(t),1)),2*xf.T)
 
@@ -273,7 +273,7 @@ def optimal_input(A, T, B, x0, xf, rho, S):
                             np.concatenate((np.dot(S,xf),np.zeros((n,1))), axis=0))) # norm(error)
 
     STEP = 0.001
-    t = np.arange(0,(T+STEP),STEP)
+    t = np.arange(0,(T+STEP/2),STEP)
 
     U = np.dot(np.ones((np.size(t),1)),2*xf.T)
 
@@ -355,7 +355,7 @@ def minimum_input(A, T, B, x0, xf):
 
     # Prepare Simulation
     STEP = 0.001
-    t = np.arange(0,(T+STEP),STEP)
+    t = np.arange(0,(T+STEP/2),STEP)
 
     v0 = np.concatenate((x0, p0), axis=0)          # Initial Condition
     v = np.zeros((2*n,len(t)))          # Trajectory
@@ -498,7 +498,7 @@ def gramian(A,B,T,version=None,tol=1e-12):
             
             # Number of integration steps
             STEP = 0.001
-            t = np.arange(0,(T+STEP),STEP)
+            t = np.arange(0,(T+STEP/2),STEP)
             # Collect exponential difference
             dE = sp.linalg.expm(A * STEP)
             dEa = np.zeros((n_parcels,n_parcels,len(t)))
