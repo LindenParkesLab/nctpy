@@ -71,7 +71,7 @@ the following:
 What's New
 ----------
     - v0.0.4: initial package release for network_control
-    - v0.0.5: added options for specifying timescales, integration function, and optimal energy example
+    - v0.0.5: added options for specifying timescales, integration function, gramian function, better estimation of the number of time points, and optimal energy example
 
 
 Questions
