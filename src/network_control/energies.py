@@ -1,5 +1,6 @@
 import numpy as np 
 import scipy as sp
+import scipy.integrate
 import scipy.linalg as la
 from scipy.linalg import eig
 from scipy.linalg import svd

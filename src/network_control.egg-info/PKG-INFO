@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: network-control
-Version: 0.0.4
+Version: 0.0.5
 Summary: Python implementation of concepts from network control theory
 Home-page: https://github.com/BassettLab/control_package
-Author: Jennifer Stiso and Linden Parkes
-Author-email: jeni.stiso@gmail.com, lindenmp@seas.upenn.edu
+Author: Jennifer Stiso, Linden Parkes and Jason Kim
+Author-email: jeni.stiso@gmail.com, lindenmp@seas.upenn.edu, jinsu1@seas.upenn.edu
 License: UNKNOWN
 Project-URL: Bug Tracker, https://github.com/BassettLab/control_package/issues
 Platform: UNKNOWN
@@ -88,12 +88,15 @@ the following:
 What's New
 ----------
     - v0.0.4: initial package release for network_control
+    - v0.0.5: added options for specifying timescales, integration function, gramian function, better estimation of the number of time points, and optimal energy example
 
 
 Questions
 ---------
 
-If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes)
-or Jennifer Stiso (https://twitter.com/JenniferStiso).
+If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes), Jennifer Stiso
+(https://twitter.com/JenniferStiso) or Jason Kim (https://twitter.com/jason_z_kim).
+For questions or clarification about the theory pages of the documentation, please contact Jason Kim
+(https://twitter.com/jason_z_kim).
 
 
