@@ -37,45 +37,39 @@ def rank_int(data, c=3.0 / 8):
     return transformed
 
 
-def matrix_normalization(A, version=None, c=1):
-    '''
+def matrix_normalization(A, version, c=1):
+    '''Normalize an adjacency matrix 
 
     Args:
         A: np.array (n_parcels, n_parcels)
             adjacency matrix from structural connectome
         version: str
-            options: 'continuous' or 'discrete'. default=None
-            string variable that determines whether A is normalized for a continuous-time system or a discrete-time
-            system. If normalizing for a continuous-time system, the identity matrix is subtracted.
+            options: 'continuous' or 'discrete'. String variable that determines 
+            whether A is normalized for a continuous-time system or a discrete-time
+            system. If normalizing for a continuous-time system, the identity matrix 
+            is subtracted.
         c: int
             normalization constant, default=1
     Returns:
         A_norm: np.array (n_parcels, n_parcels)
             normalized adjacency matrix
-
     '''
+    
+    # check input
+    if version not in ['continuous','discrete']:
+        raise ValueError("version argument must be specified as 'continuous' or 'discrete'")
 
-    if version == 'continuous':
-        print("Normalizing A for a continuous-time system")
-    elif version == 'discrete':
-        print("Normalizing A for a discrete-time system")
-    elif version == None:
-        raise Exception("Time system not specified. "
-                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
-                        "(see function help).")
-
-    # singluar value decomposition
+    # singular value decomposition
     u, s, vt = svd(A)
 
-    # Matrix normalization for discrete-time systems
+    # matrix normalization for discrete-time systems
     A_norm = A / (c + s[0])
-
+    
+    # matrix normalization for continuous-time systems
     if version == 'continuous':
-        # for continuous-time systems
         A_norm = A_norm - np.eye(A.shape[0])
 
     return A_norm
-
 
 def get_p_val_string(p_val):
     if p_val == 0.0:
