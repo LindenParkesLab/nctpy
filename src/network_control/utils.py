@@ -55,11 +55,7 @@ def matrix_normalization(A, version=None, c=1):
 
     '''
 
-    if version == 'continuous':
-        print("Normalizing A for a continuous-time system")
-    elif version == 'discrete':
-        print("Normalizing A for a discrete-time system")
-    elif version == None:
+    if version == None:
         raise Exception("Time system not specified. "
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                         "(see function help).")
