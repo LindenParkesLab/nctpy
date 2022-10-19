@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import scipy as sp
 import scipy.linalg as la
@@ -122,3 +123,37 @@ def expand_states(states):
 
     return x0_mat, xf_mat
 
+
+def normalize_state(x):
+    x_norm = x / np.linalg.norm(x, ord=2)
+
+    return x_norm
+
+
+def get_null_p(x, null, version='standard', abs=False):
+    if abs:
+        x = np.abs(x)
+        null = np.abs(null)
+
+    if version == 'standard':
+        p_val = np.sum(null >= x) / len(null)
+    elif version == 'reverse':
+        p_val = np.sum(x >= null) / len(null)
+    elif version == 'smallest':
+        p_val = np.min([np.sum(null >= x) / len(null),
+                        np.sum(x >= null) / len(null)])
+
+    return p_val
+
+
+def convert_states_str2float(states_str):
+    n = len(states_str)
+    state_labels = list(np.unique(states_str))
+
+    states = np.zeros(n)
+    for i, state in enumerate(state_labels):
+        for j in np.arange(n):
+            if state == states_str[j]:
+                states[j] = i
+
+    return states.astype(int), state_labels
