@@ -55,7 +55,8 @@ def ave_control(A_norm, version=None):
         ac = G.diagonal()
     elif version == None:
         raise Exception("Time system not specified. "
-                        "Please nominate whether you normalized A for a continuous-time or a discrete-time system")
+                        "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                        "(see matrix_normalization for help).")
 
     return ac
 
