@@ -421,4 +421,50 @@ def gramian(A,B,T,version=None,tol=1e-12):
                 Ap = mm(Ap,A)
                 Wc = Wc + mm(Ap,tp(Ap))
             return Wc
-                
+
+
+class ComputeControlEnergy():
+    def __init__(self, A, control_tasks, system='continuous', c=1, energy='optimal', T=1, verbose=True):
+        self.A = A
+        self.control_tasks = control_tasks
+
+        self.system = system
+        self.c = c
+        self.energy = energy
+        self.T = T
+
+        self.verbose = verbose
+
+    def _check_inputs(self):
+        if self.A.shape[0] == self.A.shape[1]:
+            self.n_nodes = self.A.shape[0]
+        elif self.A.shape[0] != self.A.shape[1]:
+            raise Exception("A matrix is not square. This routine requires A.shape[0] == A.shape[1]")
+
+        try:
+            A_norm = self.A_norm
+        except AttributeError:
+            self.A_norm = matrix_normalization(self.A, version=self.system, c=self.c)
+
+    def run(self):
+        self._check_inputs()
+
+        self.E = []
+
+        for task in tqdm(self.control_tasks):
+
+            if self.energy == 'optimal':
+                x, u, n_err = optimal_input(A=self.A_norm, T=self.T, B=task['B'],
+                                            x0=task['x0'], xf=task['xf'],
+                                            rho=task['rho'], S=task['S'])
+            elif self.energy == 'minimum':
+                x, u, n_err = minimum_input(A=self.A_norm, T=self.T, B=task['B'],
+                                            x0=task['x0'], xf=task['xf'])
+
+            # get energy
+            E = integrate_u(u)
+            self.E.append(np.sum(E))
+
+        # store outputs as array
+        self.E = np.array(self.E)
+
