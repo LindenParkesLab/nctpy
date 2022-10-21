@@ -8,8 +8,11 @@ from numpy import matmul as mm
 from scipy.linalg import expm as expm
 from numpy import transpose as tp
 from numpy import concatenate as cat
+from tqdm import tqdm
 
-def sim_state_eq( A, B, xi, U, version=None):
+from network_control.utils import matrix_normalization
+
+def sim_state_eq(A, B, x0, U, version=None):
     """This function caclulates the trajectory for the network given our model
      if there are no constraints, and the target state is unknown, using the
      control equation precess x(t+1) = Ax(t) + BU(t). x(t) is the state vector, A is
@@ -29,8 +32,8 @@ def sim_state_eq( A, B, xi, U, version=None):
                    matrix of zeros, but B(1,1) = 1. then energy will only be
                    applied at the first node.
      
-     xi            : Nx1 initial state (numpy array) of your system where N is the number of
-                   nodes. xi MUST have N rows. 
+     x0            : Nx1 initial state (numpy array) of your system where N is the number of
+                   nodes. x0 MUST have N rows.
     
      U             : NxT matrix of input (numpy array), where N is the number of nodes
                    and T is the number of
@@ -51,39 +54,42 @@ def sim_state_eq( A, B, xi, U, version=None):
      @author JStiso 
      June 2017
     """
-    # check inouts
+    # check inputs
     if version == 'continuous':
-            print("Simulating for a continuous-time system")
+        print("Simulating for a continuous-time system")
     elif version == 'discrete':
         print("Simulating for a discrete-time system")
     elif version == None:
         raise Exception("Time system not specified. "
-                            "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                            "(see matrix_normalization for help).")
+                        "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                        "(see matrix_normalization for help).")
+
     # state vectors to float if they're bools
-    if type(xi[0]) == np.bool_:
-        x0 = xi.astype(float)
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+
     # check dimensions of states
-    if xi.ndim == 1:
-        xi = xi.reshape(-1, 1)
+    if x0.ndim == 1:
+        x0 = x0.reshape(-1, 1)
 
     # Simulate trajectory
-    T = np.size(U,1)
-    N = np.size(A,0)
+    T = np.size(U, 1)
+    N = np.size(A, 0)
 
     # initialize x
     x = np.zeros((N, T))
-    xt = xi
+    xt = x0
     if version == 'discrete':
         for t in range(T):
-            x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
-            xt_1 = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+            x[:, t] = np.reshape(xt, N)  # annoying python 1d array thing
+            xt_1 = np.matmul(A, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
             xt = xt_1
     elif version == 'continuous':
         for t in range(T):
-            x[:,t] = np.reshape(xt, N) # annoying python 1d array thing
-            dt = np.matmul(A,xt) + np.matmul(B,np.reshape(U[:,t],(N,1) ))# state equation
+            x[:, t] = np.reshape(xt, N)  # annoying python 1d array thing
+            dt = np.matmul(A, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
             xt = dt + xt
+
     return x
 
 
@@ -136,6 +142,7 @@ def optimal_input(A, T, B, x0, xf, rho, S):
         x0 = x0.astype(float)
     if type(xf[0]) == np.bool_:
         xf = xf.astype(float)
+
     # check dimensions of states
     if x0.ndim == 1:
         x0 = x0.reshape(-1, 1)
@@ -143,55 +150,54 @@ def optimal_input(A, T, B, x0, xf, rho, S):
         xf = xf.reshape(-1, 1)
 
     Sbar = np.eye(n) - S
-    np.shape(np.dot(-B,B.T)/(2*rho))
+    np.shape(np.dot(-B, B.T)/(2*rho))
 
-    Atilde = np.concatenate((np.concatenate((A, np.dot(-B,B.T)/(2*rho)), axis=1), 
+    Atilde = np.concatenate((np.concatenate((A, np.dot(-B, B.T)/(2*rho)), axis=1),
                             np.concatenate((-2*S, -A.T), axis=1)), axis=0)
 
     M = sp.linalg.expm(Atilde*T)
-    M11 = M[0:n,0:n]
-    M12 = M[0:n,n:]
-    M21 = M[n:,0:n]
-    M22 = M[n:,n:]
+    M11 = M[0:n, 0:n]
+    M12 = M[0:n, n:]
+    M21 = M[n:, 0:n]
+    M22 = M[n:, n:]
 
-    N = np.linalg.solve(Atilde,(M-np.eye(np.shape(Atilde)[0])))
-    c = np.dot(np.dot(N,np.concatenate((np.zeros((n,n)),S),axis = 0)),2*xf)
+    N = np.linalg.solve(Atilde, (M-np.eye(np.shape(Atilde)[0])))
+    c = np.dot(np.dot(N, np.concatenate((np.zeros((n, n)), S), axis=0)), 2*xf)
     c1 = c[0:n]
     c2 = c[n:]
 
-    p0 = np.dot(np.linalg.pinv(np.concatenate((np.dot(S,M12),np.dot(Sbar,M22)), axis = 0)),
-                        (-np.dot(np.concatenate((np.dot(S,M11),np.dot(Sbar,M21)),axis=0),x0) - 
-                         np.concatenate((np.dot(S,c1),np.dot(Sbar,c2)), axis=0) + 
-                         np.concatenate((np.dot(S,xf),np.zeros((n,1))), axis=0)))
+    p0 = np.dot(np.linalg.pinv(np.concatenate((np.dot(S, M12), np.dot(Sbar, M22)), axis=0)),
+                        (-np.dot(np.concatenate((np.dot(S, M11), np.dot(Sbar, M21)), axis=0), x0) -
+                         np.concatenate((np.dot(S, c1), np.dot(Sbar, c2)), axis=0) +
+                         np.concatenate((np.dot(S, xf), np.zeros((n, 1))), axis=0)))
     
-    n_err = np.linalg.norm(np.dot(np.concatenate((np.dot(S,M12),np.dot(Sbar,M22)), axis = 0),p0) - 
-                           (-np.dot(np.concatenate((np.dot(S,M11),np.dot(Sbar,M21)),axis=0),x0) - 
-                            np.concatenate((np.dot(S,c1),np.dot(Sbar,c2)), axis=0) + 
-                            np.concatenate((np.dot(S,xf),np.zeros((n,1))), axis=0))) # norm(error)
+    n_err = np.linalg.norm(np.dot(np.concatenate((np.dot(S, M12), np.dot(Sbar, M22)), axis=0), p0) -
+                           (-np.dot(np.concatenate((np.dot(S,M11),np.dot(Sbar, M21)), axis=0), x0) -
+                            np.concatenate((np.dot(S, c1), np.dot(Sbar, c2)), axis=0) +
+                            np.concatenate((np.dot(S, xf), np.zeros((n, 1))), axis=0)))  # norm(error)
 
     STEP = 0.001
-    t = np.arange(0,(T+STEP/2),STEP)
+    t = np.arange(0, (T+STEP/2), STEP)
 
-    U = np.dot(np.ones((np.size(t),1)),2*xf.T)
+    U = np.dot(np.ones((np.size(t), 1)), 2*xf.T)
 
     # Discretize continuous-time input for convolution
     Atilde_d = sp.linalg.expm(Atilde*STEP)
-    Btilde_d = np.linalg.solve(Atilde,
-                               np.dot((Atilde_d-np.eye(2*n)),np.concatenate((np.zeros((n,n)),S), axis=0)))
+    Btilde_d = np.linalg.solve(Atilde, np.dot((Atilde_d-np.eye(2*n)), np.concatenate((np.zeros((n, n)), S), axis=0)))
 
     # Propagate forward discretized model
-    xp = np.zeros((2*n,np.size(t)))
-    xp[:,0:1] = np.concatenate((x0,p0), axis=0)
-    for i in np.arange(1,np.size(t)):
-        xp[:,i] = np.dot(Atilde_d,xp[:,i-1]) + np.dot(Btilde_d,U[i-1,:].T)
+    xp = np.zeros((2*n, np.size(t)))
+    xp[:, 0:1] = np.concatenate((x0, p0), axis=0)
+    for i in np.arange(1, np.size(t)):
+        xp[:, i] = np.dot(Atilde_d, xp[:, i-1]) + np.dot(Btilde_d, U[i-1, :].T)
 
     xp = xp.T
 
-    U_opt = np.zeros((np.size(t),np.shape(B)[1]))
+    U_opt = np.zeros((np.size(t), np.shape(B)[1]))
     for i in range(np.size(t)):
-        U_opt[i,:] = -(1/(2*rho))*np.dot(B.T,xp[i,n:].T)
+        U_opt[i, :] = -(1/(2*rho))*np.dot(B.T, xp[i, n:].T)
 
-    X_opt = xp[:,0:n]
+    X_opt = xp[:, 0:n]
     
     return X_opt, U_opt, n_err
 
@@ -230,6 +236,7 @@ def minimum_input(A, T, B, x0, xf):
         x0 = x0.astype(float)
     if type(xf[0]) == np.bool_:
         xf = xf.astype(float)
+
     # check dimensions of states
     if x0.ndim == 1:
         x0 = x0.reshape(-1, 1)
@@ -243,28 +250,28 @@ def minimum_input(A, T, B, x0, xf):
     E = sp.linalg.expm(AT*T)
 
     # Compute Costate Initial Condition
-    E12 = E[0:n,n:]
-    E11 = E[0:n,0:n]
-    p0 = la.solve(E12,xf - E11.dot(x0))
+    E12 = E[0:n, n:]
+    E11 = E[0:n, 0:n]
+    p0 = la.solve(E12, xf - E11.dot(x0))
 
     # Compute Costate Initial Condition Error Induced by Inverse
     n_err = np.linalg.norm(E12.dot(p0) - (xf - E11.dot(x0)))
 
     # Prepare Simulation
     STEP = 0.001
-    t = np.arange(0,(T+STEP/2),STEP)
+    t = np.arange(0, (T+STEP/2), STEP)
 
-    v0 = np.concatenate((x0, p0), axis=0)          # Initial Condition
-    v = np.zeros((2*n,len(t)))          # Trajectory
+    v0 = np.concatenate((x0, p0), axis=0)  # Initial Condition
+    v = np.zeros((2*n, len(t)))  # Trajectory
     Et = sp.linalg.expm(AT*STEP)
     v[:,0] = v0.T
 
     # Simulate State and Costate Trajectories
-    for i in np.arange(1,len(t)):
-        v[:,i] = Et.dot(v[:,i-1])
+    for i in np.arange(1, len(t)):
+        v[:, i] = Et.dot(v[:, i-1])
 
-    x = v[0:n,:]
-    u = -0.5*B.T.dot(v[np.arange(0,n)+n,:])
+    x = v[0:n, :]
+    u = -0.5*B.T.dot(v[np.arange(0, n)+n, :])
 
     # transpose to be similar to opt_eng_cont
     u = u.T
@@ -303,11 +310,12 @@ def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
     if type(xf_mat[0][0]) == np.bool_:
         xf_mat = xf_mat.astype(float)
 
-    G = gramian(A,B,T,version='continuous')
+    G = gramian(A, B, T, version='continuous')
     delx = xf_mat - np.matmul(expm(A*T), x0_mat)
     E = np.multiply(np.linalg.solve(G, delx), delx)
 
     return E
+
 
 def integrate_u(U):
     """ This function integrates over some input squared to calculate energy using Simpson's integration.
@@ -330,8 +338,7 @@ def integrate_u(U):
     return energy
 
 
-
-def gramian(A,B,T,version=None,tol=1e-12):
+def gramian(A, B, T, version=None):
     """
     This function computes the controllability Gramian.
     Args:
@@ -347,79 +354,60 @@ def gramian(A,B,T,version=None,tol=1e-12):
     # System Size
     n_parcels = A.shape[0]
 
-    u,v = eig(A)
-    BB = mm(B,np.transpose(B))
+    u, v = eig(A)
+    BB = mm(B, np.transpose(B))
     n = A.shape[0]
-    
-    
+
     # If time horizon is infinite, can only compute the Gramian when stable
     if T == np.inf:
         # check version
-        if version=='continuous':
+        if version == 'continuous':
             # If stable: solve using Lyapunov equation
-            if(np.max(np.real(u)) < 0):
+            if np.max(np.real(u)) < 0:
                 return la.solve_continuous_lyapunov(A,-BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
-                return np.NAN
-        elif version=='discrete':
+                return np.nan
+        elif version == 'discrete':
             # If stable: solve using Lyapunov equation
-            if(np.max(np.abs(u)) < 1):
+            if np.max(np.abs(u)) < 1:
                 return la.solve_discrete_lyapunov(A,BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
-                return np.NAN
-
-            
+                return np.nan
     # If time horizon is finite, perform numerical integration
     else:
         # check version
-        if version=='continuous':
-            ## Compute required number of steps for desired precision
-            # Prefactors and matrix powers
-            # M1 = mm((mm(expm(A*0),B)), tp(mm(expm(A*0),B)))
-            # M2 = mm((mm(expm(A*T),B)), tp(mm(expm(A*T),B)))
-            # A2 = mm(A,A)
-            # A3 = mm(A2,A)
-            # A4 = mm(A3,A)
-            # # Fourth derivative at start and end
-            # D1 = mm(A4,M1) + 4*mm(mm(A3,M1),tp(A)) + 6*mm(mm(A2,M1),tp(A2)) + 4*mm(mm(A,M1),tp(A3)) + mm(M1,tp(A4))
-            # D2 = mm(A4,M2) + 4*mm(mm(A3,M2),tp(A)) + 6*mm(mm(A2,M2),tp(A2)) + 4*mm(mm(A,M2),tp(A3)) + mm(M2,tp(A4))
-            # # Get maximum error
-            # u1,s1,v1 = svd(D1)
-            # u2,s2,v2 = svd(D2)
-            # mmax = np.max([s1,s2])
-            # n = pow(pow(T,5)*mmax/(180*tol),1/4)
-            # n = np.int(np.ceil(n))
-            # print(n)
-            
+        if version == 'continuous':
             # Number of integration steps
             STEP = 0.001
-            t = np.arange(0,(T+STEP/2),STEP)
+            t = np.arange(0, (T+STEP/2), STEP)
             # Collect exponential difference
             dE = sp.linalg.expm(A * STEP)
-            dEa = np.zeros((n_parcels,n_parcels,len(t)))
-            dEa[:,:,0] = np.eye(n_parcels)
+            dEa = np.zeros((n_parcels, n_parcels, len(t)))
+            dEa[:, :, 0] = np.eye(n_parcels)
             # Collect Gramian difference
-            dG = np.zeros((n_parcels,n_parcels,len(t)))
-            dG[:,:,0] = mm(B,B.T)
+            dG = np.zeros((n_parcels, n_parcels, len(t)))
+            dG[:, :, 0] = mm(B, B.T)
             for i in np.arange(1, len(t)):
-                dEa[:,:,i] = mm(dEa[:,:,i-1],dE)
-                dEab = mm(dEa[:,:,i],B)
-                dG[:,:,i] = mm(dEab,dEab.T)
+                dEa[:, :, i] = mm(dEa[:, :, i-1], dE)
+                dEab = mm(dEa[:, :, i], B)
+                dG[:, :, i] = mm(dEab, dEab.T)
 
             # Integrate
             if sp.__version__ < '1.6.0':
-                G = sp.integrate.simps(dG,t,STEP,2)
+                G = sp.integrate.simps(dG, t, STEP, 2)
             else:
-                G = sp.integrate.simpson(dG,t,STEP,2)
+                G = sp.integrate.simpson(dG, t, STEP, 2)
+
             return G
-        elif version=='discrete':
+        elif version == 'discrete':
             Ap = np.eye(n)
             Wc = np.eye(n)
             for i in range(T):
-                Ap = mm(Ap,A)
-                Wc = Wc + mm(Ap,tp(Ap))
+                Ap = mm(Ap, A)
+                Wc = Wc + mm(Ap, tp(Ap))
+
             return Wc
 
 
