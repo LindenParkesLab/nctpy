@@ -2,6 +2,7 @@ from network_control.utils import get_p_val_string
 import os, platform
 import numpy as np
 import scipy as sp
+import nibabel as nib
 
 import seaborn as sns
 import pkg_resources
@@ -71,3 +72,49 @@ def reg_plot(x, y, xlabel, ylabel, ax, c='gray', add_spearman=False, kdeplot=Tru
             .format('{r}', r, get_p_val_string(r_p))
         ax.text(0.05, 0.975, textstr, transform=ax.transAxes,
                 verticalalignment='top')
+
+
+def null_plot(observed, null, xlabel, ax, p_val=None):
+    color_blue = sns.color_palette("Set1")[1]
+    color_red = sns.color_palette("Set1")[0]
+    sns.histplot(x=null, ax=ax, color='gray')
+    ax.axvline(x=observed, ymax=1, clip_on=False, linewidth=1, color=color_blue)
+    ax.grid(False)
+    sns.despine(right=True, top=True, ax=ax)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel('counts')
+
+    textstr = 'obs. = {:.2f}'.format(observed)
+    ax.text(observed, ax.get_ylim()[1], textstr,
+            horizontalalignment='left', verticalalignment='top',
+            rotation=270, c=color_blue)
+
+    if p_val:
+        textstr = '{:}'.format(get_p_val_string(p_val))
+        ax.text(observed - (np.abs(observed)*0.0025), ax.get_ylim()[1], textstr,
+                horizontalalignment='right', verticalalignment='top',
+                rotation=270, c=color_red)
+
+
+def roi_to_vtx(roi_data, annot_file):
+    labels, ctab, surf_names = nib.freesurfer.read_annot(annot_file)
+    vtx_data = np.zeros(labels.shape)
+
+    unique_labels = np.unique(labels)
+    if unique_labels[0] == 0:
+        unique_labels = unique_labels[1:]
+
+    for i in unique_labels:
+        vtx_data[labels == i] = roi_data[i - 1]
+
+    # get min/max for plottin
+    x = np.sort(np.unique(vtx_data))
+
+    if x.shape[0] > 1:
+        vtx_data_min = x[0]
+        vtx_data_max = x[-1]
+    else:
+        vtx_data_min = 0
+        vtx_data_max = 0
+
+    return vtx_data, vtx_data_min, vtx_data_max
