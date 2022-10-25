@@ -8,6 +8,8 @@ import seaborn as sns
 import pkg_resources
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from nilearn import datasets
+from nilearn import plotting
 
 def set_plotting_params(format='png'):
     if platform.system() == 'Darwin':
@@ -118,3 +120,71 @@ def roi_to_vtx(roi_data, annot_file):
         vtx_data_max = 0
 
     return vtx_data, vtx_data_min, vtx_data_max
+
+
+def surface_plot(data, lh_annot_file, rh_annot_file,
+                 fsaverage=datasets.fetch_surf_fsaverage(mesh='fsaverage5'),
+                 order='lr', cmap='viridis', cblim=None):
+
+    # project data to surface
+    n_nodes = len(data)
+    if order == 'lr':
+        vtx_data_lh, _, _ = roi_to_vtx(data[:int(n_nodes/2)], lh_annot_file)
+        vtx_data_rh, _, _ = roi_to_vtx(data[int(n_nodes/2):], rh_annot_file)
+    elif order == 'rl':
+        vtx_data_lh, _, _ = roi_to_vtx(data[int(n_nodes/2):], rh_annot_file)
+        vtx_data_rh, _, _ = roi_to_vtx(data[:int(n_nodes/2)], lh_annot_file)
+
+    # get colorbar axes
+    if cblim is None:
+        if cmap == 'coolwarm':
+            vmax = np.round(np.max(np.abs(data)), 1)
+            vmin = -vmax
+        else:
+            vmax = np.max(data)
+            vmin = np.min(data)
+    else:
+        vmax = cblim[0]
+        vmin = cblim[1]
+
+    # dummy plot for colorbar
+    im = plt.imshow(np.random.random((2, 2)), cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.close()
+
+    # main plot
+    f, ax = plt.subplots(2, 2, figsize=(2.5, 2.5), subplot_kw={'projection': '3d'})
+    plotting.plot_surf_roi(fsaverage['infl_left'], roi_map=vtx_data_lh,
+                         hemi='left', view='lateral',
+                         vmin=vmin, vmax=vmax,
+                         bg_map=fsaverage['sulc_left'],
+                         bg_on_data=True, axes=ax[0, 0],
+                         darkness=.5, cmap=cmap, colorbar=False)
+
+    plotting.plot_surf_roi(fsaverage['infl_right'], roi_map=vtx_data_rh,
+                         hemi='right', view='lateral',
+                         vmin=vmin, vmax=vmax,
+                         bg_map=fsaverage['sulc_right'],
+                         bg_on_data=True, axes=ax[0, 1],
+                         darkness=.5, cmap=cmap, colorbar=False)
+
+    plotting.plot_surf_roi(fsaverage['infl_left'], roi_map=vtx_data_lh,
+                         hemi='left', view='medial',
+                         vmin=vmin, vmax=vmax,
+                         bg_map=fsaverage['sulc_left'],
+                         bg_on_data=True, axes=ax[1, 0],
+                         darkness=.5, cmap=cmap, colorbar=False)
+
+    plotting.plot_surf_roi(fsaverage['infl_right'], roi_map=vtx_data_rh,
+                         hemi='right', view='medial',
+                         vmin=vmin, vmax=vmax,
+                         bg_map=fsaverage['sulc_right'],
+                         bg_on_data=True, axes=ax[1, 1],
+                         darkness=.5, cmap=cmap, colorbar=False)
+
+    plt.subplots_adjust(wspace=-0.075, hspace=-0.3)
+    cb_ax = f.add_axes([0.9, 0.25, 0.05, 0.5])  # add colorbar
+    f.colorbar(im, cax=cb_ax)
+    plotting.show()
+
+    return f
+
