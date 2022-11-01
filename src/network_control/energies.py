@@ -412,16 +412,14 @@ def gramian(A, B, T, version=None):
 
 
 class ComputeControlEnergy():
-    def __init__(self, A, control_tasks, system='continuous', c=1, energy='optimal', T=1, verbose=True):
+    def __init__(self, A, control_tasks, system='continuous', c=1, cost='optimal', T=1):
         self.A = A
         self.control_tasks = control_tasks
 
         self.system = system
         self.c = c
-        self.energy = energy
+        self.cost = cost
         self.T = T
-
-        self.verbose = verbose
 
     def _check_inputs(self):
         if self.A.shape[0] == self.A.shape[1]:
@@ -437,22 +435,21 @@ class ComputeControlEnergy():
     def run(self):
         self._check_inputs()
 
-        self.E = []
+        E = []
 
-        for task in tqdm(self.control_tasks):
-
-            if self.energy == 'optimal':
-                x, u, n_err = optimal_input(A=self.A_norm, T=self.T, B=task['B'],
-                                            x0=task['x0'], xf=task['xf'],
-                                            rho=task['rho'], S=task['S'])
-            elif self.energy == 'minimum':
-                x, u, n_err = minimum_input(A=self.A_norm, T=self.T, B=task['B'],
-                                            x0=task['x0'], xf=task['xf'])
+        for control_task in tqdm(self.control_tasks):
+            if self.cost == 'optimal':
+                _, u, _ = optimal_input(A=self.A_norm, T=self.T, B=control_task['B'],
+                                            x0=control_task['x0'], xf=control_task['xf'],
+                                            rho=control_task['rho'], S=control_task['S'])
+            elif self.cost == 'minimum':
+                _, u, _ = minimum_input(A=self.A_norm, T=self.T, B=control_task['B'],
+                                            x0=control_task['x0'], xf=control_task['xf'])
 
             # get energy
-            E = integrate_u(u)
-            self.E.append(np.sum(E))
+            e = integrate_u(u)
+            E.append(np.sum(e))
 
         # store outputs as array
-        self.E = np.array(self.E)
+        self.E = np.array(E)
 
