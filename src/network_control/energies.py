@@ -45,14 +45,18 @@ def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identi
     if xf.ndim == 1:
         xf = xf.reshape(-1, 1)
 
-    if xr == 'x0':
-        xr = x0
-    elif xr == 'xf':
-        xr = xf
-    elif xr == 'zero':
-        xr = np.zeros((n_nodes, 1))
+    if type(xr) == str:
+        if xr == 'x0':
+            xr = x0
+        elif xr == 'xf':
+            xr = xf
+        elif xr == 'zero':
+            xr = np.zeros((n_nodes, 1))
+    else:
+        if xr.ndim == 1:
+            xr = xr.reshape(-1, 1)
 
-    if S == 'identity':
+    if type(S) == str and S == 'identity':
         S = np.eye(n_nodes)
 
     if system == 'continuous':
@@ -167,11 +171,11 @@ def integrate_u(U):
     return energy
 
 
-def gramian(A, B, T, system=None):
+def gramian(A_norm, B, T, system=None):
     """
     This function computes the controllability Gramian.
     Args:
-        A:             np.array (n x n)
+        A_norm:             np.array (n x n)
         B:             np.array (n x k)
         T:             np.array (1 x 1)
         system:       str
@@ -181,11 +185,11 @@ def gramian(A, B, T, system=None):
     """
 
     # System Size
-    n_nodes = A.shape[0]
+    n_nodes = A_norm.shape[0]
 
-    u, v = eig(A)
+    u, v = eig(A_norm)
     BB = mm(B, np.transpose(B))
-    n = A.shape[0]
+    n = A_norm.shape[0]
 
     # If time horizon is infinite, can only compute the Gramian when stable
     if T == np.inf:
@@ -193,14 +197,14 @@ def gramian(A, B, T, system=None):
         if system == 'continuous':
             # If stable: solve using Lyapunov equation
             if np.max(np.real(u)) < 0:
-                return la.solve_continuous_lyapunov(A, -BB)
+                return la.solve_continuous_lyapunov(A_norm, -BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
         elif system == 'discrete':
             # If stable: solve using Lyapunov equation
             if np.max(np.abs(u)) < 1:
-                return la.solve_discrete_lyapunov(A, BB)
+                return la.solve_discrete_lyapunov(A_norm, BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
@@ -212,7 +216,7 @@ def gramian(A, B, T, system=None):
             STEP = 0.001
             t = np.arange(0, (T+STEP/2), STEP)
             # Collect exponential difference
-            dE = sp.linalg.expm(A * STEP)
+            dE = sp.linalg.expm(A_norm * STEP)
             dEa = np.zeros((n_nodes, n_nodes, len(t)))
             dEa[:, :, 0] = np.eye(n_nodes)
             # Collect Gramian difference
@@ -234,18 +238,18 @@ def gramian(A, B, T, system=None):
             Ap = np.eye(n)
             Wc = np.eye(n)
             for i in range(T):
-                Ap = mm(Ap, A)
+                Ap = mm(Ap, A_norm)
                 Wc = Wc + mm(Ap, tp(Ap))
 
             return Wc
 
 
-def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
+def minimum_energy_fast(A_norm, T, B, x0_mat, xf_mat):
     """ This function computes the minimum energy required to transition between all pairs of brain states
     encoded in (x0_mat,xf_mat)
 
      Args:
-      A: numpy array (N x N)
+      A_norm: numpy array (N x N)
             System adjacency matrix
       B: numpy array (N x N)
             Control input matrix
@@ -270,8 +274,8 @@ def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
     if type(xf_mat[0][0]) == np.bool_:
         xf_mat = xf_mat.astype(float)
 
-    G = gramian(A, B, T, system='continuous')
-    delx = xf_mat - np.matmul(expm(A*T), x0_mat)
+    G = gramian(A_norm, B, T, system='continuous')
+    delx = xf_mat - np.matmul(expm(A_norm*T), x0_mat)
     E = np.multiply(np.linalg.solve(G, delx), delx)
 
     return E
