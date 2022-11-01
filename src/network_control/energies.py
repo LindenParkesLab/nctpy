@@ -176,7 +176,7 @@ def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
     if type(xf_mat[0][0]) == np.bool_:
         xf_mat = xf_mat.astype(float)
 
-    G = gramian(A, B, T, version='continuous')
+    G = gramian(A, B, T, system='continuous')
     delx = xf_mat - np.matmul(expm(A*T), x0_mat)
     E = np.multiply(np.linalg.solve(G, delx), delx)
 
@@ -189,7 +189,7 @@ def integrate_u(U):
     If your control set (B) is the identity this will likely give energies that are nearly identical to those calculated using a Reimann sum.
     However, when control sets are sparse inputs can be super curvy, so this method will be a bit more accurate.
      Args:
-      U: numpy array (N x T)
+      U: numpy array (T x N)
             Input to the system (likely the output from minimum_input or optimal_input)
       
     Returns:
@@ -218,7 +218,7 @@ def gramian(A, B, T, system=None):
     """
 
     # System Size
-    n_parcels = A.shape[0]
+    n_nodes = A.shape[0]
 
     u, v = eig(A)
     BB = mm(B, np.transpose(B))
@@ -230,14 +230,14 @@ def gramian(A, B, T, system=None):
         if system == 'continuous':
             # If stable: solve using Lyapunov equation
             if np.max(np.real(u)) < 0:
-                return la.solve_continuous_lyapunov(A,-BB)
+                return la.solve_continuous_lyapunov(A, -BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
         elif system == 'discrete':
             # If stable: solve using Lyapunov equation
             if np.max(np.abs(u)) < 1:
-                return la.solve_discrete_lyapunov(A,BB)
+                return la.solve_discrete_lyapunov(A, BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
@@ -250,10 +250,10 @@ def gramian(A, B, T, system=None):
             t = np.arange(0, (T+STEP/2), STEP)
             # Collect exponential difference
             dE = sp.linalg.expm(A * STEP)
-            dEa = np.zeros((n_parcels, n_parcels, len(t)))
-            dEa[:, :, 0] = np.eye(n_parcels)
+            dEa = np.zeros((n_nodes, n_nodes, len(t)))
+            dEa[:, :, 0] = np.eye(n_nodes)
             # Collect Gramian difference
-            dG = np.zeros((n_parcels, n_parcels, len(t)))
+            dG = np.zeros((n_nodes, n_nodes, len(t)))
             dG[:, :, 0] = mm(B, B.T)
             for i in np.arange(1, len(t)):
                 dEa[:, :, i] = mm(dEa[:, :, i-1], dE)
