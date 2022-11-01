@@ -146,43 +146,6 @@ def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identi
     return x.T, u.T, err
 
 
-def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
-    """ This function computes the minimum energy required to transition between all pairs of brain states
-    encoded in (x0_mat,xf_mat)
-
-     Args:
-      A: numpy array (N x N)
-            System adjacency matrix
-      B: numpy array (N x N)
-            Control input matrix
-      x0_mat: numpy array (N x n_transitions)
-             Initial states (see expand_states)
-      xf_mat: numpy array (N x n_transitions)
-            Final states (see expand_states)
-      T: float (1 x 1)
-           Control horizon
-
-    Returns:
-      E: numpy array (N x n_transitions)
-            Regional energy for all state transition pairs.
-            Notes,
-                np.sum(E, axis=0)
-                    collapse over regions to yield energy associated with all transitions.
-                np.sum(E, axis=0).reshape(n_states, n_states)
-                    collapse over regions and reshape into a state by state transition matrix.
-    """
-    if type(x0_mat[0][0]) == np.bool_:
-        x0_mat = x0_mat.astype(float)
-    if type(xf_mat[0][0]) == np.bool_:
-        xf_mat = xf_mat.astype(float)
-
-    G = gramian(A, B, T, system='continuous')
-    delx = xf_mat - np.matmul(expm(A*T), x0_mat)
-    E = np.multiply(np.linalg.solve(G, delx), delx)
-
-    return E
-
-
 def integrate_u(U):
     """ This function integrates over some input squared to calculate energy using Simpson's integration.
 
@@ -276,3 +239,39 @@ def gramian(A, B, T, system=None):
 
             return Wc
 
+
+def minimum_energy_fast(A, T, B, x0_mat, xf_mat):
+    """ This function computes the minimum energy required to transition between all pairs of brain states
+    encoded in (x0_mat,xf_mat)
+
+     Args:
+      A: numpy array (N x N)
+            System adjacency matrix
+      B: numpy array (N x N)
+            Control input matrix
+      x0_mat: numpy array (N x n_transitions)
+             Initial states (see expand_states)
+      xf_mat: numpy array (N x n_transitions)
+            Final states (see expand_states)
+      T: float (1 x 1)
+           Control horizon
+
+    Returns:
+      E: numpy array (N x n_transitions)
+            Regional energy for all state transition pairs.
+            Notes,
+                np.sum(E, axis=0)
+                    collapse over regions to yield energy associated with all transitions.
+                np.sum(E, axis=0).reshape(n_states, n_states)
+                    collapse over regions and reshape into a state by state transition matrix.
+    """
+    if type(x0_mat[0][0]) == np.bool_:
+        x0_mat = x0_mat.astype(float)
+    if type(xf_mat[0][0]) == np.bool_:
+        xf_mat = xf_mat.astype(float)
+
+    G = gramian(A, B, T, system='continuous')
+    delx = xf_mat - np.matmul(expm(A*T), x0_mat)
+    E = np.multiply(np.linalg.solve(G, delx), delx)
+
+    return E
