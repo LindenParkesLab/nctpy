@@ -20,7 +20,7 @@ def node_strength(A):
     return s
 
 
-def ave_control(A_norm, version=None):
+def ave_control(A_norm, system=None):
     """ Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
     network. Average controllability measures the ease by which input at that node can steer the system into many
     easily-reachable states.
@@ -28,7 +28,7 @@ def ave_control(A_norm, version=None):
     Args:
         A_norm: np.array (n_parcels, n_parcels)
             Normalized adjacency matrix from structural connectome (see matrix_normalization in utils for example)
-        version: str
+        system: str
             options: 'continuous' or 'discrete'. default=None
 
     Returns:
@@ -41,7 +41,7 @@ def ave_control(A_norm, version=None):
                6:8414, 2015.
     """
 
-    if version == 'discrete':
+    if system == 'discrete':
         T, U = schur(A_norm, 'real')  # Schur stability
         midMat = np.multiply(U, U).transpose()
         v = np.matrix(np.diag(T)).transpose()
@@ -49,11 +49,11 @@ def ave_control(A_norm, version=None):
         P = np.diag(1 - np.matmul(v, v.transpose()))
         P = np.tile(P.reshape([N, 1]), (1, N))
         ac = sum(np.divide(midMat, P))
-    elif version == 'continuous':
+    elif system == 'continuous':
         n = A_norm.shape[0]
-        G = gramian(A_norm, B=np.eye(n), T=1, version=version)
+        G = gramian(A_norm, B=np.eye(n), T=1, system=system)
         ac = G.diagonal()
-    elif version == None:
+    elif system == None:
         raise Exception("Time system not specified. "
                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
                         "(see matrix_normalization for help).")

@@ -338,14 +338,14 @@ def integrate_u(U):
     return energy
 
 
-def gramian(A, B, T, version=None):
+def gramian(A, B, T, system=None):
     """
     This function computes the controllability Gramian.
     Args:
         A:             np.array (n x n)
         B:             np.array (n x k)
         T:             np.array (1 x 1)
-        version:       str
+        system:       str
             options: 'continuous' or 'discrete'. default=None
     Returns:
         Wc:            np.array (n x n)
@@ -360,15 +360,15 @@ def gramian(A, B, T, version=None):
 
     # If time horizon is infinite, can only compute the Gramian when stable
     if T == np.inf:
-        # check version
-        if version == 'continuous':
+        # check system
+        if system == 'continuous':
             # If stable: solve using Lyapunov equation
             if np.max(np.real(u)) < 0:
                 return la.solve_continuous_lyapunov(A,-BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
-        elif version == 'discrete':
+        elif system == 'discrete':
             # If stable: solve using Lyapunov equation
             if np.max(np.abs(u)) < 1:
                 return la.solve_discrete_lyapunov(A,BB)
@@ -377,8 +377,8 @@ def gramian(A, B, T, version=None):
                 return np.nan
     # If time horizon is finite, perform numerical integration
     else:
-        # check version
-        if version == 'continuous':
+        # check system
+        if system == 'continuous':
             # Number of integration steps
             STEP = 0.001
             t = np.arange(0, (T+STEP/2), STEP)
@@ -401,7 +401,7 @@ def gramian(A, B, T, version=None):
                 G = sp.integrate.simpson(dG, t, STEP, 2)
 
             return G
-        elif version == 'discrete':
+        elif system == 'discrete':
             Ap = np.eye(n)
             Wc = np.eye(n)
             for i in range(T):
