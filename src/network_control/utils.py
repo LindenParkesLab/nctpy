@@ -38,13 +38,13 @@ def rank_int(data, c=3.0 / 8):
     return transformed
 
 
-def matrix_normalization(A, version=None, c=1):
+def matrix_normalization(A, system=None, c=1):
     '''
 
     Args:
         A: np.array (n_parcels, n_parcels)
             adjacency matrix from structural connectome
-        version: str
+        system: str
             options: 'continuous' or 'discrete'. default=None
             string variable that determines whether A is normalized for a continuous-time system or a discrete-time
             system. If normalizing for a continuous-time system, the identity matrix is subtracted.
@@ -56,7 +56,7 @@ def matrix_normalization(A, version=None, c=1):
 
     '''
 
-    if version == None:
+    if system == None:
         raise Exception("Time system not specified. "
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                         "(see function help).")
@@ -67,7 +67,7 @@ def matrix_normalization(A, version=None, c=1):
     # Matrix normalization for discrete-time systems
     A_norm = A / (c + s[0])
 
-    if version == 'continuous':
+    if system == 'continuous':
         # for continuous-time systems
         A_norm = A_norm - np.eye(A.shape[0])
 
