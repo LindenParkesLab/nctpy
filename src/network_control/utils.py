@@ -1,9 +1,11 @@
 import os
 import numpy as np
 import scipy as sp
+from scipy import stats
 import scipy.linalg as la
 from scipy.linalg import svd
 from scipy.linalg import eig
+from statsmodels.stats import multitest
 from numpy import matmul as mm
 from scipy.linalg import expm as expm
 from numpy import transpose as tp
@@ -130,6 +132,20 @@ def normalize_state(x):
     return x_norm
 
 
+def normalize_weights(x, rank=True, add_constant=True):
+    if rank:
+        # rank data
+        x = sp.stats.rankdata(x)
+
+    # rescale to unit interval
+    x = (x - min(x)) / (max(x) - min(x))
+
+    if add_constant:
+        x = x + 1
+
+    return x
+
+
 def get_null_p(x, null, version='standard', abs=False):
     if abs:
         x = np.abs(x)
@@ -144,6 +160,23 @@ def get_null_p(x, null, version='standard', abs=False):
                         np.sum(x >= null) / len(null)])
 
     return p_val
+
+
+def get_fdr_p(p_vals, alpha=0.05):
+    if p_vals.ndim == 2:
+        do_reshape = True
+        dims = p_vals.shape
+        p_vals = p_vals.flatten()
+    else:
+        do_reshape = False
+
+    out = multitest.multipletests(p_vals, alpha=alpha, method='fdr_bh')
+    p_fdr = out[1]
+
+    if do_reshape:
+        p_fdr = p_fdr.reshape(dims)
+
+    return p_fdr
 
 
 def convert_states_str2float(states_str):
