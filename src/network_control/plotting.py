@@ -138,11 +138,11 @@ def surface_plot(data, lh_annot_file, rh_annot_file,
     # get colorbar axes
     if cblim is None:
         if cmap == 'coolwarm':
-            vmax = np.round(np.max(np.abs(data)), 1)
+            vmax = np.round(np.nanmax(np.abs(data)), 1)
             vmin = -vmax
         else:
-            vmax = np.max(data)
-            vmin = np.min(data)
+            vmax = np.nanmax(data)
+            vmin = np.nanmin(data)
     else:
         vmax = cblim[0]
         vmin = cblim[1]
