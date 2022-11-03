@@ -171,25 +171,25 @@ def integrate_u(U):
     return energy
 
 
-def gramian(A_norm, B, T, system=None):
+def gramian(A_norm, T, system=None):
     """
     This function computes the controllability Gramian.
     Args:
-        A_norm:             np.array (n x n)
-        B:             np.array (n x k)
-        T:             np.array (1 x 1)
-        system:       str
+        A_norm: np.array (n x n)
+        T: np.array (1 x 1)
+        system: str
             options: 'continuous' or 'discrete'. default=None
+
     Returns:
         Wc:            np.array (n x n)
     """
 
     # System Size
     n_nodes = A_norm.shape[0]
+    B = np.eye(n_nodes)
 
     u, v = eig(A_norm)
     BB = mm(B, np.transpose(B))
-    n = A_norm.shape[0]
 
     # If time horizon is infinite, can only compute the Gramian when stable
     if T == np.inf:
@@ -235,8 +235,8 @@ def gramian(A_norm, B, T, system=None):
 
             return G
         elif system == 'discrete':
-            Ap = np.eye(n)
-            Wc = np.eye(n)
+            Ap = np.eye(n_nodes)
+            Wc = np.eye(n_nodes)
             for i in range(T):
                 Ap = mm(Ap, A_norm)
                 Wc = Wc + mm(Ap, tp(Ap))
