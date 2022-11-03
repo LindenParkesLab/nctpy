@@ -2,9 +2,7 @@ import os
 import numpy as np
 import scipy as sp
 from scipy import stats
-import scipy.linalg as la
-from scipy.linalg import svd
-from scipy.linalg import eig
+from numpy.linalg import eig
 from statsmodels.stats import multitest
 
 
@@ -31,11 +29,12 @@ def matrix_normalization(A, system=None, c=1):
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                         "(see function help).")
 
-    # singluar value decomposition
-    u, s, vt = svd(A)
+    # eigenvalue decomposition
+    w, _ = eig(A)
+    l = np.abs(w).max()
 
     # Matrix normalization for discrete-time systems
-    A_norm = A / (c + s[0])
+    A_norm = A / (c + l)
 
     if system == 'continuous':
         # for continuous-time systems
