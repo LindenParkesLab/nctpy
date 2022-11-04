@@ -188,3 +188,33 @@ def surface_plot(data, lh_annot_file, rh_annot_file,
 
     return f
 
+
+def add_module_lines(modules, ax):
+
+    # get unqiue modules
+    unique_modules = modules.unique()
+    print(unique_modules)
+
+    previous = -1
+    for i in np.arange(len(unique_modules)):
+
+        # get box boundaries using first and last occurence of module name
+        bool_array = np.asarray(modules == unique_modules[i])
+        n = len(bool_array)
+        first = -1
+        last = -1
+        for i in range(0, n):
+            if (bool_array[i] != True):
+                continue
+            if (first == -1):
+                first = i
+            last = i
+
+        # draw box
+        ax.hlines(last + 1, previous + 1, last + 1, colors='w')
+        ax.vlines(last + 1, previous + 1, last + 1, colors='w')
+        ax.hlines(first, previous + 1, last + 1, colors='w')
+        ax.vlines(first, previous + 1, last + 1, colors='w')
+
+        # update previous
+        previous = last
