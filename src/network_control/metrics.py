@@ -50,8 +50,7 @@ def ave_control(A_norm, system=None):
         P = np.tile(P.reshape([N, 1]), (1, N))
         ac = sum(np.divide(midMat, P))
     elif system == 'continuous':
-        n = A_norm.shape[0]
-        G = gramian(A_norm, B=np.eye(n), T=1, system=system)
+        G = gramian(A_norm, T=1, system=system)
         ac = G.diagonal()
     elif system == None:
         raise Exception("Time system not specified. "
