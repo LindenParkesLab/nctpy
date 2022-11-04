@@ -2,23 +2,6 @@ import numpy as np
 from scipy.linalg import schur
 from network_control.energies import gramian
 
-def node_strength(A):
-    """ Returns strength of the nodes of a network.
-
-    Args:
-        A: np.array (n_parcels, n_parcels)
-            Adjacency matrix from structural connectome
-
-    Returns:
-        s: np.array (n_parcels,)
-            vector of strength values across nodes
-
-    @author lindenmp
-    """
-    s = np.sum(A, axis=0)
-
-    return s
-
 
 def ave_control(A_norm, system=None):
     """ Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
@@ -84,7 +67,7 @@ def modal_control(A_norm):
     N = A_norm.shape[0]
     phi = np.zeros(N, dtype=float)
     for i in range(N):
-        Al = U[i,] * U[i,]
+        Al = U[i, ] * U[i, ]
         Ar = (1.0 - np.power(eigVals, 2)).transpose()
         phi[i] = np.matmul(Al, Ar)
 
