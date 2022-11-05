@@ -1,49 +1,18 @@
+import os
 import numpy as np
 import scipy as sp
-import scipy.linalg as la
-from scipy.linalg import svd
-from scipy.linalg import eig
-from numpy import matmul as mm
-from scipy.linalg import expm as expm
-from numpy import transpose as tp
+from scipy import stats
+from numpy.linalg import eig
+from statsmodels.stats import multitest
 
 
-def rank_to_normal(data, c, n):
-    # Standard quantile function
-    data = (data - c) / (n - 2 * c + 1)
-    return sp.stats.norm.ppf(data)
-
-
-def rank_int(data, c=3.0 / 8):
-    if data.ndim > 1:
-        do_reshape = True
-        dims = data.shape
-        data = data.flatten()
-    else:
-        do_reshape = False
-
-    # Set seed
-    np.random.seed(0)
-
-    # Get rank, ties are averaged
-    data = sp.stats.rankdata(data, method="average")
-
-    # Convert rank to normal distribution
-    transformed = rank_to_normal(data=data, c=c, n=len(data))
-
-    if do_reshape:
-        transformed = transformed.reshape(dims)
-
-    return transformed
-
-
-def matrix_normalization(A, version=None, c=1):
+def matrix_normalization(A, system=None, c=1):
     '''
 
     Args:
         A: np.array (n_parcels, n_parcels)
             adjacency matrix from structural connectome
-        version: str
+        system: str
             options: 'continuous' or 'discrete'. default=None
             string variable that determines whether A is normalized for a continuous-time system or a discrete-time
             system. If normalizing for a continuous-time system, the identity matrix is subtracted.
@@ -55,22 +24,19 @@ def matrix_normalization(A, version=None, c=1):
 
     '''
 
-    if version == 'continuous':
-        print("Normalizing A for a continuous-time system")
-    elif version == 'discrete':
-        print("Normalizing A for a discrete-time system")
-    elif version == None:
+    if system == None:
         raise Exception("Time system not specified. "
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                         "(see function help).")
 
-    # singluar value decomposition
-    u, s, vt = svd(A)
+    # eigenvalue decomposition
+    w, _ = eig(A)
+    l = np.abs(w).max()
 
     # Matrix normalization for discrete-time systems
-    A_norm = A / (c + s[0])
+    A_norm = A / (c + l)
 
-    if version == 'continuous':
+    if system == 'continuous':
         # for continuous-time systems
         A_norm = A_norm - np.eye(A.shape[0])
 
@@ -80,10 +46,8 @@ def matrix_normalization(A, version=None, c=1):
 def get_p_val_string(p_val):
     if p_val == 0.0:
         p_str = "-log10($\mathit{:}$)>25".format('{p}')
-    elif p_val < 0.001:
-        p_str = '$\mathit{:}$ < 0.001'.format('{p}')
-    elif p_val >= 0.001 and p_val < 0.05:
-        p_str = '$\mathit{:}$ < 0.05'.format('{p}')
+    elif p_val < 0.05:
+        p_str = '$\mathit{:}$ = {:0.0e}'.format('{p}', p_val)
     else:
         p_str = "$\mathit{:}$ = {:.3f}".format('{p}', p_val)
 
@@ -128,3 +92,68 @@ def expand_states(states):
 
     return x0_mat, xf_mat
 
+
+def normalize_state(x):
+    x_norm = x / np.linalg.norm(x, ord=2)
+
+    return x_norm
+
+
+def normalize_weights(x, rank=True, add_constant=True):
+    if rank:
+        # rank data
+        x = sp.stats.rankdata(x)
+
+    # rescale to unit interval
+    x = (x - min(x)) / (max(x) - min(x))
+
+    if add_constant:
+        x = x + 1
+
+    return x
+
+
+def get_null_p(x, null, version='standard', abs=False):
+    if abs:
+        x = np.abs(x)
+        null = np.abs(null)
+
+    if version == 'standard':
+        p_val = np.sum(null >= x) / len(null)
+    elif version == 'reverse':
+        p_val = np.sum(x >= null) / len(null)
+    elif version == 'smallest':
+        p_val = np.min([np.sum(null >= x) / len(null),
+                        np.sum(x >= null) / len(null)])
+
+    return p_val
+
+
+def get_fdr_p(p_vals, alpha=0.05):
+    if p_vals.ndim == 2:
+        do_reshape = True
+        dims = p_vals.shape
+        p_vals = p_vals.flatten()
+    else:
+        do_reshape = False
+
+    out = multitest.multipletests(p_vals, alpha=alpha, method='fdr_bh')
+    p_fdr = out[1]
+
+    if do_reshape:
+        p_fdr = p_fdr.reshape(dims)
+
+    return p_fdr
+
+
+def convert_states_str2float(states_str):
+    n = len(states_str)
+    state_labels = list(np.unique(states_str))
+
+    states = np.zeros(n)
+    for i, state in enumerate(state_labels):
+        for j in np.arange(n):
+            if state == states_str[j]:
+                states[j] = i
+
+    return states.astype(int), state_labels
