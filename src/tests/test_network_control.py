@@ -121,18 +121,32 @@ class TestGetControlInputs(unittest.TestCase):
       self.assertEqual(True, False)
 
 
-# TODO pick tests integrate_u
 class TestIntegrateU(unittest.TestCase):
    def setUp(self):
       pass
 
    def test_integrate_u_success(self):
+      #TODO default
       self.assertEqual(True, False)
 
+      #TODO different scipy version
 
-# TODO pick tests ave_control
+
+
 class TestAveControl(unittest.TestCase):
+   def setUp(self):
+      pass
+
    def test_ave_control_success(self):
+      # TODO discrete
+
+      # TODO continuous
+      self.assertEqual(True, False)
+
+   def test_ave_control_error(self):
+      # TODO no system
+
+      # TODO typo
       self.assertEqual(True, False)
 
 
