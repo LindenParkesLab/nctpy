@@ -14,6 +14,19 @@ class TestMatrixNormalization(unittest.TestCase):
         with open('./fixtures/A.npy', 'rb') as f:
             self.A = np.load(f)
 
+    def test_matrix_normalization_stability(self):
+        A = np.random.randn(20, 20)
+        A = (A + A.T)/2
+        # discrete
+        norm = matrix_normalization(A, system='discrete')
+        w, _ = np.linalg.eig(norm)
+        l = np.max(np.abs(w))
+        self.assertLess(l, 1)
+        # continuous
+        norm = matrix_normalization(A, system='continuous')
+        w, _ = np.linalg.eig(norm)
+        self.assertTrue((l > 0).all())
+
     def test_matrix_normalization_success(self):
         # discrete time system default c=1
         with open('./fixtures/A_d_1.npy', 'rb') as f:
@@ -51,10 +64,6 @@ class TestMatrixNormalization(unittest.TestCase):
                          "Please nominate whether you are normalizing A for a continuous-time or a discrete-time "
                          "system "
                          "(see function help).")
-
-    # TODO add test that matrix is stable for random A
-    def test_matrix_normalization_stability(self):
-        pass
 
     # TODO add test for dimensions of A
 
