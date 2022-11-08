@@ -1,6 +1,7 @@
 import unittest
 import sys
 import numpy as np
+
 # setting path
 sys.path.append('../network_control/')
 from network_control.utils import matrix_normalization, normalize_state, normalize_weights
@@ -137,7 +138,6 @@ class TestIntegrateU(unittest.TestCase):
             self.u = np.load(f)
 
     def test_integrate_u_success(self):
-        # default
         with open('./fixtures/u_int.npy', 'rb') as f:
             energy = np.load(f)
         self.assertTrue((energy == integrate_u(self.u)).all())
@@ -147,20 +147,39 @@ class TestIntegrateU(unittest.TestCase):
 
 class TestAveControl(unittest.TestCase):
     def setUp(self):
-        with open('./fixtures/u.npy', 'rb') as f:
-            self.u = np.load(f)
+        with open('./fixtures/A_d_1.npy', 'rb') as f:
+            self.A_d = np.load(f)
+        with open('./fixtures/A_c_1.npy', 'rb') as f:
+            self.A_c = np.load(f)
 
     def test_ave_control_success(self):
-        # TODO discrete
+        # discrete
+        with open('./fixtures/ac_d.npy', 'rb') as f:
+            ac = np.load(f)
+        self.assertTrue((ac == ave_control(self.A_d, 'discrete')).all())
+        # continuous
+        with open('./fixtures/ac_c.npy', 'rb') as f:
+            ac = np.load(f)
+        self.assertTrue((ac == ave_control(self.A_c, 'continuous')).all())
 
-        # TODO continuous
-        self.assertEqual(True, False)
+        # TODO, check with different T
 
     def test_ave_control_error(self):
-        # TODO no system
+        # no system
+        with self.assertRaises(Exception) as exception_context:
+            ave_control(self.A_d)
+        self.assertEqual(str(exception_context.exception),
+                         "Time system not specified. "
+                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                         "(see matrix_normalization for help).")
 
-        # TODO typo
-        self.assertEqual(True, False)
+        # typo
+        with self.assertRaises(Exception) as exception_context:
+            ave_control(self.A_c, 'contigiuous')
+        self.assertEqual(str(exception_context.exception),
+                         "Time system not specified. "
+                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                         "(see matrix_normalization for help).")
 
 
 if __name__ == '__main__':
