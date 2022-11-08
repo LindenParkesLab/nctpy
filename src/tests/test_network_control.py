@@ -1,9 +1,6 @@
 import unittest
 import sys
 import numpy as np
-
-# setting path
-sys.path.append('../network_control/')
 from network_control.utils import matrix_normalization, normalize_state, normalize_weights
 from network_control.metrics import ave_control
 from network_control.energies import integrate_u, get_control_inputs
@@ -116,7 +113,17 @@ class TestNormalizeWeights(unittest.TestCase):
 
 class TestGetControlInputs(unittest.TestCase):
     def setUp(self):
-        pass
+        with open('./fixtures/A_d_1.npy', 'rb') as f:
+            self.A_d = np.load(f)
+        with open('./fixtures/A_c_1.npy', 'rb') as f:
+            self.A_c = np.load(f)
+        with open('./fixtures/x.npy', 'rb') as f:
+            self.x0 = np.load(f)
+        with open('./fixtures/B.npy', 'rb') as f:
+            self.B = np.load(f)
+        with open('./fixtures/xf.npy', 'rb') as f:
+            self.xf = np.load(f)
+        self.n = np.shape(self.A_d)[0]
 
     def test_get_control_inputs_success(self):
         # TODO defaults
@@ -130,21 +137,50 @@ class TestGetControlInputs(unittest.TestCase):
         # TODO S
 
         # TODO system
+
+        # TODO boolean states
+
+        # TODO test state dimensions
+
+        # TODO test reference state
+
         self.assertEqual(True, False)
 
     # TODO test that output dimensions are correct
     def test_get_control_inputs_dimensions(self):
-        pass
+        self.assertEqual(True, False)
+
+    # TODO test that energy required to get to 1st eig is sim to IR
+    def test_get_control_inputs_first_eig(self):
+        self.assertEqual(True, False)
 
     def test_get_control_inputs_error(self):
-        # TODO system
-        self.assertEqual(True, False)
+        # no system
+        with self.assertRaises(Exception) as exception_context:
+            get_control_inputs(self.A_d, 5, np.eye(self.n), self.x0, self.xf)
+        self.assertEqual(str(exception_context.exception),
+                         "Time system not specified. "
+                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                         "(see matrix_normalization for help).")
+        # typo
+        with self.assertRaises(Exception) as exception_context:
+            get_control_inputs(self.A_c, 1, self.B, self.x0, self.xf, system='cont')
+        self.assertEqual(str(exception_context.exception),
+                         "Time system not specified. "
+                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
+                         "(see matrix_normalization for help).")
 
 
 class TestIntegrateU(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/u.npy', 'rb') as f:
             self.u = np.load(f)
+
+    def test_integrate_u_bounds(self):
+        for i in range(10):
+            # for increasingly large U, test that we always get positive energy
+            u = np.random.randn(100, 10000) * ((i+1)*10)
+            self.assertTrue((integrate_u(u) > 0).all())
 
     def test_integrate_u_success(self):
         with open('./fixtures/u_int.npy', 'rb') as f:
@@ -192,4 +228,7 @@ class TestAveControl(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    # setting path
+    sys.path.append('../network_control/')
+
     unittest.main()
