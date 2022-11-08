@@ -42,3 +42,9 @@ np.save('./fixtures/weights_scale.npy', x_scale)
 x_scale_const = x_scale + 1
 np.save('./fixtures/weights_scale_const.npy', x_scale_const)
 
+# integrate U
+T = 1000
+U = np.random.randn(T, N)
+np.save('./fixtures/u.npy', U)
+energy = sp.integrate.simps(U.T ** 2)
+np.save('./fixtures/u_int.npy', energy)
