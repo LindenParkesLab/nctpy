@@ -237,4 +237,7 @@ np.save('./fixtures/control_S.npy', x,u,err)
 # system
 x,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='zero', rho=100, S='identity')
 np.save('./fixtures/control_continuous.npy', x,u,err)
+# binary x
+x_bin = np.random.randint(0,1,size=(N,1))
+np.save('./fixtures/x_bin.npy', x,u,err)
 
