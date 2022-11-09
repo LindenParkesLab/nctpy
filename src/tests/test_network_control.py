@@ -13,7 +13,7 @@ class TestMatrixNormalization(unittest.TestCase):
 
     def test_matrix_normalization_stability(self):
         A = np.random.randn(20, 20)
-        A = (A + A.T)/2
+        A = (A + A.T) / 2
         # discrete
         norm = matrix_normalization(A, system='discrete')
         w, _ = np.linalg.eig(norm)
@@ -28,20 +28,28 @@ class TestMatrixNormalization(unittest.TestCase):
         # discrete time system default c=1
         with open('./fixtures/A_d_1.npy', 'rb') as f:
             A_d_1 = np.load(f)
-        A_d_1_test = matrix_normalization(self.A, system='discrete')
-        self.assertTrue((A_d_1 == A_d_1_test).all())
+        self.assertTrue((A_d_1 == matrix_normalization(self.A, system='discrete')).all())
         # discrete time system c=2
         with open('./fixtures/A_d_2.npy', 'rb') as f:
             A_d_2 = np.load(f)
         self.assertTrue((A_d_2 == matrix_normalization(self.A, system='discrete', c=2)).all())
+        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != matrix_normalization(self.A,
+                                                                                                      system='discrete',
+                                                                                                      c=2)).any())
         # continuous time system c=1
         with open('./fixtures/A_c_1.npy', 'rb') as f:
             A_c_1 = np.load(f)
         self.assertTrue((A_c_1 == matrix_normalization(self.A, system='continuous', c=1)).all())
+        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != matrix_normalization(self.A,
+                                                                                                      system='continuous',
+                                                                                                      c=1)).any())
         # continuous time system c=2
         with open('./fixtures/A_c_2.npy', 'rb') as f:
             A_c_2 = np.load(f)
         self.assertTrue((A_c_2 == matrix_normalization(self.A, system='continuous', c=2)).all())
+        self.assertTrue((matrix_normalization(self.A, system='continuous', c=1) != matrix_normalization(self.A,
+                                                                                                        system='continuous',
+                                                                                                        c=2)).any())
 
     def test_system_specification_error(self):
         # no default
@@ -96,17 +104,24 @@ class TestNormalizeWeights(unittest.TestCase):
             weight_s_c = np.load(f)
         self.assertTrue((weight_s_c == normalize_weights(self.weights,
                                                          rank=False)).all())
+        self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
+                                                                              rank=False)).any())
         # no constant
         with open('./fixtures/weights_rank_scale.npy', 'rb') as f:
             weight_r_s = np.load(f)
         self.assertTrue((weight_r_s == normalize_weights(self.weights,
                                                          add_constant=False)).all())
+        self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
+                                                                              add_constant=False)).any())
         # no rank or constant
         with open('./fixtures/weights_scale.npy', 'rb') as f:
             weight_s = np.load(f)
         self.assertTrue((weight_s == normalize_weights(self.weights,
                                                        rank=False,
                                                        add_constant=False)).all())
+        self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
+                                                                              rank=False,
+                                                                              add_constant=False)).any())
 
         # TODO add type and size checking for inputs
 
@@ -126,9 +141,16 @@ class TestGetControlInputs(unittest.TestCase):
         self.n = np.shape(self.A_d)[0]
 
     def test_get_control_inputs_success(self):
-        # TODO defaults
+        # discrete
+        with open('./fixtures/control_discrete.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf, system='discrete')
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
 
         # TODO T
+        # TODO test for T=1
 
         # TODO B
 
@@ -137,12 +159,13 @@ class TestGetControlInputs(unittest.TestCase):
         # TODO S
 
         # TODO system
+        # TODO test reference state
+        self.assertEqual(True, False)
 
+    def test_get_control_inputs_consistency(self):
         # TODO boolean states
 
         # TODO test state dimensions
-
-        # TODO test reference state
 
         self.assertEqual(True, False)
 
@@ -179,7 +202,7 @@ class TestIntegrateU(unittest.TestCase):
     def test_integrate_u_bounds(self):
         for i in range(10):
             # for increasingly large U, test that we always get positive energy
-            u = np.random.randn(100, 10000) * ((i+1)*10)
+            u = np.random.randn(100, 10000) * ((i + 1) * 10)
             self.assertTrue((integrate_u(u) > 0).all())
 
     def test_integrate_u_success(self):
@@ -206,8 +229,8 @@ class TestAveControl(unittest.TestCase):
         with open('./fixtures/ac_c.npy', 'rb') as f:
             ac = np.load(f)
         self.assertTrue((ac == ave_control(self.A_c, 'continuous')).all())
+        self.assertTrue((ave_control(self.A_d, 'discrete') != ave_control(self.A_c, 'continuous')).any())
 
-        # TODO, check with different T
 
     def test_ave_control_error(self):
         # no system
