@@ -148,30 +148,60 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
-
-        # TODO T
+        # T
+        with open('./fixtures/control_T.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_d, 7, np.eye(self.n), self.x0, self.xf, system='discrete')
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
         # TODO test for T=1
-
-        # TODO B
-
-        # TODO rho
-
-        # TODO S
-
-        # TODO system
+        # B
+        with open('./fixtures/control_B.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, self.B, self.x0, self.xf, system='continuous')
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
+        # rho
+        with open('./fixtures/control_rho.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n),
+                                                      self.x0, self.xf, system='discrete',
+                                                      rhp=100)
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
+        # S
+        with open('./fixtures/control_T.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0,
+                                                      self.xf, system='discrete', S=self.B)
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
+        # system
+        with open('./fixtures/control_continuous.npy', 'rb') as f:
+            x, u, err = np.load(f)
+        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf, system='continuous')
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
         # TODO test reference state
-        self.assertEqual(True, False)
 
     def test_get_control_inputs_consistency(self):
         # TODO boolean states
 
-        # TODO test state dimensions
+        # state dimensions
+        x0 = np.random.rand(self.n,)
+        xf = np.random.rand(self.n, )
+        x_1d, u_1d, err_1d = get_control_inputs(self.A_d, 2, np.eye(self.n), x0, xf, system='discrete')
+        x_2d, u_2d, err_2d = get_control_inputs(self.A_d, 2, np.eye(self.n),
+                                                x0.reshape(-1, 1), xf.reshape(-1, 1), system='discrete')
+        self.assertTrue((x_1d == x_2d).all())
+        self.assertTrue((u_1d == u_2d).all())
+        self.assertTrue((err_1d == err_2d).all())
 
-        self.assertEqual(True, False)
-
-    # TODO test that output dimensions are correct
-    def test_get_control_inputs_dimensions(self):
-        self.assertEqual(True, False)
 
     # TODO test that energy required to get to 1st eig is sim to IR
     def test_get_control_inputs_first_eig(self):
