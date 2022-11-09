@@ -13,7 +13,7 @@ datadir = os.path.join(projdir, 'data')
 resultsdir = os.path.join(projdir, 'results')
 
 # %%
-matlab_outputs = os.path.join(projdir, 'matlab_outputs')
+matlab_outputs = os.path.join(projdir, 'matlab_scripts')
 
 t = np.loadtxt(os.path.join(matlab_outputs, 't.csv'), delimiter=',')
 
@@ -52,6 +52,8 @@ for which_plot in ['uncontrolled', 'controlled']:
         ax.plot(solC[0, -1], solC[1, -1], 'ko', markersize=5)
     ax.set_xlabel('x1')
     ax.set_ylabel('x2')
+    ax.set_xlim([-0.5, 0.5])
+    ax.set_ylim([-0.5, 0.5])
     f.savefig(os.path.join(resultsdir, which_plot+'_vector_field.svg'), dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
 
