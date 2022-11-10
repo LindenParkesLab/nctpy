@@ -190,6 +190,14 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((err == err_test).all())
         # TODO test reference state
 
+    def test_get_control_inputs_reaching_xf(self):
+        for i in range(10):
+            # for states with increasingly large values, are we always getting to the final?
+            xf = np.random.rand(self.n, ) * ((i+1)*10)
+            x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, xf, system='discrete')
+            for j, state in enumerate(x_test):
+                self.assertAlmostEqual(state, xf[j], places=3)
+
     def test_get_control_inputs_consistency(self):
         # boolean states
         with open('./fixtures/x_bin.npy', 'rb') as f:
@@ -212,7 +220,7 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((err_1d == err_2d).all())
 
     # TODO test that energy required to get to 1st eig is sim to IR
-    def test_get_control_inputs_first_eig(self):
+    def test_get_control_inputs_bounds(self):
         self.assertEqual(True, False)
 
     def test_get_control_inputs_error(self):
@@ -247,8 +255,7 @@ class TestIntegrateU(unittest.TestCase):
         with open('./fixtures/u_int.npy', 'rb') as f:
             energy = np.load(f)
         self.assertTrue((energy == integrate_u(self.u)).all())
-
-        # TODO different scipy version
+        # TODO different scipy version (how do I do this???)
 
 
 class TestAveControl(unittest.TestCase):
