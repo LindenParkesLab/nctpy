@@ -219,18 +219,21 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((u_1d == u_2d).all())
         self.assertTrue((err_1d == err_2d).all())
 
-    # TODO test that energy required to get to 1st eig is sim to IR
     def test_get_control_inputs_bounds(self):
-        self.assertEqual(True, False)
+        # AC id a lower bound on input
+        with open('./fixtures/ac_d.npy', 'rb') as f:
+            ac = np.load(f)
+        for i in range(10):
+            xf = np.random.rand(self.n, ) * ((i + 1) * 10)
+            _, u_1d, _ = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, xf, system='discrete')
+            self.assertTrue((u_1d <= ac).all())
 
     def test_get_control_inputs_error(self):
         # no system
-        with self.assertRaises(Exception) as exception_context:
+        with self.assertRaises(TypeError) as exception_context:
             get_control_inputs(self.A_d, 5, np.eye(self.n), self.x0, self.xf)
         self.assertEqual(str(exception_context.exception),
-                         "Time system not specified. "
-                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                         "(see matrix_normalization for help).")
+                         "get_control_inputs() missing 1 required positional argument: 'system'")
         # typo
         with self.assertRaises(Exception) as exception_context:
             get_control_inputs(self.A_c, 1, self.B, self.x0, self.xf, system='cont')
