@@ -195,7 +195,7 @@ class TestGetControlInputs(unittest.TestCase):
             # for states with increasingly large values, are we always getting to the final?
             xf = np.random.rand(self.n, ) * ((i+1)*10)
             x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, xf, system='discrete')
-            for j, state in enumerate(x_test):
+            for j, state in enumerate(x_test[-1, :]):
                 self.assertAlmostEqual(state, xf[j], places=3)
 
     def test_get_control_inputs_consistency(self):
@@ -208,7 +208,7 @@ class TestGetControlInputs(unittest.TestCase):
                                                 x_bool, x_bool, system='discrete')
         self.assertTrue((x_bi == x_bo).all())
         self.assertTrue((u_bi == u_bo).all())
-        self.assertTrue((err_bi == err_bo).all())
+        self.assertEqual(err_bi, err_bo)
         # state dimensions
         x0 = np.random.rand(self.n, )
         xf = np.random.rand(self.n, )
@@ -217,14 +217,15 @@ class TestGetControlInputs(unittest.TestCase):
                                                 x0.reshape(-1, 1), xf.reshape(-1, 1), system='discrete')
         self.assertTrue((x_1d == x_2d).all())
         self.assertTrue((u_1d == u_2d).all())
-        self.assertTrue((err_1d == err_2d).all())
+        self.assertEqual(err_1d, err_2d)
 
     def test_get_control_inputs_bounds(self):
         # AC id a lower bound on input
         with open('./fixtures/ac_d.npy', 'rb') as f:
             ac = np.load(f)
         for i in range(10):
-            xf = np.random.rand(self.n, ) * ((i + 1) * 10)
+            xf = np.random.rand(self.n, )
+            xf = xf / np.linalg.norm(xf, ord=2)
             _, u_1d, _ = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, xf, system='discrete')
             self.assertTrue((u_1d <= ac).all())
 
