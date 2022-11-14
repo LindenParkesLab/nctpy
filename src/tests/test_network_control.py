@@ -142,47 +142,65 @@ class TestGetControlInputs(unittest.TestCase):
 
     def test_get_control_inputs_success(self):
         # discrete
-        with open('./fixtures/control_discrete.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_discrete.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf, system='discrete')
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
         # T
-        with open('./fixtures/control_T.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_T.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 7, np.eye(self.n), self.x0, self.xf, system='discrete')
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
         # TODO test for T=1
         # B
-        with open('./fixtures/control_B.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_B.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_c, 2, self.B, self.x0, self.xf, system='continuous')
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
         # rho
-        with open('./fixtures/control_rho.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_rho.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n),
                                                       self.x0, self.xf, system='discrete',
-                                                      rhp=100)
+                                                      rho=100)
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
         # S
-        with open('./fixtures/control_T.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_S.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0,
                                                       self.xf, system='discrete', S=self.B)
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
         # system
-        with open('./fixtures/control_continuous.npy', 'rb') as f:
-            x, u, err = np.load(f)
+        with open('./fixtures/control_continuous.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
                                                       system='continuous')
         self.assertTrue((x == x_test).all())

@@ -219,25 +219,25 @@ def control(Anorm, T, B, x0, xf, system, xr='zero', rho=1, S='identity'):
 
 
 # defaults (discrete)
-x0=x
-x,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S='identity')
-np.save('./fixtures/control_discrete.npy', x,u,err)
+x0 = x
+xt,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S='identity')
+np.savez('./fixtures/control_discrete.npz', x=xt, u=u, err=err)
 # T
-x,u,err = control(A / (1 + l), 7, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S='identity')
-np.save('./fixtures/control_T.npy', x,u,err)
+xt,u,err = control(A / (1 + l), 7, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S='identity')
+np.savez('./fixtures/control_T.npz',x=xt, u=u, err=err)
 # B
-x,u,err = control(A_norm, 2, B, x0, xf, system='continuous', xr='zero', rho=1, S='identity')
-np.save('./fixtures/control_B.npy', x,u,err)
+xt,u,err = control(A_norm, 2, B, x0, xf, system='continuous', xr='zero', rho=1, S='identity')
+np.savez('./fixtures/control_B.npz', x=xt, u=u, err=err)
 # rho
-x,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=100, S='identity')
-np.save('./fixtures/control_rho.npy', x,u,err)
+xt,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=100, S='identity')
+np.savez('./fixtures/control_rho.npz', x=xt, u=u, err=err)
 # S
-x,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S=B)
-np.save('./fixtures/control_S.npy', x,u,err)
+xt,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S=B)
+np.savez('./fixtures/control_S.npz', x=xt, u=u, err=err)
 # system
-x,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='zero', rho=100, S='identity')
-np.save('./fixtures/control_continuous.npy', x,u,err)
+xt,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='zero', rho=100, S='identity')
+np.savez('./fixtures/control_continuous.npz', x=xt, u=u, err=err)
 # binary x
 x_bin = np.random.randint(0,1,size=(N,))
-np.save('./fixtures/x_bin.npy', x_bin)
+np.savez('./fixtures/x_bin.npy', x_bin)
 
