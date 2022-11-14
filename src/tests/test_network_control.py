@@ -70,8 +70,6 @@ class TestMatrixNormalization(unittest.TestCase):
                          "system "
                          "(see function help).")
 
-    # TODO add test for dimensions of A
-
 
 class TestNormalizeState(unittest.TestCase):
     def setUp(self):
@@ -122,8 +120,6 @@ class TestNormalizeWeights(unittest.TestCase):
         self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
                                                                               rank=False,
                                                                               add_constant=False)).any())
-
-        # TODO add type and size checking for inputs
 
 
 class TestGetControlInputs(unittest.TestCase):
