@@ -235,8 +235,11 @@ np.savez('./fixtures/control_rho.npz', x=xt, u=u, err=err)
 xt,u,err = control(A / (1 + l), 2, np.eye(N), x0, xf, system='discrete', xr='zero', rho=1, S=B)
 np.savez('./fixtures/control_S.npz', x=xt, u=u, err=err)
 # system
-xt,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='zero', rho=100, S='identity')
+xt,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='zero', rho=1, S='identity')
 np.savez('./fixtures/control_continuous.npz', x=xt, u=u, err=err)
+# reference state
+xt,u,err = control(A_norm, 2, np.eye(N), x0, xf, system='continuous', xr='x0', rho=1, S='identity')
+np.savez('./fixtures/control_ref.npz', x=xt, u=u, err=err)
 # binary x
 x_bin = np.random.randint(0,1,size=(N,))
 np.savez('./fixtures/x_bin.npy', x_bin)

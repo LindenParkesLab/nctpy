@@ -161,7 +161,6 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
-        # TODO test for T=1
         # B
         with open('./fixtures/control_B.npz', 'rb') as f:
             data = np.load(f)
@@ -206,7 +205,17 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((x == x_test).all())
         self.assertTrue((u == u_test).all())
         self.assertTrue((err == err_test).all())
-        # TODO test reference state
+        # reference state
+        with open('./fixtures/control_ref.npz', 'rb') as f:
+            data = np.load(f)
+            x = data['x']
+            u = data['u']
+            err = data['err']
+        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
+                                                      system='continuous', xr='x0')
+        self.assertTrue((x == x_test).all())
+        self.assertTrue((u == u_test).all())
+        self.assertTrue((err == err_test).all())
 
     def test_get_control_inputs_reaching_xf(self):
         for i in range(10):
@@ -236,6 +245,21 @@ class TestGetControlInputs(unittest.TestCase):
         self.assertTrue((x_1d == x_2d).all())
         self.assertTrue((u_1d == u_2d).all())
         self.assertEqual(err_1d, err_2d)
+        # specifying reference state
+        x_d, u_d, err_d = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf,
+                                             system='discrete', xr='x0')
+        x_s, u_s, err_s = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf,
+                                             system='discrete', xr=self.x0)
+        self.assertTrue((x_d == x_s).all())
+        self.assertTrue((u_d == u_s).all())
+        self.assertEqual(err_d, err_s)
+        x_d, u_d, err_d = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
+                                             system='continuous', xr='xf')
+        x_s, u_s, err_s = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
+                                             system='continuous', xr=self.xf)
+        self.assertTrue((x_d == x_s).all())
+        self.assertTrue((u_d == u_s).all())
+        self.assertEqual(err_d, err_s)
 
     def test_get_control_inputs_bounds(self):
         # AC id a lower bound on input
