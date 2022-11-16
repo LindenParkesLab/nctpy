@@ -38,6 +38,8 @@ Temporary Items
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
+.idea/.gitignore
+.idea/other.xml
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
