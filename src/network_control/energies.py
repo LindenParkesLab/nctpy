@@ -3,7 +3,7 @@ import scipy as sp
 from scipy import sparse
 import scipy.integrate
 import scipy.linalg as la
-from scipy.linalg import eig
+from numpy.linalg import eig
 from numpy import matmul as mm
 from scipy.linalg import expm as expm
 from numpy import transpose as tp

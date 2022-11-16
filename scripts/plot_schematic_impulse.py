@@ -13,7 +13,7 @@ datadir = os.path.join(projdir, 'data')
 resultsdir = os.path.join(projdir, 'results')
 
 # %%
-matlab_outputs = os.path.join(projdir, 'matlab_outputs')
+matlab_outputs = os.path.join(projdir, 'matlab_scripts')
 
 impulse = 'x1'
 # impulse = 'x2'
@@ -48,7 +48,7 @@ if which_plot == 'uncontrolled':
 if which_plot == 'controlled':
     ax.plot(sol[0, :], sol[1, :], 'k', linewidth=1, alpha=0.25)
     ax.plot(sol[0, 0], sol[1, 0], 'kx', markersize=5, alpha=0.25)
-    ax.plot(sol[0, -1], sol[1, -1], 'ko', markersize=5, alpha=0.25)
+    # ax.plot(sol[0, -1], sol[1, -1], 'ko', markersize=5, alpha=0.25)
 
     ax.plot(solI[0, :], solI[1, :], 'k', linewidth=1)
     ax.plot(solI[0, 0], solI[1, 0], 'x', markersize=5, color=blue)
@@ -57,6 +57,8 @@ if which_plot == 'controlled':
     ax.plot([sol[0, 0], solI[0, 0]], [sol[1, 0], solI[1, 0]], color=blue, linewidth=1.5, linestyle=":")
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
+ax.set_xlim([-0.5, 0.5])
+ax.set_ylim([-0.5, 0.5])
 f.savefig(os.path.join(resultsdir, 'impulse_{0}_{1}_vector_field.svg'.format(impulse, which_plot)),
           dpi=300, bbox_inches='tight', pad_inches=0)
 plt.close()

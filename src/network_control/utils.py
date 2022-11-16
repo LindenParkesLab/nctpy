@@ -146,7 +146,7 @@ def get_fdr_p(p_vals, alpha=0.05):
     return p_fdr
 
 
-def convert_states_str2float(states_str):
+def convert_states_str2int(states_str):
     n = len(states_str)
     state_labels = list(np.unique(states_str))
 
