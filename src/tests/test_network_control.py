@@ -10,6 +10,7 @@ class TestMatrixNormalization(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/A.npy', 'rb') as f:
             self.A = np.load(f)
+        self.eps = 2 * np.finfo(float).eps
 
     def test_matrix_normalization_stability(self):
         A = np.random.randn(20, 20)
@@ -28,28 +29,26 @@ class TestMatrixNormalization(unittest.TestCase):
         # discrete time system default c=1
         with open('./fixtures/A_d_1.npy', 'rb') as f:
             A_d_1 = np.load(f)
-        self.assertTrue((A_d_1 == matrix_normalization(self.A, system='discrete')).all())
+        result = matrix_normalization(self.A, system='discrete')
+        self.assertTrue((np.abs(A_d_1 - result) <= self.eps).all())
         # discrete time system c=2
         with open('./fixtures/A_d_2.npy', 'rb') as f:
             A_d_2 = np.load(f)
-        self.assertTrue((A_d_2 == matrix_normalization(self.A, system='discrete', c=2)).all())
-        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != matrix_normalization(self.A,
-                                                                                                      system='discrete',
-                                                                                                      c=2)).any())
+        result = matrix_normalization(self.A, system='discrete', c=2)
+        self.assertTrue((np.abs(A_d_2 - result) <= self.eps).all())
+        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != result).any())
         # continuous time system c=1
         with open('./fixtures/A_c_1.npy', 'rb') as f:
             A_c_1 = np.load(f)
-        self.assertTrue((A_c_1 == matrix_normalization(self.A, system='continuous', c=1)).all())
-        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != matrix_normalization(self.A,
-                                                                                                      system='continuous',
-                                                                                                      c=1)).any())
+        result = matrix_normalization(self.A, system='continuous', c=1)
+        self.assertTrue((np.abs(A_c_1 - result) <= self.eps).all())
+        self.assertTrue((matrix_normalization(self.A, system='discrete', c=1) != result).any())
         # continuous time system c=2
         with open('./fixtures/A_c_2.npy', 'rb') as f:
             A_c_2 = np.load(f)
-        self.assertTrue((A_c_2 == matrix_normalization(self.A, system='continuous', c=2)).all())
-        self.assertTrue((matrix_normalization(self.A, system='continuous', c=1) != matrix_normalization(self.A,
-                                                                                                        system='continuous',
-                                                                                                        c=2)).any())
+        result = matrix_normalization(self.A, system='continuous', c=2)
+        self.assertTrue((np.abs(A_c_2 - result) <= self.eps).all())
+        self.assertTrue((matrix_normalization(self.A, system='continuous', c=1) != result).all())
 
     def test_system_specification_error(self):
         # no default
@@ -75,48 +74,48 @@ class TestNormalizeState(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/x.npy', 'rb') as f:
             self.x = np.load(f)
+        self.eps = 2 * np.finfo(float).eps
 
     def test_normalize_state_success(self):
         with open('./fixtures/x_norm.npy', 'rb') as f:
             x_norm = np.load(f)
-        self.assertTrue((x_norm == normalize_state(self.x)).all())
-
-        # TODO add type and size checking for inputs
+        self.assertTrue(((x_norm - normalize_state(self.x)) <= self.eps).all())
 
 
 class TestNormalizeWeights(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/x.npy', 'rb') as f:
             self.weights = np.load(f)
+        self.eps = 2 * np.finfo(float).eps
 
     def test_normalize_weights_success(self):
         # defaults
         with open('./fixtures/weights_rank_scale_const.npy', 'rb') as f:
             weight_r_s_c = np.load(f)
-        self.assertTrue((weight_r_s_c == normalize_weights(self.weights)).all())
-        self.assertTrue((weight_r_s_c == normalize_weights(self.weights,
-                                                           rank=True,
-                                                           add_constant=True)).all())
+        self.assertTrue((np.abs(weight_r_s_c - normalize_weights(self.weights)) <= self.eps).all())
+        self.assertTrue((np.abs(weight_r_s_c - normalize_weights(self.weights,
+                                                                 rank=True,
+                                                                 add_constant=True)) <= self.eps).all())
         # no rank
         with open('./fixtures/weights_scale_const.npy', 'rb') as f:
             weight_s_c = np.load(f)
-        self.assertTrue((weight_s_c == normalize_weights(self.weights,
-                                                         rank=False)).all())
+        self.assertTrue((np.abs(weight_s_c - normalize_weights(self.weights,
+                                                               rank=False) <= self.eps)).all())
         self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
                                                                               rank=False)).any())
         # no constant
         with open('./fixtures/weights_rank_scale.npy', 'rb') as f:
             weight_r_s = np.load(f)
-        self.assertTrue((weight_r_s == normalize_weights(self.weights,
-                                                         add_constant=False)).all())
+        self.assertTrue((np.abs(weight_r_s - normalize_weights(self.weights,
+                                                               add_constant=False)) <= self.eps).all())
         self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
                                                                               add_constant=False)).any())
         # no rank or constant
         with open('./fixtures/weights_scale.npy', 'rb') as f:
             weight_s = np.load(f)
-        self.assertTrue((weight_s == normalize_weights(self.weights,
-                                                       rank=False,
-                                                       add_constant=False)).all())
+        self.assertTrue((np.abs(weight_s - normalize_weights(self.weights,
+                                                             rank=False,
+                                                             add_constant=False)) <= self.eps).all())
         self.assertTrue((normalize_weights(self.weights) != normalize_weights(self.weights,
                                                                               rank=False,
                                                                               add_constant=False)).any())
@@ -135,6 +134,7 @@ class TestGetControlInputs(unittest.TestCase):
         with open('./fixtures/xf.npy', 'rb') as f:
             self.xf = np.load(f)
         self.n = np.shape(self.A_d)[0]
+        self.eps = 1e-12
 
     def test_get_control_inputs_success(self):
         # discrete
@@ -144,9 +144,9 @@ class TestGetControlInputs(unittest.TestCase):
             u = data['u']
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf, system='discrete')
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # T
         with open('./fixtures/control_T.npz', 'rb') as f:
             data = np.load(f)
@@ -154,9 +154,9 @@ class TestGetControlInputs(unittest.TestCase):
             u = data['u']
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 7, np.eye(self.n), self.x0, self.xf, system='discrete')
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # B
         with open('./fixtures/control_B.npz', 'rb') as f:
             data = np.load(f)
@@ -164,9 +164,9 @@ class TestGetControlInputs(unittest.TestCase):
             u = data['u']
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_c, 2, self.B, self.x0, self.xf, system='continuous')
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # rho
         with open('./fixtures/control_rho.npz', 'rb') as f:
             data = np.load(f)
@@ -176,9 +176,9 @@ class TestGetControlInputs(unittest.TestCase):
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n),
                                                       self.x0, self.xf, system='discrete',
                                                       rho=100)
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # S
         with open('./fixtures/control_S.npz', 'rb') as f:
             data = np.load(f)
@@ -187,9 +187,9 @@ class TestGetControlInputs(unittest.TestCase):
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0,
                                                       self.xf, system='discrete', S=self.B)
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # system
         with open('./fixtures/control_continuous.npz', 'rb') as f:
             data = np.load(f)
@@ -198,9 +198,9 @@ class TestGetControlInputs(unittest.TestCase):
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
                                                       system='continuous')
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
         # reference state
         with open('./fixtures/control_ref.npz', 'rb') as f:
             data = np.load(f)
@@ -209,14 +209,14 @@ class TestGetControlInputs(unittest.TestCase):
             err = data['err']
         x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
                                                       system='continuous', xr='x0')
-        self.assertTrue((x == x_test).all())
-        self.assertTrue((u == u_test).all())
-        self.assertTrue((err == err_test).all())
+        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
+        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
+        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
 
     def test_get_control_inputs_reaching_xf(self):
         for i in range(10):
             # for states with increasingly large values, are we always getting to the final?
-            xf = np.random.rand(self.n, ) * ((i+1)*10)
+            xf = np.random.rand(self.n, ) * ((i + 1) * 10)
             x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, xf, system='discrete')
             for j, state in enumerate(x_test[-1, :]):
                 self.assertAlmostEqual(state, xf[j], places=3)
@@ -286,6 +286,7 @@ class TestIntegrateU(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/u.npy', 'rb') as f:
             self.u = np.load(f)
+        self.eps = 2 * np.finfo(float).eps
 
     def test_integrate_u_bounds(self):
         for i in range(10):
@@ -296,7 +297,7 @@ class TestIntegrateU(unittest.TestCase):
     def test_integrate_u_success(self):
         with open('./fixtures/u_int.npy', 'rb') as f:
             energy = np.load(f)
-        self.assertTrue((energy == integrate_u(self.u)).all())
+        self.assertTrue((np.abs(energy - integrate_u(self.u)) <= self.eps).all())
         # TODO different scipy version (how do I do this???)
 
 
@@ -306,16 +307,17 @@ class TestAveControl(unittest.TestCase):
             self.A_d = np.load(f)
         with open('./fixtures/A_c_1.npy', 'rb') as f:
             self.A_c = np.load(f)
+        self.eps = 1e-13
 
     def test_ave_control_success(self):
         # discrete
         with open('./fixtures/ac_d.npy', 'rb') as f:
             ac = np.load(f)
-        self.assertTrue((ac == ave_control(self.A_d, 'discrete')).all())
+        self.assertTrue((np.abs(ac - ave_control(self.A_d, 'discrete')) <= self.eps).all())
         # continuous
         with open('./fixtures/ac_c.npy', 'rb') as f:
             ac = np.load(f)
-        self.assertTrue((ac == ave_control(self.A_c, 'continuous')).all())
+        self.assertTrue((np.abs(ac - ave_control(self.A_c, 'continuous')) <= self.eps).all())
         self.assertTrue((ave_control(self.A_d, 'discrete') != ave_control(self.A_c, 'continuous')).any())
 
     def test_ave_control_error(self):
