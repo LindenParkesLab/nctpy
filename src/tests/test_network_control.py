@@ -56,18 +56,15 @@ class TestMatrixNormalization(unittest.TestCase):
             matrix_normalization(self.A)
         self.assertEqual(str(exception_context.exception),
                          "Time system not specified. "
-                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time "
-                         "system "
+                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                          "(see function help).")
 
         # typo
         with self.assertRaises(Exception) as exception_context:
             matrix_normalization(self.A, system="discrt")
         self.assertEqual(str(exception_context.exception),
-                         "Time system not specified. "
-                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time "
-                         "system "
-                         "(see function help).")
+                         "Incorrect system specification. "
+                         "Please specify either 'system=discrete' or 'system=continuous'.")
 
 
 class TestNormalizeState(unittest.TestCase):
@@ -269,17 +266,19 @@ class TestGetControlInputs(unittest.TestCase):
 
     def test_get_control_inputs_error(self):
         # no system
-        with self.assertRaises(TypeError) as exception_context:
+        with self.assertRaises(Exception) as exception_context:
             get_control_inputs(self.A_d, 5, np.eye(self.n), self.x0, self.xf)
         self.assertEqual(str(exception_context.exception),
-                         "get_control_inputs() missing 1 required positional argument: 'system'")
+                         "Time system not specified. "
+                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
+                         "(see matrix_normalization help).")
+
         # typo
         with self.assertRaises(Exception) as exception_context:
             get_control_inputs(self.A_c, 1, self.B, self.x0, self.xf, system='cont')
         self.assertEqual(str(exception_context.exception),
-                         "Time system not specified. "
-                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                         "(see matrix_normalization for help).")
+                         "Incorrect system specification. "
+                         "Please specify either 'system=discrete' or 'system=continuous'.")
 
 
 class TestIntegrateU(unittest.TestCase):
@@ -326,16 +325,15 @@ class TestAveControl(unittest.TestCase):
             ave_control(self.A_d)
         self.assertEqual(str(exception_context.exception),
                          "Time system not specified. "
-                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                         "(see matrix_normalization for help).")
+                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
+                         "(see matrix_normalization help).")
 
         # typo
         with self.assertRaises(Exception) as exception_context:
             ave_control(self.A_c, 'contigiuous')
         self.assertEqual(str(exception_context.exception),
-                         "Time system not specified. "
-                         "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                         "(see matrix_normalization for help).")
+                         "Incorrect system specification. "
+                         "Please specify either 'system=discrete' or 'system=continuous'.")
 
 
 if __name__ == '__main__':

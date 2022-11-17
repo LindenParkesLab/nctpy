@@ -24,23 +24,26 @@ def matrix_normalization(A, system=None, c=1):
 
     '''
 
-    if system == None:
+    if system is None:
         raise Exception("Time system not specified. "
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
                         "(see function help).")
+    elif system != 'continuous' and system != 'discrete':
+        raise Exception("Incorrect system specification. "
+                        "Please specify either 'system=discrete' or 'system=continuous'.")
+    else:
+        # eigenvalue decomposition
+        w, _ = eig(A)
+        l = np.abs(w).max()
 
-    # eigenvalue decomposition
-    w, _ = eig(A)
-    l = np.abs(w).max()
+        # Matrix normalization for discrete-time systems
+        A_norm = A / (c + l)
 
-    # Matrix normalization for discrete-time systems
-    A_norm = A / (c + l)
+        if system == 'continuous':
+            # for continuous-time systems
+            A_norm = A_norm - np.eye(A.shape[0])
 
-    if system == 'continuous':
-        # for continuous-time systems
-        A_norm = A_norm - np.eye(A.shape[0])
-
-    return A_norm
+        return A_norm
 
 
 def get_p_val_string(p_val):

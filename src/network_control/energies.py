@@ -9,7 +9,7 @@ from scipy.linalg import expm as expm
 from numpy import transpose as tp
 
 
-def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identity'):
+def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity'):
     """
 
     Args:
@@ -59,7 +59,14 @@ def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identi
     if type(S) == str and S == 'identity':
         S = np.eye(n_nodes)
 
-    if system == 'continuous':
+    if system is None:
+        raise Exception("Time system not specified. "
+                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
+                        "(see matrix_normalization help).")
+    elif system != 'continuous' and system != 'discrete':
+        raise Exception("Incorrect system specification. "
+                        "Please specify either 'system=discrete' or 'system=continuous'.")
+    elif system == 'continuous':
         # Set parameters
         dt = 0.001
 
@@ -102,6 +109,8 @@ def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identi
                                       np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
         err_xf = np.linalg.norm(x[:, -1] - xf)
         err = [err_costate, err_xf]
+
+        return x.T, u.T, err
     elif system == 'discrete':
         # Define joint state - costate matrix
         C = np.dot(-B, B.T) / (2 * rho)
@@ -147,7 +156,7 @@ def get_control_inputs(A_norm, T, B, x0, xf, system, xr='zero', rho=1, S='identi
         err_traj = np.linalg.norm(x[:, 1:] - (np.dot(A_norm, x[:, 0:-1]) + np.dot(B, u)))
         err = [err_system, err_traj]
 
-    return x.T, u.T, err
+        return x.T, u.T, err
 
 
 def integrate_u(U):

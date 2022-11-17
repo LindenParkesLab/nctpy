@@ -24,7 +24,14 @@ def ave_control(A_norm, system=None):
                6:8414, 2015.
     """
 
-    if system == 'discrete':
+    if system is None:
+        raise Exception("Time system not specified. "
+                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
+                        "(see matrix_normalization help).")
+    elif system != 'continuous' and system != 'discrete':
+        raise Exception("Incorrect system specification. "
+                        "Please specify either 'system=discrete' or 'system=continuous'.")
+    elif system == 'discrete':
         T, U = schur(A_norm, 'real')  # Schur stability
         midMat = np.multiply(U, U).transpose()
         v = np.matrix(np.diag(T)).transpose()
@@ -32,15 +39,13 @@ def ave_control(A_norm, system=None):
         P = np.diag(1 - np.matmul(v, v.transpose()))
         P = np.tile(P.reshape([N, 1]), (1, N))
         ac = sum(np.divide(midMat, P))
+
+        return ac
     elif system == 'continuous':
         G = gramian(A_norm, T=1, system=system)
         ac = G.diagonal()
-    elif system == None:
-        raise Exception("Time system not specified. "
-                        "Please indicate whether you are simulating a continuous-time or a discrete-time system "
-                        "(see matrix_normalization for help).")
 
-    return ac
+        return ac
 
 
 def modal_control(A_norm):
