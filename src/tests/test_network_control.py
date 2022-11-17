@@ -306,7 +306,7 @@ class TestAveControl(unittest.TestCase):
             self.A_d = np.load(f)
         with open('./fixtures/A_c_1.npy', 'rb') as f:
             self.A_c = np.load(f)
-        self.eps = 1e-13
+        self.eps = 1e-10
 
     def test_ave_control_success(self):
         # discrete
