@@ -10,7 +10,7 @@ class TestMatrixNormalization(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/A.npy', 'rb') as f:
             self.A = np.load(f)
-        self.eps = 2 * np.finfo(float).eps
+        self.eps = 1e-10
 
     def test_matrix_normalization_stability(self):
         A = np.random.randn(20, 20)
@@ -74,7 +74,7 @@ class TestNormalizeState(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/x.npy', 'rb') as f:
             self.x = np.load(f)
-        self.eps = 2 * np.finfo(float).eps
+        self.eps = 1e-10
 
     def test_normalize_state_success(self):
         with open('./fixtures/x_norm.npy', 'rb') as f:
@@ -86,7 +86,7 @@ class TestNormalizeWeights(unittest.TestCase):
     def setUp(self):
         with open('./fixtures/x.npy', 'rb') as f:
             self.weights = np.load(f)
-        self.eps = 2 * np.finfo(float).eps
+        self.eps = 1e-10
 
     def test_normalize_weights_success(self):
         # defaults
@@ -134,7 +134,7 @@ class TestGetControlInputs(unittest.TestCase):
         with open('./fixtures/xf.npy', 'rb') as f:
             self.xf = np.load(f)
         self.n = np.shape(self.A_d)[0]
-        self.eps = 1e-12
+        self.eps = 1e-10
 
     def test_get_control_inputs_success(self):
         # discrete
