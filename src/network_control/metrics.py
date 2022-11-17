@@ -34,7 +34,7 @@ def ave_control(A_norm, system=None):
     elif system == 'discrete':
         T, U = schur(A_norm, 'real')  # Schur stability
         midMat = np.multiply(U, U).transpose()
-        v = np.matrix(np.diag(T)).transpose()
+        v = np.diag(T)[np.newaxis, :].transpose()
         N = A_norm.shape[0]
         P = np.diag(1 - np.matmul(v, v.transpose()))
         P = np.tile(P.reshape([N, 1]), (1, N))
