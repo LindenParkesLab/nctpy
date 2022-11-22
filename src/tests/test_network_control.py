@@ -1,9 +1,9 @@
 import unittest
 import sys
 import numpy as np
-from network_control.utils import matrix_normalization, normalize_state, normalize_weights
-from network_control.metrics import ave_control
-from network_control.energies import integrate_u, get_control_inputs
+from nctpy.utils import matrix_normalization, normalize_state, normalize_weights
+from nctpy.metrics import ave_control
+from nctpy.energies import integrate_u, get_control_inputs
 
 
 class TestMatrixNormalization(unittest.TestCase):
@@ -338,6 +338,6 @@ class TestAveControl(unittest.TestCase):
 
 if __name__ == '__main__':
     # setting path
-    sys.path.append('../network_control/')
+    sys.path.append('../nctpy/')
 
     unittest.main()
