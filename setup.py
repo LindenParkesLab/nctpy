@@ -4,7 +4,7 @@ with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="network_control",
+    name="nctpy",
     version="0.0.5",
 
     author="Jennifer Stiso, Linden Parkes and Jason Kim",
@@ -24,6 +24,6 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
-    python_requires=">=3.6",
-    install_requires=['numpy','scipy']
+    python_requires=">=3.9",
+    install_requires=['numpy', 'scipy', 'tqdm', 'statsmodels', 'seaborn', 'nibabel', 'nilearn']
 )

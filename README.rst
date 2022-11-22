@@ -1,4 +1,4 @@
-network_control: A toolbox for implementing Network Control Theory analyses in python
+nctpy: Network Control Theory for Python
 =====================================================================================
 
 Overview
@@ -21,7 +21,7 @@ throughout the brain to drive changes in brain states? Do different brain region
 ways? Given a set of control nodes, how can the system be driven to specific target state, or switch between a pair of
 states, by means of internal or external control input?
 
-``network_control`` is a Python toolbox that provides researchers with a set of tools to conduct some of the
+``nctpy`` is a Python toolbox that provides researchers with a set of tools to conduct some of the
 common NCT analyses reported in the literature. Below, we list select publications that serve as a primer for
 these tools and their use cases:
 
@@ -43,36 +43,47 @@ arXiv (2019). https://arxiv.org/abs/1902.03309
 Requirements
 ------------
 
-Currently, ``network_control`` works with Python 3.6 and requires the following dependencies:
+Currently, ``nctpy`` works with Python 3.9 and requires the following core dependencies:
 
-    - numpy (tested on 1.19.5), and
-    - scipy (tested on 1.5.4)
+    - numpy (tested on 1.23.4)
+    - scipy (tested on 1.9.3)
+    - tqdm (tested on 4.64.1)
 
-There are some additional (optional) dependencies you can install (note, these are only used for i/o and plotting and
-only need to be installed if you want to run the notebooks in ``network_control/tests/``):
+The ``utils`` module also requires:
 
-    - pandas (tested on 1.1.5)
-    - statsmodels (tested on 0.12.2)
-    - matplotlib (tested on 3.3.4)
-    - seaborn (tested on 0.11.1), and
-    - jupyterlab (tested on 3.0.16)
+    - statsmodels (tested on 0.13.2)
 
+The ``plotting`` module also requires:
+
+    - seaborn (tested on 0.12.0)
+    - nibabel (tested on 4.0.2)
+    - nilearn (tested on 0.9.2)
+
+There are some additional (optional) dependencies you can install (note, these are only used for i/o and plotting in the
+Python notebooks located in the `scripts` directory):
+
+    - pandas (tested on 1.5.1)
+    - matplotlib (tested on 3.5.3)
+    - jupyterlab (tested on 3.4.4)
+    - sklearn (tested on 0.0.post1)
+
+If you want to install the environment that was used to run the analyses presented in the manuscript, use the
+environment.yml file.
 
 Basic installation
 ------------------
 
-Assuming you have Python 3.6 installed, you can install ``network_control`` by opening a terminal and running
+Assuming you have Python 3.9 installed, you can install ``nctpy`` by opening a terminal and running
 the following:
 
 .. code-block:: bash
 
-    pip install network_control
+    pip install nctpy
 
 What's New
 ----------
-    - v0.0.4: initial package release for network_control
+    - v0.0.4: initial package release for nctpy
     - v0.0.5: added options for specifying timescales, integration function, gramian function, better estimation of the number of time points, and optimal energy example
-
 
 Questions
 ---------

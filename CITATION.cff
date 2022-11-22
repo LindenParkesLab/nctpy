@@ -6,9 +6,9 @@ authors:
     orcid:orcid: "https://orcid.org/0000-0002-3295-586X"
   - family-names: Parkes
     given-names: Linden
+    orcid:orcid: "https://orcid.org/0000-0002-9329-7207"
   - family-names: Kim
     given-names: Jason Z.
-given-names: Jennifer
-title: "network_control: A toolbox for implementing Network Control Theory analyses in python"
-version: 0.0.4
+title: "nctpy: Network Control Theory for Python"
+version: 0.0.5
 doi: 10.5281/zenodo.4973760
