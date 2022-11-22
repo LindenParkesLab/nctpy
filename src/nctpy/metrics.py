@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import schur
-from network_control.energies import gramian
+from nctpy.energies import gramian
 
 
 def ave_control(A_norm, system=None):

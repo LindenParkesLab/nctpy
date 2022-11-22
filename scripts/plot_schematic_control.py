@@ -8,7 +8,7 @@ plt.rcParams.update({'font.size': 10})
 plt.rcParams['svg.fonttype'] = 'none'
 
 # %% directories
-projdir = '/Users/lindenmp/Google-Drive-Penn/work/research_projects/control_package/'
+projdir = '/Users/lindenmp/Google-Drive-Penn/work/research_projects/nctpy/'
 datadir = os.path.join(projdir, 'data')
 resultsdir = os.path.join(projdir, 'results')
 
@@ -52,8 +52,8 @@ for which_plot in ['uncontrolled', 'controlled']:
         ax.plot(solC[0, -1], solC[1, -1], 'ko', markersize=5)
     ax.set_xlabel('x1')
     ax.set_ylabel('x2')
-    ax.set_xlim([-0.5, 0.5])
-    ax.set_ylim([-0.5, 0.5])
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
     f.savefig(os.path.join(resultsdir, which_plot+'_vector_field.svg'), dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
 
@@ -74,7 +74,7 @@ for which_plot in ['uncontrolled', 'controlled']:
         # ax.plot(t, u, color=blue, linewidth=1, linestyle="--")
     ax.set_xlabel('t')
     # ax.set_ylabel('activity')
-    ax.set_ylim([-0.5, 0.5])
+    ax.set_ylim([-1, 1])
     f.savefig(os.path.join(resultsdir, which_plot+'_x1.svg'), dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
 
@@ -95,6 +95,6 @@ for which_plot in ['uncontrolled', 'controlled']:
         ax.plot(t, u, color=blue, linewidth=1, linestyle=":")
     ax.set_xlabel('t')
     # ax.set_ylabel('activity')
-    ax.set_ylim([-0.5, 0.5])
+    ax.set_ylim([-1, 1])
     f.savefig(os.path.join(resultsdir, which_plot+'_x2.svg'), dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()

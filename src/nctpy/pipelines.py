@@ -3,8 +3,8 @@ import scipy as sp
 import scipy.linalg as la
 from tqdm import tqdm
 
-from network_control.energies import get_control_inputs, integrate_u
-from network_control.utils import matrix_normalization
+from nctpy.energies import get_control_inputs, integrate_u
+from nctpy.utils import matrix_normalization
 
 class ComputeControlEnergy():
     def __init__(self, A, control_tasks, system='continuous', c=1, T=1):

@@ -8,15 +8,15 @@ plt.rcParams.update({'font.size': 10})
 plt.rcParams['svg.fonttype'] = 'none'
 
 # %% directories
-projdir = '/Users/lindenmp/Google-Drive-Penn/work/research_projects/control_package/'
+projdir = '/Users/lindenmp/Google-Drive-Penn/work/research_projects/nctpy/'
 datadir = os.path.join(projdir, 'data')
 resultsdir = os.path.join(projdir, 'results')
 
 # %%
 matlab_outputs = os.path.join(projdir, 'matlab_scripts')
 
-impulse = 'x1'
-# impulse = 'x2'
+# impulse = 'x1'
+impulse = 'x2'
 t = np.loadtxt(os.path.join(matlab_outputs, 't_{0}.csv'.format(impulse)), delimiter=',')
 
 X = np.loadtxt(os.path.join(matlab_outputs, 'X_{0}.csv'.format(impulse)), delimiter=',')
@@ -57,8 +57,8 @@ if which_plot == 'controlled':
     ax.plot([sol[0, 0], solI[0, 0]], [sol[1, 0], solI[1, 0]], color=blue, linewidth=1.5, linestyle=":")
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
-ax.set_xlim([-0.5, 0.5])
-ax.set_ylim([-0.5, 0.5])
+ax.set_xlim([-1, 1])
+ax.set_ylim([-1, 1])
 f.savefig(os.path.join(resultsdir, 'impulse_{0}_{1}_vector_field.svg'.format(impulse, which_plot)),
           dpi=300, bbox_inches='tight', pad_inches=0)
 plt.close()
@@ -82,7 +82,7 @@ if which_plot == 'controlled':
     ax.plot(t[-1], solI[0, -1], 'o', markersize=2.5, color=orange)
 ax.set_xlabel('t')
 # ax.set_ylabel('activity')
-ax.set_ylim([-0.55, 0.55])
+ax.set_ylim([-1.05, 1.05])
 f.savefig(os.path.join(resultsdir, 'impulse_{0}_{1}_x1.svg'.format(impulse, which_plot)),
           dpi=300, bbox_inches='tight', pad_inches=0)
 plt.close()
@@ -107,7 +107,7 @@ if which_plot == 'controlled':
     ax.plot(t[-1], solI[1, -1], 'o', markersize=2.5, color=orange)
 ax.set_xlabel('t')
 # ax.set_ylabel('activity')
-ax.set_ylim([-0.55, 0.55])
+ax.set_ylim([-1.05, 1.05])
 f.savefig(os.path.join(resultsdir, 'impulse_{0}_{1}_x2.svg'.format(impulse, which_plot)),
           dpi=300, bbox_inches='tight', pad_inches=0)
 plt.close()

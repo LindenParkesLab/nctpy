@@ -1,4 +1,4 @@
-from network_control.utils import get_p_val_string
+from nctpy.utils import get_p_val_string
 import os, platform
 import numpy as np
 import scipy as sp
