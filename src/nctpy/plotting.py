@@ -1,15 +1,15 @@
-from nctpy.utils import get_p_val_string
 import os, platform
 import numpy as np
 import scipy as sp
 import nibabel as nib
 
 import seaborn as sns
-import pkg_resources
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from nilearn import datasets
 from nilearn import plotting
+
+from nctpy.utils import get_p_val_string
+
 
 def set_plotting_params(format='png'):
     if platform.system() == 'Darwin':
