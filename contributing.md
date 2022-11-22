@@ -1,4 +1,4 @@
-# Welcome to the network_control package contributing guide <!-- omit in toc -->
+# Welcome to the nctpy package contributing guide <!-- omit in toc -->
 
 Thank you for your interest in our package! 
 
@@ -6,7 +6,7 @@ Thank you for your interest in our package!
 We ask that before submitting pull requests, 
 you check that you code changes pass all of our unit tests.
 
-Unit tests are kept [here](/src/tests/test_network_control.py).
+Unit tests are kept [here](/src/tests/test_nctpy.py).
 To run unit tests, 
 1. open the terminal or command line
 2. set your current directory to the /tests/ folder of this repo
