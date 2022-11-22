@@ -7,20 +7,16 @@ from statsmodels.stats import multitest
 
 
 def matrix_normalization(A, system=None, c=1):
-    '''
+    '''This function will normalize A in preparation for modeling linear dynamics.
 
     Args:
-        A: np.array (n_parcels, n_parcels)
-            adjacency matrix from structural connectome
-        system: str
-            options: 'continuous' or 'discrete'. default=None
-            string variable that determines whether A is normalized for a continuous-time system or a discrete-time
-            system. If normalizing for a continuous-time system, the identity matrix is subtracted.
-        c: int
-            normalization constant, default=1
+        A (NxN, numpy array): adjacency matrix representing a structural connectome.
+        system (str): string variable that determines whether A is normalized for a continuous-time system or a
+            discrete-time system. options: 'continuous' or 'discrete'. default=None.
+        c (int): normalization constant, default=1.
+
     Returns:
-        A_norm: np.array (n_parcels, n_parcels)
-            normalized adjacency matrix
+        A_norm (NxN, numpy array): normalized adjacency matrix.
 
     '''
 
@@ -58,21 +54,21 @@ def get_p_val_string(p_val):
 
 
 def expand_states(states):
-    """
-    This function takes a list of integer values that designate a distinct set of binary brain states and returns
-    a pair of matrices (x0_mat, xf_mat) that encode all possible pairwise transitions between those states
+    """This function takes an array of integer values that designate a distinct set of binary brain states and returns
+    a pair of matrices (x0_mat, xf_mat) that encode all possible pairwise transitions between those states.
+
     Args:
-        states: numpy array (N x 1)
-            a vector of integers that designate which regions belong to which states. Note, regions cannot belong to
-            more than one brain state. For example, assuming N = 12, if:
-                states = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
-            then the first 4 regions belong to state 0, the next 4 to state 1, and the final 4 to state 2
+        states (N, numpy array): a vector of integers that designate which regions belong to which states.
+            Note, regions cannot belong to more than one brain state.
+            For example, assuming N = 12, if states = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+            then the first 4 regions belong to state 0, the next 4 to state 1, and the final 4 to state 2.
 
     Returns:
-        x0_mat: boolean array (N, n_transitions)
-            boolean array of initial states. In each column, True designates regions belonging to a given initial state
-        xf_mat: boolean array (N, n_transitions)
-            boolean array of target states. In each column, True designates regions belonging to a given target state
+        x0_mat (Nxn_transitions, numpy boolean array): boolean array of initial states.
+            In each column, True designates regions belonging to a given initial state.
+        xf_mat (Nxn_transitions, numpy boolean array): boolean array of target states.
+            In each column, True designates regions belonging to a given target state.
+
     """
 
     unique, counts = np.unique(states, return_counts=True)
@@ -97,12 +93,36 @@ def expand_states(states):
 
 
 def normalize_state(x):
+    """This function will normalize a brain state's magnitude using its euclidean norm.
+
+    Args:
+        x (N, numpy array): brain state to be normalized.
+
+    Returns:
+        x_norm (N, numpy array): normalized brain state.
+
+    """
+
     x_norm = x / np.linalg.norm(x, ord=2)
 
     return x_norm
 
 
 def normalize_weights(x, rank=True, add_constant=True):
+    """This function normalizes the weights on B. By default, this involves (i) ranking the data, (ii) rescaling to
+    the unit interval, and (iii) adding a constant value. If rank=False and add_constant=False, then only unit rescaling
+    is performed.
+
+    Args:
+        x (N, numpy array): weights assigned to diagonal of NxN B matrix.
+        rank: determines whether normalization includes ranking the data. default=True.
+        add_constant: determines whether normalization includes adds a constant to the data. default=True.
+
+    Returns:
+        x (N, numpy array): normalized weights.
+
+    """
+
     if rank:
         # rank data
         x = sp.stats.rankdata(x)
@@ -117,6 +137,19 @@ def normalize_weights(x, rank=True, add_constant=True):
 
 
 def get_null_p(x, null, version='standard', abs=False):
+    """This function will compute p-values using an empirical null distribution.
+
+    Args:
+        x: observed test statistic.
+        null: null distribution.
+        version: determins how p-value will be computed, see below. default='standard'.
+        abs: determines whether absolute values are taken for both x and null.
+
+    Returns:
+        p_val: p-value from null.
+
+    """
+
     if abs:
         x = np.abs(x)
         null = np.abs(null)
@@ -133,6 +166,17 @@ def get_null_p(x, null, version='standard', abs=False):
 
 
 def get_fdr_p(p_vals, alpha=0.05):
+    """This function will correct p-values for multiple comparisons using FDR.
+
+    Args:
+        p_vals (numpy array): array of p-values. Can be (n,) vector or (nxn) matrix.
+        alpha (float): false discovery rate. default=0.05
+
+    Returns:
+        p_fdr (numpy array): corrected p-values.
+
+    """
+
     if p_vals.ndim == 2:
         do_reshape = True
         dims = p_vals.shape
@@ -150,12 +194,27 @@ def get_fdr_p(p_vals, alpha=0.05):
 
 
 def convert_states_str2int(states_str):
-    n = len(states_str)
+    """This function takes a list of strings that designate a distinct set of binary brain states and returns
+    a numpy array of integers encoding those states alongside a list of keys for those integers.
+
+    Args:
+        states_str (N, list): a list of strings that designate which regions belong to which states.
+            For example, states = ['Vis', 'Vis', 'Vis', 'SomMot', 'SomMot', 'SomMot']
+
+    Returns:
+        states (N, numpy array): array of integers denoting which node belongs to which state.
+        state_labels (n_states, list): list of keys corresponding to integers.
+            For example, if state_labels[1] = 'SomMot' then the integer 1 in `states` corresponds to 'SomMot'.
+            Together, a binary state can be extracted like so: x0 = states == state_labels.index('SomMot')
+
+    """
+
+    n_states = len(states_str)
     state_labels = list(np.unique(states_str))
 
-    states = np.zeros(n)
+    states = np.zeros(n_states)
     for i, state in enumerate(state_labels):
-        for j in np.arange(n):
+        for j in np.arange(n_states):
             if state == states_str[j]:
                 states[j] = i
 

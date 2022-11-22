@@ -7,7 +7,34 @@ from nctpy.energies import get_control_inputs, integrate_u
 from nctpy.utils import matrix_normalization
 
 class ComputeControlEnergy():
-    def __init__(self, A, control_tasks, system='continuous', c=1, T=1):
+    """This class will compute control energy for a set of independent control tasks stored in control_tasks.
+    See /scripts/control_energy_wrapper.ipynb for an example.
+
+    """
+    def __init__(self, A, control_tasks, system=None, c=1, T=1):
+        """Initializes inputs to ComputeControlEnergy
+
+        Args:
+            A (NxN, numpy array): adjacency matrix representing a structural connectome.
+            control_tasks (list): list of control tasks wherein each entry is a dictionary variable.
+                For example,
+                    control_tasks = []  # list of tasks
+
+                    control_task = dict()  # initialize dict
+                    control_task['x0'] = x0  # store initial state
+                    control_task['xf'] = xf  # store target state
+                    control_task['B'] = B  # store control nodes
+                    control_task['S'] = S  # store state trajectory constraints
+                    control_task['rho'] = rho  # store rho
+                    control_tasks.append(control_task)
+                See get_control_inputs for information on above inputs.
+            system (str): string variable that determines whether A is normalized for a continuous-time system or a
+                discrete-time system. options: 'continuous' or 'discrete'. default=None.
+            c (int): normalization constant, default=1.
+            T (float): time horizon.
+
+        """
+
         self.A = A
         self.control_tasks = control_tasks
 
@@ -50,7 +77,34 @@ class ComputeControlEnergy():
 
 
 class ComputeOptimizedControlEnergy():
-    def __init__(self, A, control_task, system='continuous', c=1, T=1, n_steps=2, lr=0.01):
+    """This class will compute `optimized` control energy for a single control task stored in control_task.
+    See /scripts/path_a_control_energy_binary.ipynb for an example.
+
+    """
+
+    def __init__(self, A, control_task, system=None, c=1, T=1, n_steps=2, lr=0.01):
+        """Initializes inputs to ComputeOptimizedControlEnergy
+
+        Args:
+            A (NxN, numpy array): adjacency matrix representing a structural connectome.
+            control_task (dict): control task.
+                For example,
+                    control_task = dict()  # initialize dict
+                    control_task['x0'] = x0  # store initial state
+                    control_task['xf'] = xf  # store target state
+                    control_task['B'] = B  # store control nodes
+                    control_task['S'] = S  # store state trajectory constraints
+                    control_task['rho'] = rho  # store rho
+                See get_control_inputs for information on above inputs.
+            system (str): string variable that determines whether A is normalized for a continuous-time system or a
+                discrete-time system. options: 'continuous' or 'discrete'. default=None.
+            c (int): normalization constant, default=1.
+            T (float): time horizon.
+            n_steps (int): number of steps down gradient that will be performed.
+            lr (float): learning rate for gradient descent.
+
+        """
+
         self.A = A
         self.control_task = control_task
 

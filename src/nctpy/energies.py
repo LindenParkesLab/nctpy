@@ -10,25 +10,34 @@ from numpy import transpose as tp
 
 
 def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity'):
-    """
+    """This function extracts the state trajectory (x) and the control signals (u) associated with a control task.
 
     Args:
-        A_norm: (NxN numpy array) Normalized structural connectivity matrix
-        T: (float) Time horizon: how long you want to control for. Too large will give large error,
-            too short will not give enough time for control
-        B: (NxN numpy array) Input matrix: selects which nodes to put input into. Define
-            so there is a 1 on the diagonal of elements you want to add input to, and 0 otherwise
-        x0: (Nx1, numpy array) Initial state
-        xf: (Nx1, numpy array) Target state
-        system: (str) Time system: options, 'continuous' or 'discrete'
-        xr: (Nx1, numpy array) Reference state
-        rho: (float) Mixing parameter: determines the extent to which x is constrained alongside u
-        S: (NxN numpy array) Constraint matrix: determines which nodes for which u (and x) will be constrained
+        A_norm (NxN, numpy array): normalized structural connectivity matrix.
+        T (float): time horizon. The amount of time the model will run for. Too long will yield a large error,
+            too short will not give enough time for control (i.e., the state transition may not complete).
+        B (NxN, numpy array): control node matrix. Diagonal entries designate which nodes are control nodes and how much
+            influence those nodes have of system dynamics. For example, B=np.eye(A_norm.shape[0]) would set all nodes as
+            controllers with equal weight (1). This is referred to as a uniform full control set.
+        x0 (Nx1, numpy array): initial state. The initial condition of the system.
+        xf (Nx1, numpy array): target state. The state that the system will be controlled toward and should arrive at
+            at time T.
+        system (str): string variable that designates whether A was normalized for a continuous-time system or a
+            discrete-time system. options: 'continuous' or 'discrete'. default=None.
+        xr (Nx1, numpy array): reference state. This state governs the constraints placed on the state trajectory.
+            By default this will be a vector of zeros of length N. This will result in the state trajectory being
+            penalized for departing too far from 0 activity. Note, this only applies is S contains nodes to constrain.
+        rho (float): mixing parameter. Determines the extent to which the state trajectory is constrained alongside the
+            control signals. rho=1 equals maximum constraint. Note, rho must be >0 and will be ignored if
+            S=np.zeros((A_norm.shape[0], A_norm.shape[0])).
+        S (NxN, numpy array): constraint matrix for state trajectory. Determines which nodes in the state trajectory
+            will be constrained. By default, all nodes' neural activity will be constrained.
 
     Returns:
-        x: (t x N numpy array) State trajectory (neural activity)
-        u: (t x N numpy array) Control inputs
-        err: (1 x 2 numpy array) Numerical error
+        x (txN, numpy array): state trajectory (neural activity). t will be equal to (T/0.001)+1.
+        u (txN, numpy array): control signals. t will be equal to (T/0.001)+1.
+        n_err (list): numerical error.
+
     """
 
     n_nodes = A_norm.shape[0]
@@ -159,38 +168,41 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         return x.T, u.T, err
 
 
-def integrate_u(U):
-    """ This function integrates over some input squared to calculate energy using Simpson's integration.
+def integrate_u(u):
+    """This function integrates over some input squared to calculate energy using Simpson's integration.
 
-    If your control set (B) is the identity this will likely give energies that are nearly identical to those calculated using a Reimann sum.
-    However, when control sets are sparse inputs can be super curvy, so this method will be a bit more accurate.
-     Args:
-      U: numpy array (T x N)
-            Input to the system (likely the output from minimum_input or optimal_input)
+    If your control set (B) is the identity this will likely give energies that are nearly identical to those calculated
+    using a Reimann sum. However, when control sets are sparse inputs can be super curvy, so this method will be a bit
+    more accurate.
+
+    Args:
+        u (txN, numpy array): Control signals input to the system.
+            These can be obtained using get_control_inputs.
       
     Returns:
-      energy: numpy array (N x 1)
-            energy input into each node
+        energy ((N,) numpy array): Energy input into each node.
+
     """
 
     if sp.__version__ < '1.6.0':
-        energy = sp.integrate.simps(U.T**2)
+        energy = sp.integrate.simps(u.T**2)
     else:
-        energy = sp.integrate.simpson(U.T**2)
+        energy = sp.integrate.simpson(u.T**2)
     return energy
 
 
 def gramian(A_norm, T, system=None):
-    """
-    This function computes the controllability Gramian.
+    """This function computes the controllability Gramian.
+
     Args:
-        A_norm: np.array (n x n)
-        T: np.array (1 x 1)
-        system: str
-            options: 'continuous' or 'discrete'. default=None
+        A_norm (NxN, numpy array): normalized structural connectivity matrix.
+        T (float): time horizon.
+        system (str): string variable that designates whether A was normalized for a continuous-time system or a
+            discrete-time system. options: 'continuous' or 'discrete'. default=None.
 
     Returns:
-        Wc:            np.array (n x n)
+        Wc (NxN, numpy array): gramian matrix.
+
     """
 
     # System Size

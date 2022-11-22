@@ -4,19 +4,16 @@ from nctpy.energies import gramian
 
 
 def ave_control(A_norm, system=None):
-    """ Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
-    network. Average controllability measures the ease by which input at that node can steer the system into many
-    easily-reachable states.
+    """Returns values of AVERAGE CONTROLLABILITY for each node in a network, given the adjacency matrix for that
+    network.
 
     Args:
-        A_norm: np.array (n_parcels, n_parcels)
-            Normalized adjacency matrix from structural connectome (see matrix_normalization in utils for example)
-        system: str
-            options: 'continuous' or 'discrete'. default=None
+        A_norm (NxN, numpy array): normalized structural connectivity matrix.
+        system (str): string variable that determines whether A was normalized for a continuous-time system or a
+            discrete-time system. options: 'continuous' or 'discrete'. default=None.
 
     Returns:
-        ac: np.array (n_parcels,)
-            vector of average controllability values for each node
+        ac (N, numpy array): vector of average controllability values for each node
 
     @author lindenmp
     Reference: Gu, Pasqualetti, Cieslak, Telesford, Yu, Kahn, Medaglia,
@@ -50,16 +47,13 @@ def ave_control(A_norm, system=None):
 
 def modal_control(A_norm):
     """ Returns values of MODAL CONTROLLABILITY for each node in a network, given the adjacency matrix for that network.
-    Modal controllability indicates the ability of that node to steer the system into difficult-to-reach states,
-    given input at that node. Expects input to be a DISCRETE system
+    NOTE, expects input to be a DISCRETE system. Continuous variant coming soon!
 
     Args:
-        A_norm: np.array (n_parcels, n_parcels)
-            Normalized adjacency matrix from structural connectome (see matrix_normalization in utils for example)
+        A_norm (NxN, numpy array): normalized structural connectivity matrix.
 
     Returns:
-        phi: np.array (n_parcels,)
-            vector of modal controllability values for each node
+        phi (N, numpy array): vector of modal controllability values for each node
 
     @author lindenmp
     Reference: Gu, Pasqualetti, Cieslak, Telesford, Yu, Kahn, Medaglia,

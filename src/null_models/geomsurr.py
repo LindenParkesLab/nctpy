@@ -2,7 +2,7 @@ import numpy as np
 
 
 def rank_reorder(x, scaffold):
-    """
+    """Helper function for geomsurr (see below).
     Original authors: M Breakspear, J Roberts
     Translated to Python by Linden Parkes
 
@@ -21,7 +21,7 @@ def rank_reorder(x, scaffold):
 
 
 def strength_correct(W, ss, nreps=9):
-    """
+    """Helper function for geomsurr (see below).
     Original authors: M Breakspear, J Roberts
     Translated to Python by Linden Parkes
 
@@ -47,8 +47,7 @@ def strength_correct(W, ss, nreps=9):
 
 
 def geomsurr(W, D, nmean=3, nstd=2, seed=123):
-    """
-    Random graphs that preserve distance effect
+    """This function will generate a surrogate connectome that preserves nodes' spatial embedding.
     Note: Wsp and Wssp are generated assuming that W is undirected.
 
     Original authors: M Breakspear, J Roberts
@@ -56,11 +55,18 @@ def geomsurr(W, D, nmean=3, nstd=2, seed=123):
 
     If you use this code, please cite the original publication: Roberts et al. (2016) NeuroImage 124:379-393.
 
-    :param W:
-    :param D:
-    :param nmean:
-    :param nstd:
-    :return:
+    Args:
+        W (NxN, numpy array): adjacency matrix to be rewired.
+        D (NxN, numpy array): matrix of inter-nodal distance.
+        nmean (int): order parameter for mean.
+        nstd (int): order parameter for standard deviation.
+        seed (int): for random number generator.
+
+    Returns:
+        Wwp (NxN, numpy array): adjacency matrix rewired while preserving space and edge distribution.
+        Wsp (NxN, numpy array): adjacency matrix rewired while preserving space and nodes' strength distribution.
+        Wssp (NxN, numpy array): adjacency matrix rewired while preserving space and nodes' strength sequence.
+
     """
 
     # set state
