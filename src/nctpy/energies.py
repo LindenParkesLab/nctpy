@@ -116,7 +116,7 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         err_costate = np.linalg.norm(np.dot(E12, l0) -
                                      (xf - np.dot(E11, x0) -
                                       np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
-        err_xf = np.linalg.norm(x[:, -1] - xf)
+        err_xf = np.linalg.norm(x[:, -1].reshape(-1, 1) - xf)
         err = [err_costate, err_xf]
 
         return x.T, u.T, err
