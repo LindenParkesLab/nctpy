@@ -5,9 +5,6 @@ Overview
 --------
 .. image:: https://zenodo.org/badge/370716682.svg
    :target: https://zenodo.org/badge/latestdoi/370716682ß
-.. image:: https://readthedocs.org/projects/control-package/badge/?version=latest
-   :target: https://control-package.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
 .. image:: https://img.shields.io/pypi/l/ansicolortags.svg
    :target: https://pypi.python.org/pypi/ansicolortags/
 
