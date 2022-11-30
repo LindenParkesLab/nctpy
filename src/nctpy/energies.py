@@ -9,6 +9,64 @@ from scipy.linalg import expm as expm
 from numpy import transpose as tp
 
 
+def sim_state_eq(A_norm, B, x0, U, system=None):
+    """This function calculate the trajectory for the system given our model if there are no constraints,
+    and the target state is unknown.
+
+    Args:
+        A_norm (NxN numpy array): Normalized structural connectivity matrix
+        B (NxN, numpy array): Control node matrix. Diagonal entries designate which nodes are control nodes and how much
+            influence those nodes have of system dynamics. For example, B=np.eye(A_norm.shape[0]) would set all nodes as
+            controllers with equal weight (1). This is referred to as a uniform full control set.
+        x0 (Nx1, numpy array): Initial state. The initial condition of the system.
+        U (NxT numpy array): System inputs. T is the number of time points.
+            For example, if you want to simulate the trajectory resulting from stimulation, U could have
+            log(StimFreq)*StimAmp*StimDur as every element. You can also enter U's that vary with time
+        system (str): Time system. options, 'continuous' or 'discrete'.
+
+    Returns:
+        x (NxT, numpy array): Trajectory. This is trajectory of neural activity that results from simulating the
+            system with the above parameters
+
+    """
+
+    # state vectors to float if they're bools
+    if type(x0[0]) == np.bool_:
+        x0 = x0.astype(float)
+
+    # check dimensions of states
+    if x0.ndim == 1:
+        x0 = x0.reshape(-1, 1)
+
+    # Simulate trajectory
+    T = np.size(U, 1)
+    N = np.size(A_norm, 0)
+
+    # initialize x
+    x = np.zeros((N, T))
+    xt = x0
+
+    if system is None:
+        raise Exception("Time system not specified. "
+                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
+                        "(see matrix_normalization help).")
+    elif system != 'continuous' and system != 'discrete':
+        raise Exception("Incorrect system specification. "
+                        "Please specify either 'system=discrete' or 'system=continuous'.")
+    elif system == 'continuous':
+        for t in range(T):
+            x[:, t] = xt[:, 0]
+            dt = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
+            xt = dt + xt
+    elif system == 'discrete':
+        for t in range(T):
+            x[:, t] = xt[:, 0]
+            xt_1 = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
+            xt = xt_1
+
+    return x
+
+
 def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity'):
     """This function extracts the state trajectory (x) and the control signals (u) associated with a control task.
 
