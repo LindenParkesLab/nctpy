@@ -9,13 +9,13 @@ Overview
    :target: https://pypi.python.org/pypi/ansicolortags/
 
 Network Control Theory (NCT) is a branch of physical and engineering sciences that treats a network as a dynamical
-system. Generally, the system is controlled through signals that originate at a control point (or control points) and
+system. Generally, the system is controlled through `control signals` that originate at a control node (or control nodes) and
 move through the network. In the brain, NCT models each region’s activity as a time-dependent internal state that is
 predicted from a combination of three factors: (i) its previous state, (ii) whole-brain structural connectivity,
 and (iii) external inputs. NCT enables asking a broad range of questions of a networked system that are highly relevant
 to network neuroscientists, such as: which regions are positioned such that they can efficiently distribute activity
 throughout the brain to drive changes in brain states? Do different brain regions control system dynamics in different
-ways? Given a set of control nodes, how can the system be driven to specific target state, or switch between a pair of
+ways? Given a set of control nodes, how can the system be driven to a specific target state, or switch between a pair of
 states, by means of internal or external control input?
 
 ``nctpy`` is a Python toolbox that provides researchers with a set of tools to conduct some of the
@@ -75,12 +75,9 @@ the following:
 
 .. code-block:: bash
 
-    pip install nctpy
-
-What's New
-----------
-    - v0.0.4: initial package release for nctpy
-    - v0.0.5: added options for specifying timescales, integration function, gramian function, better estimation of the number of time points, and optimal energy example
+    git clone https://github.com/BassettLab/nctpy.git
+    cd nctpy
+    pip install .
 
 Questions
 ---------
