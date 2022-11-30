@@ -5,6 +5,9 @@ References
 
 When using nctpy, please cite the following:
 
+.. image:: https://zenodo.org/badge/370716682.svg
+   :target: https://zenodo.org/badge/latestdoi/370716682
+
 Useful introductions: 
 
 User guide targeted at researchers in neuroscience and psychology

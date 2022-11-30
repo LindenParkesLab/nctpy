@@ -3,6 +3,8 @@ nctpy: Network Control Theory for Python
 
 Overview
 --------
+.. image:: https://zenodo.org/badge/370716682.svg
+   :target: https://zenodo.org/badge/latestdoi/370716682
 .. image:: https://readthedocs.org/projects/nctpy/badge/?version=latest
     :target: https://nctpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -83,7 +85,5 @@ the following:
 Questions
 ---------
 
-If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes), Jennifer Stiso
-(https://twitter.com/JenniferStiso) or Jason Kim (https://twitter.com/jason_z_kim).
-For questions or clarification about the theory pages of the documentation, please contact Jason Kim
-(https://twitter.com/jason_z_kim).
+If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes), Jason Kim (https://twitter
+.com/jason_z_kim), or Jennifer Stiso (https://twitter.com/JenniferStiso).
