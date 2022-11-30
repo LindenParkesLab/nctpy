@@ -78,9 +78,7 @@ the following:
 
 .. code-block:: bash
 
-    git clone https://github.com/BassettLab/nctpy.git
-    cd nctpy
-    pip install .
+    pip install nctpy
 
 Questions
 ---------

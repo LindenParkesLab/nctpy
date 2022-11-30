@@ -4,10 +4,22 @@
 Installation and setup
 ----------------------
 
+.. _basic_installation:
+
+Basic installation
+==================
+
+This package requires Python 3.9. Assuming you have the correct version of Python installed, you can install
+``nctpy`` by opening a terminal and running the following:
+
+.. code-block:: bash
+
+    pip install nctpy
+
 GitHub installation
 ===================
 
-You can install the most up-to-date version from GitHub:
+Alternatively, you can install the most up-to-date version of from GitHub:
 
 .. code-block:: bash
 

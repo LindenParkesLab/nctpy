@@ -5,7 +5,7 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="nctpy",
-    version="1.0.0",
+    version="1.0.0.post0",
 
     author="Linden Parkes, Jason Kim, and Jennifer Stiso",
     author_email="lindenparkes@gmail.com, jinsu1@seas.upenn.edu, jeni.stiso@gmail.com",
