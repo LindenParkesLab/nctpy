@@ -5,17 +5,17 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="nctpy",
-    version="0.0.5",
+    version="1.0.0",
 
-    author="Jennifer Stiso, Linden Parkes and Jason Kim",
-    author_email="jeni.stiso@gmail.com, lindenmp@seas.upenn.edu, jinsu1@seas.upenn.edu",
+    author="Linden Parkes, Jason Kim, and Jennifer Stiso",
+    author_email="lindenparkes@gmail.com, jinsu1@seas.upenn.edu, jeni.stiso@gmail.com",
 
     description="Python implementation of concepts from network control theory",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/BassettLab/control_package",
+    url="https://github.com/BassettLab/nctpy",
     project_urls={
-        "Bug Tracker": "https://github.com/BassettLab/control_package/issues",
+        "Bug Tracker": "https://github.com/BassettLab/nctpy/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
