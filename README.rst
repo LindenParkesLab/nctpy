@@ -3,8 +3,6 @@ nctpy: Network Control Theory for Python
 
 Overview
 --------
-.. image:: https://zenodo.org/badge/370716682.svg
-   :target: https://zenodo.org/badge/latestdoi/370716682
 .. image:: https://readthedocs.org/projects/nctpy/badge/?version=latest
     :target: https://nctpy.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
