@@ -38,6 +38,8 @@ connectivity. The matrix :math:`\mathbf{A}` defines the possible paths of activi
     A = np.random.rand(n_nodes, n_nodes)
     print(A)
 
+.. code-block:: none
+
     Out:
     [[0.37454012 0.95071431 0.73199394 0.59865848 0.15601864]
      [0.15599452 0.05808361 0.86617615 0.60111501 0.70807258]
@@ -76,6 +78,8 @@ achieved using the ``nctpy.utils.matrix_normalization`` function:
     system = 'discrete'
     A_norm = matrix_normalization(A=A, c=1, system=system)
     print(A_norm)
+
+.. code-block:: none
 
     Out:
     [[0.11828952 0.30026034 0.23118275 0.18907194 0.04927475]
@@ -152,6 +156,8 @@ can be calculated using ``nctpy.metrics.ave_control``:
     ac = ave_control(A_norm=A_norm, system=system)
     print(ac)
 
+.. code-block:: none
+
     Out:
     [1.28964075 1.18649349 1.18014308 1.10255958 1.13759366]
 
@@ -173,12 +179,16 @@ be used for both discrete-time and continuous-time systems:
     A_norm = matrix_normalization(A=A, c=1, system=system)
     print(A_norm)
 
+.. code-block:: none
+
     Out:
     [[-0.88171048  0.30026034  0.23118275  0.18907194  0.04927475]
      [ 0.04926713 -0.98165568  0.27356099  0.18984778  0.22362776]
      [ 0.00650112  0.30632279 -0.73709293  0.06706222  0.05742506]
      [ 0.05792392  0.09608762  0.16573175 -0.86358051  0.09197775]
      [ 0.19323908  0.04405579  0.09226689  0.11570661 -0.85596122]]
+
+.. code-block:: python
 
     from nctpy.energies import get_control_inputs, integrate_u
 
@@ -234,6 +244,8 @@ neural activity encoded by ``xf``. We consider errors :math:`< 1 \times 10^{-8}`
     print('reconstruction error = {:.2E} (<{:.2E}={:})'
           .format(n_err[1], thr, n_err[1] < thr))
 
+.. code-block:: none
+
     Out:
     inversion error = 1.31E-16 (<1.00E-08=True)
     reconstruction error = 5.45E-14 (<1.00E-08=True)
@@ -277,6 +289,8 @@ Finally, we'll integrate ``u`` to compute `control energy`:
     # summarize nodal energy to get control energy
     energy = np.sum(node_energy)
     print('energy = {:.2F}'.format(np.round(energy, 2)))
+
+.. code-block:: none
 
     Out:
     node energy = [159.35334645 728.32771143 349.67802113 120.56428349 563.2983561 ]
