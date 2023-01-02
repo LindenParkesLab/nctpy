@@ -6,7 +6,7 @@ Relationships between regional Network Control Theory metrics
 .. note::
     :class: sphx-glr-download-link-note
 
-    Relevant publication: `Gu et al. 2015 Nature Communications <https://www.nature.com/articles/ncomms9414.pdf>`_
+    Relevant publication: `Gu et al. 2015 Nature Communications <https://www.nature.com/articles/ncomms9414>`_
 
 In this example, we illustrate how average and modal controllability correlate to weighted degree (strength) and to
 each other. The data used here are structural connectomes taken from the
@@ -18,6 +18,8 @@ with 200 nodes along dimensions 0 and 1 and 253 subjects along dimension 3:
 .. code-block:: python
 
     print(A.shape)
+
+.. code-block:: none
 
     Out:
     (200, 200, 253)
