@@ -8,6 +8,7 @@ from numpy import matmul as mm
 from scipy.linalg import expm as expm
 from numpy import transpose as tp
 
+from nctpy.utils import expm
 
 def sim_state_eq(A_norm, B, x0, U, system=None):
     """This function calculate the trajectory for the system given our model if there are no constraints,
@@ -67,7 +68,7 @@ def sim_state_eq(A_norm, B, x0, U, system=None):
     return x
 
 
-def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity'):
+def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity', expm_version='scipy'):
     """This function extracts the state trajectory (x) and the control signals (u) associated with a control task.
 
     Args:
@@ -146,7 +147,10 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         c = np.linalg.solve(M, c)
 
         # Compute matrix exponential and decompose into NxN blocks
-        E = sp.linalg.expm(M * T)
+        if expm_version == 'scipy':
+            E = sp.linalg.expm(M * T)
+        elif expm_version == 'eig':
+            E = expm(M * T)
         r = np.arange(n_nodes)
         E11 = E[r, :][:, r]
         E12 = E[r, :][:, r + n_nodes]
@@ -159,7 +163,10 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         z = np.zeros((2 * n_nodes, int(np.round(T / dt) + 1)))
         z[:, 0] = np.concatenate((x0, l0), axis=0).flatten()
         I = np.eye(2 * n_nodes)
-        Ad = sp.linalg.expm(M * dt)
+        if expm_version == 'scipy':
+            Ad = sp.linalg.expm(M * dt)
+        elif expm_version == 'eig':
+            Ad = expm(M * dt)
         Bd = np.dot((Ad - I), c)
 
         # Simulate the state-costate trajectory
@@ -321,3 +328,59 @@ def gramian(A_norm, T, system=None):
                 Wc = Wc + mm(Ap, tp(Ap))
 
             return Wc
+
+
+def minimum_energy_fast(A_norm, T, B, x0, xf):
+    # System Size
+    n_nodes = A_norm.shape[0]
+
+    try:
+        if type(x0[0][0]) == np.bool_:
+            x0 = x0.astype(float)
+        if type(xf[0][0]) == np.bool_:
+            xf = xf.astype(float)
+    except:
+        if type(x0[0]) == np.bool_:
+            x0 = x0.astype(float)
+        if type(xf[0]) == np.bool_:
+            xf = xf.astype(float)
+
+    if x0.ndim == 1:
+        x0 = x0.reshape(-1, 1)
+    if xf.ndim == 1:
+        xf = xf.reshape(-1, 1)
+
+    # Number of integration steps
+    nt = 1000
+    dt = T/nt
+
+    # Numerical integration with Simpson's 1/3 rule
+    # Integration step
+    dE = sp.linalg.expm(A_norm * dt)
+    # Accumulation of expm(A * dt)
+    dEA = np.eye(n_nodes)
+    # Gramian
+    G = np.zeros((n_nodes, n_nodes))
+
+    for i in np.arange(1, nt/2):
+        # Add odd terms
+        dEA = np.matmul(dEA, dE)
+        p1 = np.matmul(dEA, B)
+        # Add even terms
+        dEA = np.matmul(dEA, dE)
+        p2 = np.matmul(dEA, B)
+        G = G + 4 * (np.matmul(p1, p1.transpose())) + 2 * (np.matmul(p2, p2.transpose()))
+
+    # Add final odd term
+    dEA = np.matmul(dEA, dE)
+    p1 = np.matmul(dEA, B)
+    G = G + 4 * (np.matmul(p1, p1.transpose()))
+
+    # Divide by integration step
+    E = sp.linalg.expm(A_norm * T)
+    G = (G + np.matmul(B, B.transpose()) + np.matmul(np.matmul(E, B), np.matmul(E, B).transpose())) * dt / 3
+
+    delx = xf - np.matmul(E, x0)
+    E = np.multiply(np.matmul(np.linalg.pinv(G), delx), delx)
+
+    return E

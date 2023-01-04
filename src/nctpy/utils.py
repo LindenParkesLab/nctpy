@@ -219,3 +219,22 @@ def convert_states_str2int(states_str):
                 states[j] = i
 
     return states.astype(int), state_labels
+
+
+def expm(A):
+    """This function computes the matrix exponential using eigen decomposition as per the Spectral Mapping Theorem
+
+    Args:
+        A: matrix to exponentiate
+
+    Returns:
+        eA: the matrix exponential
+    """
+
+    A_eig = np.linalg.eig(A)  # get eigenvalues and eigenvectors of A
+    eA = np.diag(np.exp(A_eig[0]))  # put exponentiated eigenvalues on diagonal of a matrix
+    eA = np.matmul(A_eig[1], eA)  # multiply by eigenvectors
+    eA = np.matmul(eA, np.linalg.inv(A_eig[1]))  # multiple by inverse of eigenvectors
+    eA = np.real(eA)  # retain real components
+
+    return eA
