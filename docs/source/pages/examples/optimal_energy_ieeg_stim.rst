@@ -198,14 +198,18 @@ trouble to make sure that was the case.
 
     import seaborn as sns
     import matplotlib.pyplot as plt
-    sns.set_context('poster')
+    from nctpy.plotting import set_plotting_params
+    set_plotting_params()
 
-    energies['log_eng'] = np.log(energies['energy']) 
-    energies['log_err'] = np.log(energies['error']) 
-    fig, ax = plt.subplots(1,1,figsize=(8,6))
-    sns.histplot(energies, x='log_err', hue='subject', stat='probability', ax=ax, palette='Blues_r', legend=False)
+    fig, ax = plt.subplots(1, 2, figsize=(6, 3))
+    sns.histplot(energies, x='log_costate_err', hue='subject', stat='probability',
+                 ax=ax[0], palette='Blues_r', legend=False)
+    sns.histplot(energies, x='recon_error', hue='subject', stat='probability',
+                 ax=ax[1], palette='Blues_r', legend=False)
+    plt.tight_layout()
+    plt.show()
 
-.. image:: optimal_energy_ieeg_stim_error.png
+.. image:: optimal_energy_ieeg_stim_error2.png
    :align: center
 
 All the different datasets are in different shades of blue. And we can see here that everyone has low error values. 
@@ -213,11 +217,12 @@ Now lets check our actual hypothesis.
 
 .. code-block:: python
 
-    sns.lmplot(data=energies, y='log_eng', x = 'initial_mem_state', hue = 'subject', palette='Blues_r', height=8,
-               aspect=2, legend=False)
+    sns.lmplot(data=energies, y='log_eng', x='initial_mem_state', hue='subject', palette='Blues_r',
+              height=3, aspect=2, legend=False)
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    plt.show()
 
-.. image:: optimal_energy_ieeg_stim_state.png
+.. image:: optimal_energy_ieeg_stim_state2.png
    :align: center
 
 This plot looks a little different from the one in the paper because we don't normalize the output. But as we can see, 
