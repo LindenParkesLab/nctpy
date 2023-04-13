@@ -78,8 +78,8 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         B (NxN, numpy array): control node matrix. Diagonal entries designate which nodes are control nodes and how much
             influence those nodes have of system dynamics. For example, B=np.eye(A_norm.shape[0]) would set all nodes as
             controllers with equal weight (1). This is referred to as a uniform full control set.
-        x0 (Nx1, numpy array): initial state. The initial condition of the system.
-        xf (Nx1, numpy array): target state. The state that the system will be controlled toward and should arrive at
+        x0 (Nxk, numpy array): initial state. The initial condition of the system.
+        xf (Nxk, numpy array): target state. The state that the system will be controlled toward and should arrive at
             at time T.
         system (str): string variable that designates whether A was normalized for a continuous-time system or a
             discrete-time system. options: 'continuous' or 'discrete'. default=None.
@@ -158,33 +158,38 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         # Solve for initial costate as a function of initial and final states
         l0 = np.linalg.solve(E12,
                              (xf - np.dot(E11, x0) - np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
+        n_states = x0.shape[1]
 
         # Construct discretized matrices to numerically integrate
-        z = np.zeros((2 * n_nodes, int(np.round(T / dt) + 1)))
-        z[:, 0] = np.concatenate((x0, l0), axis=0).flatten()
+        z = np.zeros((2 * n_nodes, n_states, int(np.round(T / dt) + 1)))
+        z[:, :, 0] = np.concatenate((x0, l0), axis=0)
         I = np.eye(2 * n_nodes)
         if expm_version == 'scipy':
             Ad = sp.linalg.expm(M * dt)
         elif expm_version == 'eig':
             Ad = expm(M * dt)
         Bd = np.dot((Ad - I), c)
+        Bd = np.repeat(Bd,n_states,1)
 
         # Simulate the state-costate trajectory
         for i in np.arange(1, int(np.round(T / dt)) + 1):
-            z[:, i] = np.dot(Ad, z[:, i - 1]) + Bd.flatten()
+            z[:, :, i] = np.dot(Ad, z[:, :, i - 1]) + Bd
 
         # Extract state and input from the joint state-costate equation
-        x = z[r, :]
-        u = np.dot(-B.T, z[r + n_nodes, :]) / (2 * rho)
+        BP = np.transpose(np.expand_dims(B,(2,3)),(0,2,3,1))
+        BP = np.repeat(BP,n_states,1)
+        BP = np.repeat(BP,z.shape[2],2)
+        x = z[r, :, :]
+        u = np.sum(np.multiply(-BP, np.repeat(np.expand_dims(z[r + n_nodes, :, :],3),B.shape[1],3)), axis=3) / (2 * rho)
 
         # Collect error
         err_costate = np.linalg.norm(np.dot(E12, l0) -
                                      (xf - np.dot(E11, x0) -
-                                      np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
-        err_xf = np.linalg.norm(x[:, -1].reshape(-1, 1) - xf)
+                                      np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)),axis=0)
+        err_xf = np.linalg.norm(x[:, :, -1] - xf, axis=0)
         err = [err_costate, err_xf]
 
-        return x.T, u.T, err
+        return np.transpose(x,(2,0,1)), np.transpose(u,(2,0,1)), err
     elif system == 'discrete':
         # Define joint state - costate matrix
         C = np.dot(-B, B.T) / (2 * rho)
