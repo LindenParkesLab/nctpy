@@ -176,11 +176,11 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
             z[:, :, i] = np.dot(Ad, z[:, :, i - 1]) + Bd
 
         # Extract state and input from the joint state-costate equation
-        BP = np.transpose(np.expand_dims(B,(2,3)),(0,2,3,1))
-        BP = np.repeat(BP,n_states,1)
-        BP = np.repeat(BP,z.shape[2],2)
         x = z[r, :, :]
-        u = np.sum(np.multiply(-BP, np.repeat(np.expand_dims(z[r + n_nodes, :, :],3),B.shape[1],3)), axis=3) / (2 * rho)
+        u = np.zeros((n_nodes,z.shape[2],n_states))
+        zp = np.transpose(z[r + n_nodes,:,:],(0,2,1))
+        for i in range(n_states):
+            u[:,:,i] = np.dot(-B.T, zp[:,:,i]) / (2 * rho)
 
         # Collect error
         err_costate = np.linalg.norm(np.dot(E12, l0) -
@@ -189,7 +189,7 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         err_xf = np.linalg.norm(x[:, :, -1] - xf, axis=0)
         err = [err_costate, err_xf]
 
-        return np.transpose(x,(2,0,1)), np.transpose(u,(2,0,1)), err
+        return np.transpose(x,(2,0,1)), np.transpose(u,(1,0,2)), err
     elif system == 'discrete':
         # Define joint state - costate matrix
         C = np.dot(-B, B.T) / (2 * rho)
