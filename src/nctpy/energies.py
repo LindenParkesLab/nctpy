@@ -58,6 +58,7 @@ def sim_state_eq(A_norm, B, x0, U, system=None):
         for t in range(T):
             x[:, t] = xt[:, 0]
             dt = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
+            dt = dt * 0.001
             xt = dt + xt
     elif system == 'discrete':
         for t in range(T):
