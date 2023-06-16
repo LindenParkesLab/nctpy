@@ -8,7 +8,7 @@ plt.rcParams.update({'font.size': 10})
 plt.rcParams['svg.fonttype'] = 'none'
 
 # %% directories
-projdir = '/Users/lindenmp/Google-Drive-Penn/work/research_projects/nctpy/'
+projdir = '/Users/lindenmp/Google-Drive-Rutgers/work/research_projects/nctpy/'
 datadir = os.path.join(projdir, 'data')
 resultsdir = os.path.join(projdir, 'results')
 
