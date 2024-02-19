@@ -25,17 +25,14 @@ states, by means of internal or external control input?
 common NCT analyses reported in the literature. Below, we list select publications that serve as a primer for
 these tools and their use cases:
 
-1. Gu, S., Pasqualetti, F., Cieslak, M. et al. Controllability of structural brain networks.
-Nature Communications (2015). https://doi.org/10.1038/ncomms9414
+1. Parkes, L., Kim, J. Z., et al. Using network control theory to study the dynamics of the structural connectome.
+bioRxiv (2023). https://www.biorxiv.org/content/10.1101/2023.08.23.554519v1
 
-2. Gu, S., Betzel R. F., Mattar, M. G. et al. Optimal trajectories of brain state transitions.
-NeuroImage (2017). https://doi.org/10.1016/j.neuroimage.2017.01.003
-
-3. Karrer, T. M., Kim, J. Z., Stiso, J. et al. A practical guide to methodological considerations in the
+2. Karrer, T. M., Kim, J. Z., Stiso, J. et al. A practical guide to methodological considerations in the
 controllability of structural brain networks.
 Journal of Neural Engineering (2020). https://doi.org/10.1088/1741-2552/ab6e8b
 
-4. Kim, J. Z., & Bassett, D. S. Linear dynamics & control of brain networks.
+3. Kim, J. Z., & Bassett, D. S. Linear dynamics & control of brain networks.
 arXiv (2019). https://arxiv.org/abs/1902.03309
 
 .. _readme_requirements:
