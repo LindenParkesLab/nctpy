@@ -83,5 +83,5 @@ the following:
 Questions
 ---------
 
-If you have any questions, please contact Linden Parkes (https://twitter.com/LindenParkes), Jason Kim (https://twitter
-.com/jason_z_kim), or Jennifer Stiso (https://twitter.com/JenniferStiso).
+If you have any questions, please contact Linden Parkes (info@parkeslab.com) or
+Jason Kim (https://twitter.com/jason_z_kim).
