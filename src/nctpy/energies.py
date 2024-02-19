@@ -69,7 +69,7 @@ def sim_state_eq(A_norm, B, x0, U, system=None):
     return x
 
 
-def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='identity', expm_version='scipy'):
+def get_control_inputs(A_norm, T, B, x0, xf, system=None, rho=1, S='identity', xr='zero', expm_version='scipy'):
     """This function extracts the state trajectory (x) and the control signals (u) associated with a control task.
 
     Args:
@@ -84,14 +84,14 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
             at time T.
         system (str): string variable that designates whether A was normalized for a continuous-time system or a
             discrete-time system. options: 'continuous' or 'discrete'. default=None.
-        xr (Nx1, numpy array): reference state. This state governs the constraints placed on the state trajectory.
-            By default this will be a vector of zeros of length N. This will result in the state trajectory being
-            penalized for departing too far from 0 activity. Note, this only applies is S contains nodes to constrain.
         rho (float): mixing parameter. Determines the extent to which the state trajectory is constrained alongside the
             control signals. rho=1 equals maximum constraint. Note, rho must be >0 and will be ignored if
             S=np.zeros((A_norm.shape[0], A_norm.shape[0])).
         S (NxN, numpy array): constraint matrix for state trajectory. Determines which nodes in the state trajectory
             will be constrained. By default, all nodes' neural activity will be constrained.
+        xr (Nx1, numpy array): reference state. This state governs the constraints placed on the state trajectory.
+            By default this will be a vector of zeros of length N. This will result in the state trajectory being
+            penalized for departing too far from 0 activity. Note, this only applies is S contains nodes to constrain.
 
     Returns:
         x (txN, numpy array): state trajectory (neural activity). t will be equal to (T/0.001)+1.
