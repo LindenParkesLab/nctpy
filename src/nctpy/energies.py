@@ -188,7 +188,7 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, xr='zero', rho=1, S='i
         return x.T, u.T, err
     elif system == 'discrete':
         if T <= 1:
-            raise Exception("Discrete time stsyems must have T >= 2")
+            raise Exception("Discrete time systems must have T >= 2")
 
         # Define joint state - costate matrix
         C = np.dot(-B, B.T) / (2 * rho)
