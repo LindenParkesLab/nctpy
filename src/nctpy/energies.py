@@ -9,6 +9,7 @@ from scipy.linalg import expm as expm
 from numpy import transpose as tp
 
 from nctpy.utils import expm
+from packaging.version import Version
 
 def sim_state_eq(A_norm, B, x0, U, system=None):
     """This function calculate the trajectory for the system given our model if there are no constraints,
@@ -238,7 +239,6 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, rho=1, S='identity', x
 
         return x.T, u.T, err
 
-
 def integrate_u(u):
     """This function integrates over some input squared to calculate energy using Simpson's integration.
 
@@ -255,12 +255,11 @@ def integrate_u(u):
 
     """
 
-    if sp.__version__ < '1.6.0':
+    if Version(sp.__version__) < Version("1.6.0"):
         energy = sp.integrate.simps(u.T**2)
     else:
         energy = sp.integrate.simpson(u.T**2)
     return energy
-
 
 def gramian(A_norm, T, system=None):
     """This function computes the controllability Gramian.
