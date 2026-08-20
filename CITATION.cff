@@ -10,4 +10,4 @@ authors:
     given-names: Jennifer
     orcid:orcid: "https://orcid.org/0000-0002-3295-586X"
 title: "nctpy: Network Control Theory for Python"
-version: 1.0.0
+version: 1.0.2
