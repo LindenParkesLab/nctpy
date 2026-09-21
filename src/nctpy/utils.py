@@ -6,20 +6,18 @@ from numpy.linalg import eig
 from statsmodels.stats import multitest
 
 
-def matrix_normalization(A, system=None, c=1):
-    '''This function will normalize A in preparation for modeling linear dynamics.
-
+def matrix_normalization(A, system=None, c=1, l=None):
+    '''Normalize A for modeling linear dynamics.
     Args:
         A (NxN, numpy array): adjacency matrix representing a structural connectome.
-        system (str): string variable that determines whether A is normalized for a continuous-time system or a
-            discrete-time system. options: 'continuous' or 'discrete'. default=None.
-        c (int): normalization constant, default=1.
-
+        system (str): 'continuous' or 'discrete'. default=None.
+        c (int): normalization constant. default=1.
+        l (float): optional fixed spectral radius. If provided, A is normalized by
+            (c + l) instead of (c + the spectral radius of A). Pass a fixed l shared
+            across subjects (e.g. the maximum spectral radius over all subjects). default=None.
     Returns:
         A_norm (NxN, numpy array): normalized adjacency matrix.
-
     '''
-
     if system is None:
         raise Exception("Time system not specified. "
                         "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
@@ -28,15 +26,12 @@ def matrix_normalization(A, system=None, c=1):
         raise Exception("Incorrect system specification. "
                         "Please specify either 'system=discrete' or 'system=continuous'.")
     else:
-        # eigenvalue decomposition
-        w, _ = eig(A)
-        l = np.abs(w).max()
-
-        # Matrix normalization for discrete-time systems
+        if l is None:
+            w, _ = eig(A)
+            l = np.abs(w).max()
         A_norm = A / (c + l)
 
         if system == 'continuous':
-            # for continuous-time systems
             A_norm = A_norm - np.eye(A.shape[0])
 
         return A_norm
