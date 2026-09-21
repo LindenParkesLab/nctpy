@@ -200,4 +200,7 @@ ENV/
 # mkdocs documentation
 /site
 
+# papers
+s41596-024-01023-w.pdf
+
 # End of https://www.gitignore.io/api/macos,linux,django,python,pycharm
