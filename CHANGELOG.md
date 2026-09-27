@@ -17,3 +17,16 @@
   of 0.002 (e.g. 0.1, 0.5, 1, 2, 10), so results for those horizons are unaffected. Calling
   `gramian` directly with other horizons may give slightly different values than under SciPy
   < 1.11.
+
+- `null_models.geomsurr` no longer modifies the matrix passed as `W`. Previously it set the
+  caller's diagonal to zero in place, so after running the null-model code, a connectome with
+  self-connections had silently lost them for the rest of the session. It also no longer resets
+  numpy's global random seed; it uses a local generator instead. **The surrogates are unchanged**:
+  identical for every seed.
+
+### Documentation
+
+- `geomsurr`'s docstring now states its scope. It rewires edges between pairs of nodes, so its
+  surrogates always have a zero diagonal and it is suited to connectomes without
+  self-connections. For a connectome with self-connections, compute the observed statistic on the
+  zero-diagonal version of the connectome.

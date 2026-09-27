@@ -4,6 +4,7 @@ import numpy as np
 from nctpy.utils import matrix_normalization, normalize_state, normalize_weights
 from nctpy.metrics import ave_control
 from nctpy.energies import integrate_u, get_control_inputs
+from null_models.geomsurr import geomsurr
 
 
 class TestMatrixNormalization(unittest.TestCase):
@@ -342,6 +343,42 @@ class TestAveControl(unittest.TestCase):
         self.assertEqual(str(exception_context.exception),
                          "Incorrect system specification. "
                          "Please specify either 'system=discrete' or 'system=continuous'.")
+
+
+class TestGeomsurr(unittest.TestCase):
+    def setUp(self):
+        # surrogates from the pre-1.0.3 implementation; see make_geomsurr_fixtures.py
+        self.ref = np.load('./fixtures/geomsurr_reference.npz')
+        self.seeds = (0, 1, 123)
+        # across numpy versions the surrogates differ by rounding only (~1e-15 relative); a different
+        # permutation would move them by order 1
+        self.rtol = 1e-12
+
+    def test_geomsurr_matches_reference(self):
+        for label in ('und', 'dir'):
+            for seed in self.seeds:
+                out = geomsurr(self.ref['W_' + label].copy(), self.ref['D_' + label], seed=seed)
+                for name, surr in zip(('wwp', 'wsp', 'wssp'), out):
+                    expected = self.ref['{0}_{1}_{2}'.format(name, label, seed)]
+                    self.assertTrue(np.array_equal(surr == 0, expected == 0))
+                    self.assertTrue(np.allclose(surr, expected, rtol=self.rtol, atol=0))
+
+    def test_geomsurr_does_not_modify_W(self):
+        # the undirected case has self-connections, like the protocol paper's connectome
+        W = self.ref['W_und'].copy()
+        W_before = W.copy()
+        out = geomsurr(W, self.ref['D_und'], seed=0)
+        self.assertTrue(np.array_equal(W, W_before))
+        self.assertTrue((np.diag(W) > 0).all())
+        # by design, surrogates have no self-connections
+        for surr in out:
+            self.assertTrue((np.diag(surr) == 0).all())
+
+    def test_geomsurr_leaves_global_rng_untouched(self):
+        np.random.seed(2024)
+        state_before = np.random.get_state()[1].copy()
+        geomsurr(self.ref['W_und'].copy(), self.ref['D_und'], seed=0)
+        self.assertTrue(np.array_equal(np.random.get_state()[1], state_before))
 
 
 if __name__ == '__main__':

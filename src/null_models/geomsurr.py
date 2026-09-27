@@ -50,17 +50,24 @@ def geomsurr(W, D, nmean=3, nstd=2, seed=123):
     """This function will generate a surrogate connectome that preserves nodes' spatial embedding.
     Note: Wsp and Wssp are generated assuming that W is undirected.
 
+    geomsurr rewires the edges between pairs of nodes, so the surrogates it returns always have a zero
+    diagonal. It is therefore suited to connectomes without self-connections. If your connectome has
+    self-connections, compute the observed statistic you compare against these surrogates on the zero-diagonal
+    version of the connectome (e.g. np.fill_diagonal(W_copy, 0)), so that observed and surrogate differ only in
+    the rewiring. W itself is not modified.
+
     Original authors: M Breakspear, J Roberts
     Translated to Python by Linden Parkes
 
     If you use this code, please cite the original publication: Roberts et al. (2016) NeuroImage 124:379-393.
 
     Args:
-        W (NxN, numpy array): adjacency matrix to be rewired.
+        W (NxN, numpy array): adjacency matrix to be rewired. Not modified.
         D (NxN, numpy array): matrix of inter-nodal distance.
         nmean (int): order parameter for mean.
         nstd (int): order parameter for standard deviation.
-        seed (int): for random number generator.
+        seed (int): for random number generator. Only a local generator is used; numpy's global random state is
+            left untouched.
 
     Returns:
         Wwp (NxN, numpy array): adjacency matrix rewired while preserving space and edge distribution.
@@ -69,8 +76,11 @@ def geomsurr(W, D, nmean=3, nstd=2, seed=123):
 
     """
 
-    # set state
-    np.random.seed(seed)
+    # set state (local generator; draws the same sequence as np.random.seed(seed) did)
+    rng = np.random.RandomState(seed)
+
+    # work on a copy so the caller's matrix is never modified
+    W = W.copy()
 
     # Check if directed
     drct = 1
@@ -103,7 +113,7 @@ def geomsurr(W, D, nmean=3, nstd=2, seed=123):
 
     # 3. Now create surrogate data, adjusted for mean and std
     # Shuffle the old ones
-    surr = np.random.permutation(stdlogw)
+    surr = rng.permutation(stdlogw)
 
     # 4. Now put the geometry back in
     # 4.1 Invert
