@@ -319,6 +319,14 @@ class TestAveControl(unittest.TestCase):
         self.assertTrue((np.abs(ac - ave_control(self.A_c, 'continuous')) <= self.eps).all())
         self.assertTrue((ave_control(self.A_d, 'discrete') != ave_control(self.A_c, 'continuous')).any())
 
+    def test_ave_control_continuous_runs(self):
+        # regression: gramian() compared scipy versions as strings ('1.17.1' < '1.6.0' is True) and so
+        # called sp.integrate.simps, which scipy removed in 1.14. Continuous ave_control raised AttributeError.
+        ac = ave_control(self.A_c, 'continuous')
+        self.assertEqual(ac.shape, (self.A_c.shape[0],))
+        self.assertTrue(np.isfinite(ac).all())
+        self.assertTrue((ac > 0).all())
+
     def test_ave_control_error(self):
         # no system
         with self.assertRaises(Exception) as exception_context:

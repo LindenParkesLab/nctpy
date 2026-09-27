@@ -201,6 +201,6 @@ ENV/
 /site
 
 # papers
-s41596-024-01023-w.pdf
+papers/
 
 # End of https://www.gitignore.io/api/macos,linux,django,python,pycharm

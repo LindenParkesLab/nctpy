@@ -319,10 +319,10 @@ def gramian(A_norm, T, system=None):
                 dG[:, :, i] = mm(dEab, dEab.T)
 
             # Integrate
-            if sp.__version__ < '1.6.0':
+            if Version(sp.__version__) < Version("1.6.0"):
                 G = sp.integrate.simps(dG, t, STEP, 2)
             else:
-                G = sp.integrate.simpson(dG, t, STEP, 2)
+                G = sp.integrate.simpson(dG, x=t, dx=STEP, axis=2)
 
             return G
         elif system == 'discrete':
