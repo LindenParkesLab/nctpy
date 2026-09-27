@@ -1,0 +1,814 @@
+{
+  "symbols": [
+    {
+      "module": "nctpy.energies",
+      "name": "sim_state_eq",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "B",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "x0",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "U",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.energies",
+      "name": "get_control_inputs",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D",
+        "X"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "T",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "B",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "x0",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xf",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "rho",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "S",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "identity"
+          }
+        },
+        {
+          "name": "xr",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "zero"
+          }
+        },
+        {
+          "name": "expm_version",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "scipy"
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.energies",
+      "name": "integrate_u",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D",
+        "X"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "u",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.energies",
+      "name": "gramian",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "T",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.energies",
+      "name": "minimum_energy_fast",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "T",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "B",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "x0",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xf",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.metrics",
+      "name": "ave_control",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.metrics",
+      "name": "modal_control",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.pipelines",
+      "name": "ComputeControlEnergy",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "class",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "control_tasks",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "c",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "T",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        }
+      ],
+      "methods": {
+        "run": []
+      }
+    },
+    {
+      "module": "nctpy.pipelines",
+      "name": "ComputeOptimizedControlEnergy",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "class",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "control_task",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "c",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "T",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "n_steps",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 2
+          }
+        },
+        {
+          "name": "lr",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0.01
+          }
+        }
+      ],
+      "methods": {
+        "run": []
+      }
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "matrix_normalization",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D",
+        "X"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "c",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "l",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "get_p_val_string",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "p_val",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "expand_states",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "states",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "normalize_state",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D",
+        "X"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "x",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "normalize_weights",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "x",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "rank",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": true
+          }
+        },
+        {
+          "name": "add_constant",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "get_null_p",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "x",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "null",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "version",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "standard"
+          }
+        },
+        {
+          "name": "abs",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "get_fdr_p",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "p_vals",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "alpha",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0.05
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "convert_states_str2int",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "states_str",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "expm",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "set_plotting_params",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "format",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "png"
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "reg_plot",
+      "tier": "contract",
+      "sources": [
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "x",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "y",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xlabel",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "ylabel",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "ax",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "c",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "gray"
+          }
+        },
+        {
+          "name": "annotate",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "pearson"
+          }
+        },
+        {
+          "name": "regr_line",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": true
+          }
+        },
+        {
+          "name": "kde",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": true
+          }
+        },
+        {
+          "name": "fontsize",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 8
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "null_plot",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "observed",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "null",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xlabel",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "ax",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "p_val",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "roi_to_vtx",
+      "tier": "contract",
+      "sources": [
+        "Pi",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "roi_data",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "annot_file",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "surface_plot",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "data",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "lh_annot_file",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "rh_annot_file",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "fsaverage",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "expr": "datasets.fetch_surf_fsaverage(mesh='fsaverage5')"
+          }
+        },
+        {
+          "name": "order",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "lr"
+          }
+        },
+        {
+          "name": "cmap",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": "viridis"
+          }
+        },
+        {
+          "name": "cblim",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.plotting",
+      "name": "add_module_lines",
+      "tier": "contract",
+      "sources": [
+        "Pi",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "modules",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "ax",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "null_models.geomsurr",
+      "name": "rank_reorder",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "x",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "scaffold",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ]
+    },
+    {
+      "module": "null_models.geomsurr",
+      "name": "strength_correct",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "W",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "ss",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "nreps",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 9
+          }
+        }
+      ]
+    },
+    {
+      "module": "null_models.geomsurr",
+      "name": "geomsurr",
+      "tier": "contract",
+      "sources": [
+        "P",
+        "D"
+      ],
+      "kind": "function",
+      "params": [
+        {
+          "name": "W",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "D",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "nmean",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 3
+          }
+        },
+        {
+          "name": "nstd",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 2
+          }
+        },
+        {
+          "name": "seed",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 123
+          }
+        }
+      ]
+    }
+  ]
+}
