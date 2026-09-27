@@ -1,6 +1,14 @@
 # Changelog
 
-## 1.0.3 (unreleased)
+## 1.0.3 (2026-09-27)
+
+### Added
+
+- `matrix_normalization(..., l=None)`: an optional fixed spectral radius. When given, `A` is
+  normalised by `c + l` instead of `c` plus its own largest absolute eigenvalue, so several
+  connectomes (e.g. subjects) can share one normalisation, typically with `l` set to the maximum
+  spectral radius across them. The default `l=None` gives exactly the previous behaviour. An `l`
+  smaller than a matrix's own spectral radius no longer guarantees a stable system.
 
 ### Fixed
 
