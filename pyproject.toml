@@ -51,3 +51,50 @@ version = { attr = "nctpy.__version__" }
 where = ["src"]
 # the published packages; `null_models` is a top-level import path printed in the protocol paper
 include = ["nctpy", "null_models"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+# notebooks and the paper's scripts are records, not linted code
+extend-exclude = ["*.ipynb", "scripts", "docs"]
+
+[tool.ruff.lint]
+# ruff's default rule set, stated explicitly so results do not depend on anyone's personal ruff config
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# Pre-existing violations, removed module by module in Phase 2 with the tests watching. Some are
+# behaviour-sensitive (e.g. utils.py's "unused" `from scipy import stats` loads the submodule that
+# `sp.stats` relies on on older SciPy), so they are not auto-fixed here. New code must pass.
+"src/nctpy/energies.py" = ["E721", "E722", "E741", "F811"]
+"src/nctpy/pipelines.py" = ["F401", "F841"]
+"src/nctpy/plotting.py" = ["E401", "E712", "E721", "E722", "F401"]
+"src/nctpy/utils.py" = ["E741", "F401"]  # E741: `l` is a released, frozen parameter name (D4)
+"src/tests/test_nctpy.py" = ["E741"]
+
+[tool.ruff.format]
+# Files not yet in ruff's format. Phase 2 formats each module as it refactors it and removes its entry;
+# anything not listed here (i.e. every new file) must be formatted.
+exclude = [
+    "src/nctpy/energies.py",
+    "src/nctpy/metrics.py",
+    "src/nctpy/pipelines.py",
+    "src/nctpy/plotting.py",
+    "src/nctpy/utils.py",
+    "src/null_models/geomsurr.py",
+    "src/tests/make_api_contract.py",
+    "src/tests/make_geomsurr_fixtures.py",
+    "src/tests/make_regression_fixtures.py",
+    "src/tests/test_api_contract.py",
+    "src/tests/test_nctpy.py",
+    "src/tests/test_notebooks.py",
+    "src/tests/test_paper_code.py",
+    "src/tests/test_plotting.py",
+    "src/tests/test_properties.py",
+    "src/tests/test_regression.py",
+]
+
+[tool.mypy]
+files = ["src/nctpy", "src/null_models"]
+# most dependencies (nilearn, nibabel, seaborn, statsmodels) ship no type information
+ignore_missing_imports = true
