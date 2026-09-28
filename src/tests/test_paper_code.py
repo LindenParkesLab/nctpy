@@ -38,7 +38,24 @@ REL = 0.01  # D5: printed values are sanity checks at 1% relative
 THR = 1e-8  # the paper's threshold for both error terms
 
 
+# The paper's data are not in the repository (data/ is git-ignored; the PNC data are not freely
+# shareable), so this test runs only where a local copy of data/ exists and skips everywhere else.
+REQUIRED_DATA = [
+    DATADIR / 'pnc_schaefer200_Am.npy',
+    DATADIR / 'pnc_schaefer200_system_labels.txt',
+    DATADIR / 'pnc_schaefer200_rsts.npy',
+    DATADIR / 'pnc_schaefer200_centroids.csv',
+    DATADIR / 'schaefer200_cyto.npy',
+    DATADIR / 'schaefer200_micro.npy',
+    ANNOT_DIR / 'lh.Schaefer2018_200Parcels_7Networks_order.annot',
+    ANNOT_DIR / 'rh.Schaefer2018_200Parcels_7Networks_order.annot',
+]
+
+
 def setUpModule():
+    absent = [str(p.relative_to(REPO)) for p in REQUIRED_DATA if not p.exists()]
+    if absent:
+        raise unittest.SkipTest('the paper\'s data are not available locally: ' + ', '.join(absent))
     missing = []
     for name in ('pandas', 'sklearn', 'seaborn', 'nilearn', 'nibabel', 'matplotlib'):
         try:
