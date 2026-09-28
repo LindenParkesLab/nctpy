@@ -38,7 +38,7 @@ plot = ["matplotlib", "seaborn", "nibabel", "nilearn"]
 # and scikit-learn): `pip install "nctpy[paper]"` is enough to run it
 paper = ["nctpy[plot]", "pandas", "scikit-learn"]
 docs = ["sphinx", "sphinx-rtd-theme"]
-dev = ["nctpy[paper]", "pytest", "pytest-cov", "nbclient", "nbformat", "ipykernel"]
+dev = ["nctpy[paper]", "pytest", "pytest-cov", "nbclient", "nbformat", "ipykernel", "pre-commit"]
 
 [project.urls]
 Homepage = "https://github.com/LindenParkesLab/nctpy"
@@ -55,6 +55,8 @@ include = ["nctpy", "null_models"]
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+# apply the excludes below even when files are named explicitly (as pre-commit does)
+force-exclude = true
 # notebooks and the paper's scripts are records, not linted code
 extend-exclude = ["*.ipynb", "scripts", "docs"]
 

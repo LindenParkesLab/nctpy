@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://nctpy.readthedocs.io
+    about: Guides, theory and examples.
+  - name: Nature Protocols paper
+    url: https://doi.org/10.1038/s41596-024-01023-w
+    about: The step-by-step protocol that nctpy implements.

@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest new functionality for nctpy.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What would you like to do?
+      description: The analysis or task you are trying to do, and why nctpy does not support it yet.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: How it could work, if you have an idea. Note that existing functions cannot change their signatures or defaults; new behaviour arrives as new functions or new optional keyword arguments.
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Papers or methods this is based on, if any.

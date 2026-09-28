@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in nctpy gives an error or a wrong result.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you run, what did you expect, and what happened instead? Paste the full error message if there was one.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal example
+      description: The smallest piece of code that shows the problem, ideally with small synthetic inputs (e.g. a random 10 x 10 matrix) rather than your data.
+      render: python
+    validations:
+      required: true
+  - type: input
+    id: protocol-step
+    attributes:
+      label: Protocol paper step (if any)
+      description: If you were following the Nature Protocols paper or its Supplementary Information, which step or section?
+      placeholder: e.g. Procedure 1, step 4A; SI section E
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: "The output of: python -c \"import nctpy, numpy, scipy, sys; print(nctpy.__version__, numpy.__version__, scipy.__version__, sys.version)\" (and nilearn's version if the problem is in plotting)."
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: e.g. macOS 15, Ubuntu 24.04, Windows 11

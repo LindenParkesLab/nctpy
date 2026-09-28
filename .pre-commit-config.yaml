@@ -1,0 +1,28 @@
+# Run once after cloning:  pip install pre-commit && pre-commit install
+# The same ruff checks as CI, plus guards against committing data. See CONTRIBUTING.md.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9  # keep in step with the ruff version pinned in .github/workflows/ci.yml
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+
+  - repo: local
+    hooks:
+      # The paper's data (data/) are not freely shareable and must never be committed. The only
+      # tracked file there is the parcel-to-system label list that the protocol paper links to.
+      - id: no-data
+        name: do not commit files from data/
+        language: fail
+        entry: files under data/ must not be committed (the paper's data are not shareable)
+        files: ^data/
+        exclude: ^data/pnc_schaefer200_system_labels\.txt$
