@@ -1,24 +1,31 @@
 # Releasing nctpy to PyPI
 
-Package metadata lives in **`setup.cfg` only**. `pyproject.toml` just declares the
-setuptools build backend. There is deliberately no `setup.py` — when one existed, its
-keyword arguments silently overrode `setup.cfg`, so version bumps made in `setup.cfg`
-were ignored at build time.
+Package metadata lives in **`pyproject.toml` only**. There is deliberately no `setup.py` or
+`setup.cfg`. When those existed, they could silently override one another, so a version bump made
+in one place was ignored at build time.
+
+The version has a single source: `__version__` in `src/nctpy/__init__.py`, which `pyproject.toml`
+reads at build time.
 
 ## Steps
 
-1. Bump `version` in `setup.cfg` (and `version` in `CITATION.cff` to match).
+1. Bump `__version__` in `src/nctpy/__init__.py` (and `version` in `CITATION.cff` to match),
+   and date the release's section in `CHANGELOG.md`.
 2. Make sure `main` is clean and up to date:
 
    ```
    git checkout main && git pull && git status
    ```
 
-3. Run the unit tests:
+3. Run the tests, from `src/tests` (some tests open `./fixtures` relative to the working
+   directory):
 
    ```
-   python -m unittest discover -s src/tests -t .
+   cd src/tests && PYTHONPATH=.. python -m pytest && cd ../..
    ```
+
+   Run this on a machine with the paper's data in `data/`. The paper-code and notebook tests
+   need it and skip without it, which is what public CI sees.
 
 4. Build a fresh sdist + wheel (clear old artifacts first, or twine will try to
    upload every version sitting in `dist/`):
@@ -37,7 +44,11 @@ were ignored at build time.
    ```
 
    Confirm the version is the new one and that `Requires-Dist` lists every dependency
-   in `setup.cfg`.
+   in `pyproject.toml`. The wheel should contain only `nctpy/` and `null_models/`:
+
+   ```
+   unzip -l dist/nctpy-*.whl
+   ```
 
 6. Upload. Use an API token from https://pypi.org/manage/account/token/
    (username is the literal string `__token__`, password is the `pypi-...` token).

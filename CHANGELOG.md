@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `nctpy.__version__`.
+
+### Changed
+
+- Packaging metadata now lives in `pyproject.toml` (PEP 621); `setup.cfg` is gone. The version
+  has a single source, `nctpy.__version__`. Dependencies and the minimum Python version are
+  unchanged.
+
+### Fixed
+
+- Installing nctpy no longer installs a top-level `tests` package alongside it. Only `nctpy` and
+  `null_models` are installed.
+
 ## 1.0.3 (2026-09-27)
 
 ### Added

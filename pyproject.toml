@@ -1,6 +1,43 @@
 [build-system]
-requires = [
-    "setuptools>=65",
-    "wheel"
-]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "nctpy"
+dynamic = ["version"]
+description = "Python implementation of concepts from network control theory"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+authors = [
+    { name = "Linden Parkes", email = "lindenparkes@gmail.com" },
+    { name = "Jason Kim", email = "jinsu1@seas.upenn.edu" },
+    { name = "Jennifer Stiso", email = "jeni.stiso@gmail.com" },
+]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "scipy",
+    "tqdm",
+    "statsmodels",
+    "seaborn",
+    "nibabel",
+    "nilearn",
+    "packaging",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/LindenParkesLab/nctpy"
+"Bug Tracker" = "https://github.com/LindenParkesLab/nctpy/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "nctpy.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+# the published packages; `null_models` is a top-level import path printed in the protocol paper
+include = ["nctpy", "null_models"]
