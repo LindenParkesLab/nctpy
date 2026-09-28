@@ -38,6 +38,13 @@
 
 - Installing nctpy no longer installs a top-level `tests` package alongside it. Only `nctpy` and
   `null_models` are installed.
+- `nctpy.plotting.surface_plot` works with nilearn 0.13 and later. It drew continuous data with
+  nilearn's `plot_surf_roi`, which since nilearn 0.13 rejects negative or non-integer values,
+  so it raised `ValueError` for almost any real input (e.g. average controllability, or the fMRI
+  states in the protocol paper's Supplementary Information). It now uses `plot_surf` with the
+  same settings. With nilearn 0.12 and earlier, the figures are pixel-for-pixel identical to
+  before. With nilearn 0.14, which removed the `darkness` option, the background shading may
+  differ very slightly.
 
 ## 1.0.3 (2026-09-27)
 

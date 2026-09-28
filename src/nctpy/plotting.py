@@ -1,4 +1,5 @@
 import os, sys, platform
+import inspect
 import numpy as np
 import scipy as sp
 
@@ -163,6 +164,17 @@ def roi_to_vtx(roi_data, annot_file):
     return vtx_data, vtx_data_min, vtx_data_max
 
 
+def _plot_surf_panel(surf_mesh, surf_map, bg_map, hemi, view, vmin, vmax, cmap, axes):
+    # The data are continuous and may be negative, so this uses plot_surf rather than plot_surf_roi, which is
+    # for integer label maps and rejects anything else from nilearn 0.13. avg_method='median' is what
+    # plot_surf_roi used, so figures are unchanged where the old call worked. darkness was removed in nilearn 0.14.
+    kwargs = dict(hemi=hemi, view=view, vmin=vmin, vmax=vmax, bg_map=bg_map, bg_on_data=True, axes=axes,
+                  cmap=cmap, colorbar=False, avg_method='median')
+    if 'darkness' in inspect.signature(plotting.plot_surf).parameters:
+        kwargs['darkness'] = .5
+    plotting.plot_surf(surf_mesh, surf_map=surf_map, **kwargs)
+
+
 def surface_plot(data, lh_annot_file, rh_annot_file,
                  fsaverage=datasets.fetch_surf_fsaverage(mesh='fsaverage5'),
                  order='lr', cmap='viridis', cblim=None):
@@ -194,33 +206,14 @@ def surface_plot(data, lh_annot_file, rh_annot_file,
 
     # main plot
     f, ax = plt.subplots(2, 2, figsize=(2.5, 2.5), subplot_kw={'projection': '3d'})
-    plotting.plot_surf_roi(fsaverage['infl_left'], roi_map=vtx_data_lh,
-                         hemi='left', view='lateral',
-                         vmin=vmin, vmax=vmax,
-                         bg_map=fsaverage['sulc_left'],
-                         bg_on_data=True, axes=ax[0, 0],
-                         darkness=.5, cmap=cmap, colorbar=False)
-
-    plotting.plot_surf_roi(fsaverage['infl_right'], roi_map=vtx_data_rh,
-                         hemi='right', view='lateral',
-                         vmin=vmin, vmax=vmax,
-                         bg_map=fsaverage['sulc_right'],
-                         bg_on_data=True, axes=ax[0, 1],
-                         darkness=.5, cmap=cmap, colorbar=False)
-
-    plotting.plot_surf_roi(fsaverage['infl_left'], roi_map=vtx_data_lh,
-                         hemi='left', view='medial',
-                         vmin=vmin, vmax=vmax,
-                         bg_map=fsaverage['sulc_left'],
-                         bg_on_data=True, axes=ax[1, 0],
-                         darkness=.5, cmap=cmap, colorbar=False)
-
-    plotting.plot_surf_roi(fsaverage['infl_right'], roi_map=vtx_data_rh,
-                         hemi='right', view='medial',
-                         vmin=vmin, vmax=vmax,
-                         bg_map=fsaverage['sulc_right'],
-                         bg_on_data=True, axes=ax[1, 1],
-                         darkness=.5, cmap=cmap, colorbar=False)
+    _plot_surf_panel(fsaverage['infl_left'], vtx_data_lh, fsaverage['sulc_left'], 'left', 'lateral',
+                     vmin, vmax, cmap, ax[0, 0])
+    _plot_surf_panel(fsaverage['infl_right'], vtx_data_rh, fsaverage['sulc_right'], 'right', 'lateral',
+                     vmin, vmax, cmap, ax[0, 1])
+    _plot_surf_panel(fsaverage['infl_left'], vtx_data_lh, fsaverage['sulc_left'], 'left', 'medial',
+                     vmin, vmax, cmap, ax[1, 0])
+    _plot_surf_panel(fsaverage['infl_right'], vtx_data_rh, fsaverage['sulc_right'], 'right', 'medial',
+                     vmin, vmax, cmap, ax[1, 1])
 
     plt.subplots_adjust(wspace=-0.075, hspace=-0.3)
     cb_ax = f.add_axes([0.9, 0.25, 0.05, 0.5])  # add colorbar
