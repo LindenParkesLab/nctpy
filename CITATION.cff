@@ -1,13 +1,81 @@
-cff-version: 1.1.0
-message: "If you use this software, please cite it as below."
+cff-version: 1.2.0
+message: "If you use this software, please cite the Nature Protocols paper below."
+title: "nctpy: Network Control Theory for Python"
+version: 1.0.3
+date-released: 2026-09-27
+license: MIT
+repository-code: "https://github.com/LindenParkesLab/nctpy"
 authors:
   - family-names: Parkes
     given-names: Linden
-    orcid:orcid: "https://orcid.org/0000-0002-9329-7207"
+    orcid: "https://orcid.org/0000-0002-9329-7207"
   - family-names: Kim
     given-names: Jason Z.
   - family-names: Stiso
     given-names: Jennifer
-    orcid:orcid: "https://orcid.org/0000-0002-3295-586X"
-title: "nctpy: Network Control Theory for Python"
-version: 1.0.3
+    orcid: "https://orcid.org/0000-0002-3295-586X"
+preferred-citation:
+  type: article
+  title: "A network control theory pipeline for studying the dynamics of the structural connectome"
+  journal: "Nature Protocols"
+  volume: 19
+  start: 3721
+  end: 3749
+  year: 2024
+  doi: "10.1038/s41596-024-01023-w"
+  authors:
+    - family-names: Parkes
+      given-names: Linden
+    - family-names: Kim
+      given-names: Jason Z.
+    - family-names: Stiso
+      given-names: Jennifer
+    - family-names: Brynildsen
+      given-names: Julia K.
+    - family-names: Cieslak
+      given-names: Matthew
+    - family-names: Covitz
+      given-names: Sydney
+    - family-names: Gur
+      given-names: Raquel E.
+    - family-names: Gur
+      given-names: Ruben C.
+    - family-names: Pasqualetti
+      given-names: Fabio
+    - family-names: Shinohara
+      given-names: Russell T.
+    - family-names: Zhou
+      given-names: Dale
+    - family-names: Satterthwaite
+      given-names: Theodore D.
+    - family-names: Bassett
+      given-names: Dani S.
+references:
+  - type: article
+    title: "Inferring intrinsic neural timescales using optimal control theory"
+    journal: "Nature Communications"
+    volume: 16
+    start: 11639
+    year: 2025
+    doi: "10.1038/s41467-025-66542-w"
+    authors:
+      - family-names: Kim
+        given-names: Jason Z.
+      - family-names: Betzel
+        given-names: Richard F.
+      - family-names: Beyh
+        given-names: Ahmad
+      - family-names: Howell
+        given-names: Amber
+      - family-names: Kuceyeski
+        given-names: Amy
+      - family-names: Larsen
+        given-names: Bart
+      - family-names: Seguin
+        given-names: Caio
+      - family-names: Zhang
+        given-names: Xi-Han
+      - family-names: Holmes
+        given-names: Avram
+      - family-names: Parkes
+        given-names: Linden

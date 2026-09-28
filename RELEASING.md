@@ -1,4 +1,4 @@
-# Releasing nctpy to PyPI
+# Releasing nctpy
 
 Package metadata lives in **`pyproject.toml` only**. There is deliberately no `setup.py` or
 `setup.cfg`. When those existed, they could silently override one another, so a version bump made
@@ -7,82 +7,77 @@ in one place was ignored at build time.
 The version has a single source: `__version__` in `src/nctpy/__init__.py`, which `pyproject.toml`
 reads at build time.
 
-## Steps
+Releases are automated. Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`, which:
 
-1. Bump `__version__` in `src/nctpy/__init__.py` (and `version` in `CITATION.cff` to match),
-   and date the release's section in `CHANGELOG.md`.
-2. Make sure `main` is clean and up to date:
+1. checks the tag agrees with `__version__`, `CITATION.cff` and a dated `CHANGELOG.md` section, and
+   that the tagged commit is on `main`;
+2. builds the sdist and wheel, and tests the wheel;
+3. publishes to PyPI (trusted publishing: no API token is stored anywhere);
+4. creates the GitHub release, with the changelog section as its notes and the built files
+   attached. This also triggers the Zenodo archive.
+
+## One-time setup
+
+These are done once, on the websites, by a maintainer.
+
+1. **PyPI trusted publisher.** On https://pypi.org/manage/project/nctpy/settings/publishing/, add
+   a GitHub publisher:
+   - owner `LindenParkesLab`
+   - repository `nctpy`
+   - workflow `release.yml`
+   - environment `pypi`
+2. **GitHub environment.** In the repository's Settings → Environments, create an environment
+   named `pypi`. Optionally, add yourself as a required reviewer, so every publish waits for a
+   click of approval.
+3. **Zenodo** (already enabled, going by the README's DOI badge). At https://zenodo.org/account/settings/github/,
+   the `nctpy` repository should be switched on.
+
+## Steps for a release
+
+1. **Prepare the release on a branch**, and merge it into `main`:
+   - bump `__version__` in `src/nctpy/__init__.py`;
+   - bump `version` and `date-released` in `CITATION.cff`;
+   - rename `## Unreleased` in `CHANGELOG.md` to `## X.Y.Z (YYYY-MM-DD)`, with the same date as
+     `date-released`.
+
+   Check it locally:
 
    ```
-   git checkout main && git pull && git status
+   python .github/scripts/release_check.py vX.Y.Z /tmp/release_notes.md
    ```
 
-3. Run the tests, from `src/tests` (some tests open `./fixtures` relative to the working
-   directory):
+2. **Run the full tests locally**, on a machine with the paper's data in `data/`. CI cannot run the
+   paper-code and notebook tests, because the data are not in the repository:
 
    ```
    cd src/tests && PYTHONPATH=.. python -m pytest && cd ../..
    ```
 
-   Run this on a machine with the paper's data in `data/`. The paper-code and notebook tests
-   need it and skip without it, which is what public CI sees.
+3. **Optionally, do a dry run:** Actions → Release → Run workflow (on `main`). It builds and tests
+   the package and publishes nothing.
 
-4. Build a fresh sdist + wheel (clear old artifacts first, or twine will try to
-   upload every version sitting in `dist/`):
-
-   ```
-   rm -rf dist build src/*.egg-info
-   python -m pip install --upgrade build twine
-   python -m build
-   ```
-
-5. Sanity-check the metadata before uploading:
+4. **Tag `main` and push the tag.** In VS Code: switch to `main` and pull, then use Command Palette
+   → "Git: Create Tag" (name it `vX.Y.Z`), then "Git: Push Tags". Or in a terminal:
 
    ```
-   python -m twine check dist/*
-   unzip -p dist/nctpy-*.whl '*/METADATA' | head -30
+   git switch main && git pull
+   git tag -a vX.Y.Z -m "vX.Y.Z"
+   git push origin vX.Y.Z
    ```
 
-   Confirm the version is the new one and that `Requires-Dist` lists every dependency
-   in `pyproject.toml`. The wheel should contain only `nctpy/` and `null_models/`:
+5. **Watch Actions → Release.** When it is green, the new version is on
+   https://pypi.org/project/nctpy/ and on the GitHub releases page.
 
-   ```
-   unzip -l dist/nctpy-*.whl
-   ```
+## If something goes wrong
 
-6. Upload. Use an API token from https://pypi.org/manage/account/token/
-   (username is the literal string `__token__`, password is the `pypi-...` token).
-
-   ```
-   python -m twine upload dist/*
-   ```
-
-   To rehearse without touching the real index, upload to TestPyPI first:
-
-   ```
-   python -m twine upload --repository testpypi dist/*
-   ```
-
-7. Tag and push the release:
-
-   ```
-   git tag -a v1.0.2 -m "v1.0.2"
-   git push origin main --tags
-   ```
-
-8. Optionally cut a GitHub release from the tag at
-   https://github.com/LindenParkesLab/nctpy/releases/new
-
-## Notes
-
-- PyPI versions are immutable. Once `1.0.2` is uploaded it can never be replaced —
-  a mistake means yanking it and shipping `1.0.3`.
-- Credentials can be stored in `~/.pypirc` so you are not prompted each time:
-
-  ```
-  [pypi]
-    username = __token__
-    password = pypi-AgEIcHlwaS5vcmc...
-  ```
-
-  Keep that file at `chmod 600`.
+- **The release check or the tests fail:** nothing has been published. Fix the problem on `main`,
+  delete the tag (locally with `git tag -d vX.Y.Z`, and on GitHub under the repository's tags),
+  and tag again.
+- **PyPI versions are immutable.** Once `X.Y.Z` is uploaded it can never be replaced. A mistake
+  means yanking it on PyPI and releasing the next version.
+- **Manual fallback**, if the workflow is unavailable:
+  - build with `python -m build`;
+  - check with `python -m twine check --strict dist/*`;
+  - upload with `python -m twine upload dist/*`, using an API token from
+    https://pypi.org/manage/account/token/ (username `__token__`);
+  - then create the GitHub release from the tag by hand.

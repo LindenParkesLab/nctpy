@@ -1,0 +1,123 @@
+name: Release
+
+# Push a tag vX.Y.Z (on a commit already on main) to publish that version to PyPI and create the
+# GitHub release. Run it by hand (Actions > Release > Run workflow) for a dry run: it builds and
+# tests the package but publishes nothing. See RELEASING.md.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MPLBACKEND: Agg
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  build:
+    name: check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # full history, to check the tag is on main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: check the tag agrees with the version, CITATION.cff and the changelog
+        if: startsWith(github.ref, 'refs/tags/')
+        run: python .github/scripts/release_check.py "$GITHUB_REF_NAME" release_notes.md
+      - name: check the tagged commit is on main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: build the sdist and wheel
+        run: |
+          python -m pip install build twine
+          python -m build
+          python -m twine check --strict dist/*
+      - name: check the wheel contains only nctpy and null_models
+        run: |
+          python - <<'EOF'
+          import glob, zipfile
+          wheel = glob.glob("dist/*.whl")[0]
+          tops = {name.split("/")[0] for name in zipfile.ZipFile(wheel).namelist()}
+          packages = {t for t in tops if not t.endswith(".dist-info")}
+          assert packages == {"nctpy", "null_models"}, packages
+          print(wheel, "contains", sorted(packages))
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: release-notes
+          path: release_notes.md
+
+  test:
+    name: test the built wheel
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: install the wheel with the dev extra
+        shell: bash
+        run: python -m pip install "$(ls dist/*.whl)[dev]"
+      - name: pytest
+        working-directory: src/tests
+        run: |
+          python -c "import nctpy; assert 'site-packages' in nctpy.__file__, nctpy.__file__"
+          python -m pytest -q -p no:cacheprovider
+
+  publish:
+    name: publish to PyPI
+    needs: [build, test]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi
+      url: https://pypi.org/p/nctpy
+    permissions:
+      id-token: write  # trusted publishing: no API token is stored anywhere
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: create the GitHub release
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+      - name: create the release (this also triggers the Zenodo archive, if enabled)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file release_notes.md dist/*
