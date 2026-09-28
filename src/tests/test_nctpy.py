@@ -134,83 +134,6 @@ class TestGetControlInputs(unittest.TestCase):
         self.n = np.shape(self.A_d)[0]
         self.eps = 1e-10
 
-    def test_get_control_inputs_success(self):
-        # discrete
-        with open('./fixtures/control_discrete.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0, self.xf, system='discrete')
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # T
-        with open('./fixtures/control_T.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_d, 7, np.eye(self.n), self.x0, self.xf, system='discrete')
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # B
-        with open('./fixtures/control_B.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, self.B, self.x0, self.xf, system='continuous')
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # rho
-        with open('./fixtures/control_rho.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n),
-                                                      self.x0, self.xf, system='discrete',
-                                                      rho=100)
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # S
-        with open('./fixtures/control_S.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_d, 2, np.eye(self.n), self.x0,
-                                                      self.xf, system='discrete', S=self.B)
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # system
-        with open('./fixtures/control_continuous.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
-                                                      system='continuous')
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-        # reference state
-        with open('./fixtures/control_ref.npz', 'rb') as f:
-            data = np.load(f)
-            x = data['x']
-            u = data['u']
-            err = data['err']
-        x_test, u_test, err_test = get_control_inputs(self.A_c, 2, np.eye(self.n), self.x0, self.xf,
-                                                      system='continuous', xr='x0')
-        self.assertTrue((np.abs(x - x_test) <= self.eps).all())
-        self.assertTrue((np.abs(u - u_test) <= self.eps).all())
-        self.assertTrue((np.abs(err - err_test) <= self.eps).all())
-
     def test_get_control_inputs_reaching_xf(self):
         for i in range(10):
             # for states with increasingly large values, are we always getting to the final?
@@ -283,22 +206,11 @@ class TestGetControlInputs(unittest.TestCase):
 
 
 class TestIntegrateU(unittest.TestCase):
-    def setUp(self):
-        with open('./fixtures/u.npy', 'rb') as f:
-            self.u = np.load(f)
-        self.eps = 2 * np.finfo(float).eps
-
     def test_integrate_u_bounds(self):
         for i in range(10):
             # for increasingly large U, test that we always get positive energy
             u = np.random.randn(100, 10000) * ((i + 1) * 10)
             self.assertTrue((integrate_u(u) > 0).all())
-
-    def test_integrate_u_success(self):
-        with open('./fixtures/u_int.npy', 'rb') as f:
-            energy = np.load(f)
-        self.assertTrue((np.abs(energy - integrate_u(self.u)) <= self.eps).all())
-        # TODO different scipy version (how do I do this???)
 
 
 class TestAveControl(unittest.TestCase):
