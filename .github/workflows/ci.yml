@@ -72,6 +72,22 @@ jobs:
         working-directory: src/tests
         run: python -m pytest -q -p no:cacheprovider -rs
 
+  docs:
+    # Builds the documentation the way Read the Docs does (.readthedocs.yaml), with warnings as errors.
+    name: docs build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+      - run: python -m pip install -r docs/requirements.txt
+      - name: sphinx-build (warnings are errors)
+        run: python -m sphinx -W --keep-going -b html docs/source docs/_build/html
+
   coverage:
     # Coverage must not fall below the baseline recorded in src/tests/baseline.json ("public").
     name: coverage floor
