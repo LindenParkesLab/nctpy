@@ -40,29 +40,11 @@ arXiv (2019). https://arxiv.org/abs/1902.03309
 Requirements
 ------------
 
-Currently, ``nctpy`` works with Python 3.9 and requires the following core dependencies:
+``nctpy`` requires Python 3.10 or later. Installing it also installs its core dependencies: numpy, scipy,
+tqdm, packaging and statsmodels.
 
-    - numpy (tested on 1.23.4)
-    - scipy (tested on 1.9.3)
-    - tqdm (tested on 4.64.1)
-
-The ``utils`` module also requires:
-
-    - statsmodels (tested on 0.13.2)
-
-The ``plotting`` module also requires:
-
-    - seaborn (tested on 0.12.0)
-    - nibabel (tested on 4.0.2)
-    - nilearn (tested on 0.9.2)
-
-There are some additional (optional) dependencies you can install (note, these are only used for i/o and plotting in the
-Python notebooks located in the `scripts` directory):
-
-    - pandas (tested on 1.5.1)
-    - matplotlib (tested on 3.5.3)
-    - jupyterlab (tested on 3.4.4)
-    - sklearn (tested on 0.0.post1)
+The ``plotting`` module needs extra packages (matplotlib, seaborn, nibabel and nilearn), which are
+optional and not installed by default. They come with the ``plot`` extra, shown below.
 
 If you want to install the environment that was used to run the analyses presented in the manuscript, use the
 environment.yml file.
@@ -70,12 +52,23 @@ environment.yml file.
 Basic installation
 ------------------
 
-Assuming you have Python 3.9 installed, you can install ``nctpy`` by opening a terminal and running
-the following:
+To install ``nctpy``, open a terminal and run:
 
 .. code-block:: bash
 
     pip install nctpy
+
+To also install the plotting dependencies:
+
+.. code-block:: bash
+
+    pip install "nctpy[plot]"
+
+To run the code printed in our Nature Protocols paper, which also uses pandas and scikit-learn:
+
+.. code-block:: bash
+
+    pip install "nctpy[paper]"
 
 Questions
 ---------

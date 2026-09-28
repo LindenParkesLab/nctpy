@@ -1,12 +1,22 @@
 import os, sys, platform
 import numpy as np
 import scipy as sp
-import nibabel as nib
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-from nilearn import datasets
-from nilearn import plotting
+try:
+    import nibabel as nib
+
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from nilearn import datasets
+    from nilearn import plotting
+except ImportError as exc:
+    raise ImportError(
+        "nctpy.plotting needs the optional plotting dependencies (matplotlib, seaborn, nibabel, nilearn), "
+        "which are not installed with nctpy by default. Install them with:\n"
+        "    pip install 'nctpy[plot]'\n"
+        "or, to run the code printed in the Nature Protocols paper:\n"
+        "    pip install 'nctpy[paper]'"
+    ) from exc
 
 from nctpy.utils import get_p_val_string
 

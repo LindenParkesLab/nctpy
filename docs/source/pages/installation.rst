@@ -9,12 +9,20 @@ Installation and setup
 Basic installation
 ==================
 
-This package requires Python 3.9. Assuming you have the correct version of Python installed, you can install
-``nctpy`` by opening a terminal and running the following:
+This package requires Python 3.10 or later. Assuming you have the correct version of Python installed, you can
+install ``nctpy`` by opening a terminal and running the following:
 
 .. code-block:: bash
 
     pip install nctpy
+
+This installs ``nctpy`` with its core dependencies (numpy, scipy, tqdm, packaging and statsmodels). The
+``nctpy.plotting`` module needs extra packages, which are optional:
+
+.. code-block:: bash
+
+    pip install "nctpy[plot]"    # matplotlib, seaborn, nibabel, nilearn
+    pip install "nctpy[paper]"   # the above plus pandas and scikit-learn, to run the protocol paper's code
 
 GitHub installation
 ===================

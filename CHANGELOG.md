@@ -2,15 +2,37 @@
 
 ## Unreleased
 
+### Changed — action needed if you use `nctpy.plotting`
+
+- **The plotting dependencies are now optional.** `pip install nctpy` installs only numpy,
+  scipy, tqdm, packaging and statsmodels. matplotlib, seaborn, nibabel and nilearn are no longer
+  installed automatically. `nctpy.plotting` needs them, and without them it raises an
+  `ImportError` that says how to install them:
+
+  ```bash
+  pip install "nctpy[plot]"     # matplotlib, seaborn, nibabel, nilearn
+  pip install "nctpy[paper]"    # the above plus pandas and scikit-learn
+  ```
+
+  **Following the Nature Protocols paper?** Install with `pip install "nctpy[paper]"`. The
+  paper's import block imports these packages directly, so a plain `pip install nctpy` is no
+  longer enough to run it.
+
+  This is the only change in 1.x that can break an existing installation. Everything else in
+  1.x is additive.
+
+- **Python 3.10 or later is now required** (previously 3.9). On Python 3.9, pip will keep
+  installing nctpy 1.0.x.
+
 ### Added
 
 - `nctpy.__version__`.
+- Extras: `plot`, `paper`, `docs` and `dev` (the test suite's dependencies).
 
 ### Changed
 
 - Packaging metadata now lives in `pyproject.toml` (PEP 621); `setup.cfg` is gone. The version
-  has a single source, `nctpy.__version__`. Dependencies and the minimum Python version are
-  unchanged.
+  has a single source, `nctpy.__version__`.
 
 ### Fixed
 

@@ -14,21 +14,31 @@ authors = [
 ]
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "scipy",
     "tqdm",
-    "statsmodels",
-    "seaborn",
-    "nibabel",
-    "nilearn",
     "packaging",
+    "statsmodels",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
 ]
+
+[project.optional-dependencies]
+# nctpy.plotting
+plot = ["matplotlib", "seaborn", "nibabel", "nilearn"]
+# everything the Nature Protocols paper's printed code imports (its import block also uses pandas
+# and scikit-learn): `pip install "nctpy[paper]"` is enough to run it
+paper = ["nctpy[plot]", "pandas", "scikit-learn"]
+docs = ["sphinx", "sphinx-rtd-theme"]
+dev = ["nctpy[paper]", "pytest", "pytest-cov", "nbclient", "nbformat", "ipykernel"]
 
 [project.urls]
 Homepage = "https://github.com/LindenParkesLab/nctpy"

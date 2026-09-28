@@ -18,6 +18,10 @@ import importlib
 import inspect
 import io
 import json
+import os
+import subprocess
+import sys
+import textwrap
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -99,6 +103,41 @@ class TestImportPaths(unittest.TestCase):
                 recorded = {s['name'] for s in CONTRACT if s['module'] == name}
                 self.assertEqual(public - recorded, set(),
                                  'public symbols missing from api_contract.json; run make_api_contract.py')
+
+
+class TestOptionalDependencies(unittest.TestCase):
+    """The plotting dependencies are an optional extra (nctpy[plot]); everything else must work without them."""
+
+    BLOCKED = ('matplotlib', 'seaborn', 'nibabel', 'nilearn')
+
+    def test_core_imports_without_plotting_dependencies(self):
+        # a fresh interpreter in which the plotting packages cannot be imported, whether installed or not
+        script = textwrap.dedent('''
+            import sys
+
+            class Block:
+                def find_spec(self, name, path=None, target=None):
+                    if name.split('.')[0] in {blocked!r}:
+                        raise ModuleNotFoundError('blocked for this test: ' + name)
+                    return None
+
+            sys.meta_path.insert(0, Block())
+            import nctpy.energies, nctpy.metrics, nctpy.pipelines, nctpy.utils, null_models.geomsurr
+            print('core imported')
+            try:
+                import nctpy.plotting
+            except ImportError as exc:
+                print('plotting raised ImportError:', exc)
+        ''').format(blocked=set(self.BLOCKED))
+        import nctpy
+        env = dict(os.environ, PYTHONPATH=os.pathsep.join(
+            filter(None, [os.path.dirname(os.path.dirname(nctpy.__file__)), os.environ.get('PYTHONPATH')])))
+        result = subprocess.run([sys.executable, '-c', script], capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('core imported', result.stdout)
+        self.assertIn('plotting raised ImportError:', result.stdout)
+        self.assertIn("pip install 'nctpy[plot]'", result.stdout)
+        self.assertIn("pip install 'nctpy[paper]'", result.stdout)
 
 
 class TestSignatures(unittest.TestCase):
