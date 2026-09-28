@@ -318,11 +318,24 @@ def content_sha256(path):
     return h.hexdigest()
 
 
+def build(design, seed=SEED):
+    """Compute every fixture in memory, in the order the random numbers are drawn.
+
+    Returns ({connectome name: (connectome, arrays, cells)}, utils arrays). test_regression.py calls this
+    with the manifest's design to recompute the fixtures and compare them against the stored ones.
+    """
+    rng = np.random.default_rng(seed)
+    results = {}
+    for name, conn in load_connectomes(rng).items():
+        arrays, cells = connectome_fixture(name, conn, design, rng)
+        results[name] = (conn, arrays, cells)
+    return results, utils_fixture(rng)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     design = pairwise_design(FACTORS, seed=SEED)
-    rng = np.random.default_rng(SEED)
-    connectomes = load_connectomes(rng)
+    results, utils = build(design)
     manifest = {
         'description': 'nctpy regression fixtures: a drift alarm, see make_regression_fixtures.py',
         'generated': date.today().isoformat(),
@@ -343,8 +356,7 @@ def main():
         'connectomes': {},
         'files': {},
     }
-    for name, conn in connectomes.items():
-        arrays, cells = connectome_fixture(name, conn, design, rng)
+    for name, (conn, arrays, cells) in results.items():
         np.savez_compressed(OUT / (name + '.npz'), **arrays)
         manifest['connectomes'][name] = {'source': conn['source'], 'n_nodes': len(conn['A']),
                                          'directed': bool(not np.allclose(conn['A'], conn['A'].T)),
@@ -354,7 +366,7 @@ def main():
         print('{0:13s} {1:3d} nodes: {2} cells returned, {3} raised, {4} incomplete'.format(
             name, len(conn['A']), status.count('returned'), status.count('raised'),
             sum(c['status'] == 'returned' and not c['completes'] for c in cells)))
-    np.savez_compressed(OUT / 'utils.npz', **utils_fixture(rng))
+    np.savez_compressed(OUT / 'utils.npz', **utils)
     for path in sorted(OUT.glob('*.npz')):
         manifest['files'][path.name] = content_sha256(path)
     (OUT / 'manifest.json').write_text(json.dumps(manifest, indent=1, default=str) + '\n')
