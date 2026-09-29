@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 (2026-09-28)
+
+**Upgrading from 1.0.x:** if you use `nctpy.plotting` or run the code from the Nature Protocols paper,
+install with `pip install "nctpy[paper]"` (or `"nctpy[plot]"`). nctpy now requires Python 3.10 or later.
 
 ### Changed — action needed if you use `nctpy.plotting`
 
@@ -24,16 +27,6 @@
 - **Python 3.10 or later is now required** (previously 3.9). On Python 3.9, pip will keep
   installing nctpy 1.0.x.
 
-### Added
-
-- `nctpy.__version__`.
-- Extras: `plot`, `paper`, `docs` and `dev` (the test suite's dependencies).
-
-### Changed
-
-- Packaging metadata now lives in `pyproject.toml` (PEP 621); `setup.cfg` is gone. The version
-  has a single source, `nctpy.__version__`.
-
 ### Fixed
 
 - Installing nctpy no longer installs a top-level `tests` package alongside it. Only `nctpy` and
@@ -45,6 +38,16 @@
   same settings. With nilearn 0.12 and earlier, the figures are pixel-for-pixel identical to
   before. With nilearn 0.14, which removed the `darkness` option, the background shading may
   differ very slightly.
+
+### Added
+
+- `nctpy.__version__`.
+- Extras: `plot`, `paper`, `docs` and `dev` (the test suite's dependencies).
+
+### Packaging
+
+- Packaging metadata now lives in `pyproject.toml` (PEP 621); `setup.cfg` is gone. The version
+  has a single source, `nctpy.__version__`.
 
 ## 1.0.3 (2026-09-27)
 
