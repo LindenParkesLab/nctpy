@@ -9,6 +9,7 @@ from scipy.linalg import expm as expm
 from numpy import transpose as tp
 
 from nctpy.utils import expm
+from nctpy._validation import _check_system, _check_rho
 from packaging.version import Version
 
 def sim_state_eq(A_norm, B, x0, U, system=None):
@@ -48,14 +49,8 @@ def sim_state_eq(A_norm, B, x0, U, system=None):
     x = np.zeros((N, T))
     xt = x0
 
-    if system is None:
-        raise Exception("Time system not specified. "
-                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
-                        "(see matrix_normalization help).")
-    elif system != 'continuous' and system != 'discrete':
-        raise Exception("Incorrect system specification. "
-                        "Please specify either 'system=discrete' or 'system=continuous'.")
-    elif system == 'continuous':
+    _check_system(system)
+    if system == 'continuous':
         for t in range(T):
             x[:, t] = xt[:, 0]
             dt = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
@@ -131,14 +126,9 @@ def get_control_inputs(A_norm, T, B, x0, xf, system=None, rho=1, S='identity', x
     if type(S) == str and S == 'identity':
         S = np.eye(n_nodes)
 
-    if system is None:
-        raise Exception("Time system not specified. "
-                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
-                        "(see matrix_normalization help).")
-    elif system != 'continuous' and system != 'discrete':
-        raise Exception("Incorrect system specification. "
-                        "Please specify either 'system=discrete' or 'system=continuous'.")
-    elif system == 'continuous':
+    _check_system(system)
+    _check_rho(rho)
+    if system == 'continuous':
         # Set parameters
         dt = 0.001
 

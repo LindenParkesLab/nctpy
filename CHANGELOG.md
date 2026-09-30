@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- `get_control_inputs` now raises `ValueError` when `rho` is not positive (`rho <= 0`, or NaN).
+  Previously `rho = 0` returned NaN energies and NaN error terms, with numpy "divide by zero"
+  warnings. That happened even with `S` all zeros, where any positive `rho` gives the same result.
+  `rho` weights the cost of the control inputs, so a non-positive value does not define a control
+  problem. `ComputeControlEnergy` and `ComputeOptimizedControlEnergy` now raise the same error
+  for a task with `rho = 0`. Ill-conditioned or incomplete transitions are unaffected: they still
+  return their energies and error terms.
+
 ## 1.1.0 (2026-09-28)
 
 **Upgrading from 1.0.x:** if you use `nctpy.plotting` or run the code from the Nature Protocols paper,

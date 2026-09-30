@@ -1,9 +1,9 @@
 {
  "description": "nctpy regression fixtures: a drift alarm, see make_regression_fixtures.py",
- "generated": "2026-09-27",
+ "generated": "2026-09-30",
  "environment": {
-  "nctpy_commit": "4f07677cfafeb127da4a5d3d0b141130ff939e8e",
-  "nctpy_worktree_clean": true,
+  "nctpy_commit": "a7377c17f8086318cf4dfaa2ca5a527a781880fb",
+  "nctpy_worktree_clean": false,
   "python": "3.11.13",
   "numpy": "2.3.5",
   "scipy": "1.16.0",
@@ -549,13 +549,9 @@
      "expm_version": "scipy",
      "key": "cell017",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "continuous",
@@ -569,13 +565,9 @@
      "expm_version": "scipy",
      "key": "cell018",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -589,14 +581,9 @@
      "expm_version": "scipy",
      "key": "cell019",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -610,14 +597,9 @@
      "expm_version": "scipy",
      "key": "cell020",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     }
    ]
   },
@@ -911,13 +893,9 @@
      "expm_version": "scipy",
      "key": "cell017",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "continuous",
@@ -931,13 +909,9 @@
      "expm_version": "scipy",
      "key": "cell018",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -951,14 +925,9 @@
      "expm_version": "scipy",
      "key": "cell019",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -972,14 +941,9 @@
      "expm_version": "scipy",
      "key": "cell020",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     }
    ]
   },
@@ -1273,13 +1237,9 @@
      "expm_version": "scipy",
      "key": "cell017",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "continuous",
@@ -1293,13 +1253,9 @@
      "expm_version": "scipy",
      "key": "cell018",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -1313,14 +1269,9 @@
      "expm_version": "scipy",
      "key": "cell019",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -1334,14 +1285,9 @@
      "expm_version": "scipy",
      "key": "cell020",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     }
    ]
   },
@@ -1635,13 +1581,9 @@
      "expm_version": "scipy",
      "key": "cell017",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "continuous",
@@ -1655,13 +1597,9 @@
      "expm_version": "scipy",
      "key": "cell018",
      "T_value": 1,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -1675,14 +1613,9 @@
      "expm_version": "scipy",
      "key": "cell019",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     },
     {
      "system": "discrete",
@@ -1696,23 +1629,18 @@
      "expm_version": "scipy",
      "key": "cell020",
      "T_value": 5,
-     "status": "returned",
-     "finite": false,
-     "completes": false,
-     "warnings": [
-      "MatrixRankWarning: Matrix is exactly singular",
-      "RuntimeWarning: divide by zero encountered in divide",
-      "RuntimeWarning: invalid value encountered in divide"
-     ]
+     "status": "raised",
+     "exception": "ValueError",
+     "message": "rho must be positive, got 0. rho weights the cost of the control inputs against the cost of the state trajectory; with S all zeros (minimum-energy control), every positive rho gives the same result."
     }
    ]
   }
  },
  "files": {
-  "directed.npz": "6e79f10b7bc51c9df21497f07aea1afa98f65800b079113be8c2a66e29729bcf",
-  "disconnected.npz": "92b9ead1d385bf9a7199dee299b051265c4f6d45c5f7ce2d4e69ab7201ad7288",
-  "legacy.npz": "971c2a668e0ba03de4e12718e608d58fad86b7b5876929c83ac918c4383b6179",
-  "undirected.npz": "de2d3580767a11a22ac4dc3821b5301766caa0fa0df3f7b01397e205b1d4c252",
+  "directed.npz": "274228cdfd58b6740ba7196a7fafda045356077824eb5c0d2e6ad3a74188bc03",
+  "disconnected.npz": "1de9be12ef9428fcfe14ca3d6cc99cc99e157ff0083961aea8746d5760802a9a",
+  "legacy.npz": "09432e755bc63efa79535451fe181402e03c708e6f01319e7ab2591d8b50947e",
+  "undirected.npz": "a1d643e3446ae5e361fbeb05e71a1a1372725027b0a6e56e54dc4e89675501dd",
   "utils.npz": "fca1b00b66ec5a4a791c7520e15b08d018961efb983bbf2cc7577e0940b3c300"
  }
 }
