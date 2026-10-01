@@ -131,13 +131,6 @@ class TestGramian(unittest.TestCase):
                 self.assertTrue(np.isnan(W))
                 self.assertEqual(out.getvalue(), "cannot compute infinite-time Gramian for an unstable system!\n")
 
-    def test_unrecognised_system_returns_none(self):
-        # unchanged since 1.0: gramian has never validated `system`
-        for T in (1, np.inf):
-            for system in (None, "cont"):
-                with self.subTest(T=T, system=system):
-                    self.assertIsNone(gramian(self.A_c, T, system=system))
-
     def test_lower_precision_input_computed_in_float64(self):
         for system, A_norm in (("continuous", self.A_c), ("discrete", self.A_d)):
             with self.subTest(system=system):

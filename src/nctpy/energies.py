@@ -85,7 +85,7 @@ def sim_state_eq(
             x[:, t] = xt[:, 0]
             dxdt = A_norm @ xt + B @ np.reshape(U[:, t], (n_nodes, 1))  # state equation
             xt = dxdt * 0.001 + xt
-    elif system == "discrete":
+    else:
         for t in range(n_steps):
             x[:, t] = xt[:, 0]
             xt = A_norm @ xt + B @ np.reshape(U[:, t], (n_nodes, 1))  # state equation
@@ -240,7 +240,7 @@ def get_control_inputs(
         err = [err_costate, err_xf]
 
         return x.T, u.T, err
-    elif system == "discrete":
+    else:
         if T <= 1:
             raise Exception("Discrete time systems must have T >= 2")
         T = cast(int, T)
@@ -298,7 +298,6 @@ def get_control_inputs(
         err = [err_system, err_traj]
 
         return x.T, u.T, err
-    raise AssertionError("unreachable: _check_system accepts only 'continuous' and 'discrete'")
 
 
 def integrate_u(u: npt.ArrayLike) -> FloatArray:
@@ -323,7 +322,7 @@ def integrate_u(u: npt.ArrayLike) -> FloatArray:
     return sp.integrate.simpson(u.T**2)
 
 
-def gramian(A_norm: npt.ArrayLike, T: float, system: str | None = None) -> FloatArray | float | None:
+def gramian(A_norm: npt.ArrayLike, T: float, system: str | None = None) -> FloatArray | float:
     """Compute the controllability Gramian of (A_norm, I).
 
     Parameters
@@ -334,64 +333,55 @@ def gramian(A_norm: npt.ArrayLike, T: float, system: str | None = None) -> Float
         Time horizon. ``np.inf`` gives the infinite-horizon Gramian. For discrete-time systems a finite T is an
         integer number of steps.
     system : {'continuous', 'discrete'}
-        Whether A_norm was normalised for a continuous-time or a discrete-time system.
+        Whether A_norm was normalised for a continuous-time or a discrete-time system. Required.
 
     Returns
     -------
     Wc : (N, N) ndarray, or float
-        The Gramian. In continuous time with finite T it is integrated with Simpson's rule over steps of 0.001.
+        The Gramian. With finite T, in continuous time it is the integral of ``e^{At} e^{A^T t}`` over [0, T]
+        by Simpson's rule over steps of 0.001; in discrete time it is ``I + sum over k = 1..T of A^k (A^k)^T``.
         With T = np.inf it solves the Lyapunov equation if the system is stable; if it is not, it prints a
-        message and returns ``np.nan``. For any other `system`, including None, it returns None.
+        message and returns ``np.nan``.
+
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options.
     """
+    _check_system(system)
     A_norm = _as_float(A_norm)
     n_nodes = A_norm.shape[0]
-    B = np.eye(n_nodes)
+    eye = np.eye(n_nodes)
 
-    eigvals, _ = np.linalg.eig(A_norm)
-    BB = B @ B.T
-
-    # If time horizon is infinite, can only compute the Gramian when stable
+    # Only a stable system has an infinite-horizon Gramian: it solves a Lyapunov equation
     if T == np.inf:
+        eigvals = np.linalg.eig(A_norm)[0]
+        stable = np.max(np.real(eigvals)) < 0 if system == "continuous" else np.max(np.abs(eigvals)) < 1
+        if not stable:
+            print("cannot compute infinite-time Gramian for an unstable system!")
+            return np.nan
         if system == "continuous":
-            # If stable: solve using Lyapunov equation
-            if np.max(np.real(eigvals)) < 0:
-                return la.solve_continuous_lyapunov(A_norm, -BB)
-            else:
-                print("cannot compute infinite-time Gramian for an unstable system!")
-                return np.nan
-        elif system == "discrete":
-            # If stable: solve using Lyapunov equation
-            if np.max(np.abs(eigvals)) < 1:
-                return la.solve_discrete_lyapunov(A_norm, BB)
-            else:
-                print("cannot compute infinite-time Gramian for an unstable system!")
-                return np.nan
-    # If time horizon is finite, perform numerical integration
-    else:
-        if system == "continuous":
-            STEP = 0.001
-            t = np.arange(0, (T + STEP / 2), STEP)
-            # Accumulate e^{A t} over the steps, and the integrand e^{A t} B B^T e^{A^T t}
-            dE = sp.linalg.expm(A_norm * STEP)
-            dEa = np.zeros((n_nodes, n_nodes, len(t)))
-            dEa[:, :, 0] = np.eye(n_nodes)
-            dG = np.zeros((n_nodes, n_nodes, len(t)))
-            dG[:, :, 0] = B @ B.T
-            for i in np.arange(1, len(t)):
-                dEa[:, :, i] = dEa[:, :, i - 1] @ dE
-                dEab = dEa[:, :, i] @ B
-                dG[:, :, i] = dEab @ dEab.T
+            return la.solve_continuous_lyapunov(A_norm, -eye)
+        return la.solve_discrete_lyapunov(A_norm, eye)
 
-            return sp.integrate.simpson(dG, x=t, dx=STEP, axis=2)
-        elif system == "discrete":
-            Ap = np.eye(n_nodes)
-            Wc = np.eye(n_nodes)
-            for _ in range(cast(int, T)):
-                Ap = Ap @ A_norm
-                Wc = Wc + Ap @ Ap.T
+    if system == "continuous":
+        step = 0.001
+        t = np.arange(0, (T + step / 2), step)
+        e_step = sp.linalg.expm(A_norm * step)
+        e_At = eye  # e^{A t}, accumulated one step at a time
+        integrand = np.zeros((n_nodes, n_nodes, len(t)))
+        integrand[:, :, 0] = eye
+        for i in range(1, len(t)):
+            e_At = e_At @ e_step
+            integrand[:, :, i] = e_At @ e_At.T
+        return sp.integrate.simpson(integrand, x=t, axis=2)
 
-            return Wc
-    return None  # system not recognised: returned None since 1.0, kept for compatibility
+    A_k = eye  # A^k
+    Wc = eye
+    for _ in range(cast(int, T)):
+        A_k = A_k @ A_norm
+        Wc = Wc + A_k @ A_k.T
+    return Wc
 
 
 def minimum_energy_fast(

@@ -10,7 +10,7 @@ import unittest
 
 import numpy as np
 
-from nctpy.energies import get_control_inputs, sim_state_eq
+from nctpy.energies import get_control_inputs, gramian, sim_state_eq
 from nctpy.pipelines import ComputeControlEnergy, ComputeOptimizedControlEnergy
 from nctpy.utils import matrix_normalization, normalize_state
 
@@ -58,6 +58,13 @@ class TestSystem(unittest.TestCase):
         for system, message in ((None, MISSING), ("cont", INVALID)):
             with self.subTest(system=system):
                 self.assertRaisesExactly(message, sim_state_eq, self.A_c, np.eye(N), self.x0, U, system=system)
+
+    def test_gramian(self):
+        # until 1.1.0 gramian returned None here (D19)
+        for T in (1, np.inf):
+            for system, message in ((None, MISSING), ("cont", INVALID)):
+                with self.subTest(T=T, system=system):
+                    self.assertRaisesExactly(message, gramian, self.A_c, T, system=system)
 
 
 class TestRho(unittest.TestCase):

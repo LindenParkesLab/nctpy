@@ -15,6 +15,11 @@
   input are unchanged, bit for bit. `gramian` on a lower-precision (e.g. float32) continuous-time
   matrix previously computed in that precision; it now computes in float64, so its values change
   slightly.
+- `gramian` now raises when `system` is missing or is not `'continuous'` or `'discrete'`, with the
+  same error and message as `get_control_inputs`. Previously it silently returned None.
+  `ave_control` is unaffected. `gramian` also no longer stores every step's matrix exponential,
+  which needed `N × N × (T/0.001 + 1)` floats (about 1.3 GB for 400 nodes at T = 1). Its results
+  are unchanged up to floating-point rounding (within 1e-14 relative).
 
 ### Fixed
 
