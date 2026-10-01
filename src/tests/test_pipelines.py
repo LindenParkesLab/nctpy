@@ -95,21 +95,24 @@ class TestComputeOptimizedControlEnergy(unittest.TestCase):
         self.assertEqual((pipeline.E_opt.shape, pipeline.B_opt.shape), ((3,), (3, N)))
 
     def test_first_step(self):
-        # one step from B = I: the gradient is estimated by adding 0.1 to each weight, then rescaled to ||I||
+        # one step from B = I: the gradient is estimated by adding 0.1 to each weight, then rescaled to ||I||.
+        # Every energy uses the task's xr, if it has one (D20; until 2.4b the class always used 'zero').
         A = connectome()
-        task = make_tasks()[1]
-        pipeline = ComputeOptimizedControlEnergy(A=A, control_task=task, system="continuous", n_steps=1, lr=0.01)
-        quietly(pipeline.run)
-
         A_norm = matrix_normalization(A, system="continuous")
-        E = direct_energy(A_norm, task, "continuous", 1, B=np.eye(N))
-        E_d = np.array([direct_energy(A_norm, task, "continuous", 1, B=np.eye(N) + 0.1 * np.diag(np.arange(N) == i))
-                        for i in range(N)]) - E  # fmt: skip
-        weights = 1 - 0.01 * E_d
-        weights = weights / np.linalg.norm(weights) * np.sqrt(N)
-        np.testing.assert_allclose(pipeline.B_opt[0], weights, rtol=1e-12)
-        np.testing.assert_allclose(pipeline.E_opt[0], direct_energy(A_norm, task, "continuous", 1, B=np.diag(weights)),
-                                   rtol=1e-10)  # fmt: skip
+        for extra in ({}, {"xr": "xf"}, {"xr": "midpoint"}):
+            with self.subTest(**extra):
+                task = make_tasks(**extra)[1]
+                pipeline = ComputeOptimizedControlEnergy(A=A, control_task=task, system="continuous", n_steps=1)
+                quietly(pipeline.run)
+
+                E = direct_energy(A_norm, task, "continuous", 1, B=np.eye(N))
+                bumps = [np.eye(N) + 0.1 * np.diag(np.arange(N) == i) for i in range(N)]
+                E_d = np.array([direct_energy(A_norm, task, "continuous", 1, B=B) for B in bumps]) - E
+                weights = 1 - 0.01 * E_d
+                weights = weights / np.linalg.norm(weights) * np.sqrt(N)
+                np.testing.assert_allclose(pipeline.B_opt[0], weights, rtol=1e-12)
+                expected = direct_energy(A_norm, task, "continuous", 1, B=np.diag(weights))
+                np.testing.assert_allclose(pipeline.E_opt[0], expected, rtol=1e-10)
 
 
 if __name__ == "__main__":

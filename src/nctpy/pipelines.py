@@ -117,9 +117,9 @@ class ComputeOptimizedControlEnergy(_ControlEnergyPipeline):
     A : (N, N) ndarray
         Adjacency matrix representing a structural connectome (not normalised).
     control_task : dict
-        Control task with the keys ``'x0'``, ``'xf'``, ``'S'`` and ``'rho'``; see
-        :func:`nctpy.energies.get_control_inputs`. A ``'B'`` key is not needed and is ignored, since the control
-        weights are what is optimised. For example::
+        Control task with the keys ``'x0'``, ``'xf'``, ``'S'`` and ``'rho'``, and optionally ``'xr'`` (default
+        ``'zero'``); see :func:`nctpy.energies.get_control_inputs`. A ``'B'`` key is not needed and is ignored, since
+        the control weights are what is optimised. For example::
 
             control_task = dict()  # initialize dict
             control_task['x0'] = x0  # store initial state
@@ -167,7 +167,7 @@ class ComputeOptimizedControlEnergy(_ControlEnergyPipeline):
         self.lr = lr
 
     def _get_energy(self, B: npt.ArrayLike) -> np.float64:
-        return self._energy(self.control_task, B=B)
+        return self._energy(self.control_task, B=B, xr=self.control_task.get("xr", "zero"))
 
     def _get_energy_perturbed(self, B: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Energy with 0.1 added to each node's control weight in turn."""

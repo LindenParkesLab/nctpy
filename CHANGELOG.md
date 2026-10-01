@@ -29,6 +29,11 @@
   are unchanged, bit for bit. A float32 matrix previously had its spectral radius computed in
   single precision (and, for discrete time, a float32 result). It now gets a float64 result,
   which moves values by up to ~5e-8 relative.
+- `ComputeOptimizedControlEnergy` now uses a task's optional `'xr'` (reference state), as
+  `ComputeControlEnergy` already did. Previously it ignored the key and always used `xr='zero'`.
+  Tasks without `'xr'` (including the one in the protocol paper's Supplementary Information) give
+  unchanged results; tasks that set it now get energies and optimised weights for that reference
+  state.
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 
