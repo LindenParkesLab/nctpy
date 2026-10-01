@@ -46,12 +46,15 @@
 
 ### Added
 
-- Type annotations for `nctpy.energies`, `nctpy.metrics` and `nctpy.utils`, and a `py.typed`
-  marker so type checkers use them. Other modules are annotated in later releases.
+- Type annotations for `nctpy.energies`, `nctpy.metrics`, `nctpy.utils` and `nctpy.pipelines`, and
+  a `py.typed` marker so type checkers use them. Other modules are annotated in later releases.
 
 ### Documentation
 
 - The `nctpy.metrics` docstrings use numpydoc format and state each metric's formula.
+- The `nctpy.pipelines` docstrings use numpydoc format. They list the attributes `run()` sets.
+  They also say that `ComputeOptimizedControlEnergy` ignores a task's `'B'`, because the control
+  weights are what it optimises, and describe its gradient step.
 - The `nctpy.utils` docstrings use numpydoc format. `matrix_normalization` documents its formula
   and `l`, including that an `l` below the matrix's own spectral radius forfeits the stability
   guarantee (nothing checks this, and an unstable system still returns values).
