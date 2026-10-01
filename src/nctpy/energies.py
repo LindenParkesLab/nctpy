@@ -1,381 +1,457 @@
-import numpy as np 
+"""Control inputs, trajectories and energies for linear network dynamics.
+
+The models are, in continuous and discrete time,
+
+    dx/dt = A x(t) + B u(t)        and        x(t + 1) = A x(t) + B u(t),
+
+with A normalised by :func:`nctpy.utils.matrix_normalization` for the matching time system. Equation numbers
+in comments refer to Kim et al., Nat Commun 16:11639 (2025), Methods.
+"""
+
+from typing import Any, cast
+
+import numpy as np
+import numpy.typing as npt
 import scipy as sp
-from scipy import sparse
-import scipy.integrate
+import scipy.integrate  # noqa: F401  (makes sp.integrate available)
 import scipy.linalg as la
-from numpy.linalg import eig
-from numpy import matmul as mm
-from scipy.linalg import expm as expm
-from numpy import transpose as tp
+from scipy import sparse
 
+from nctpy._validation import _check_rho, _check_system
 from nctpy.utils import expm
-from nctpy._validation import _check_system, _check_rho
-from packaging.version import Version
 
-def sim_state_eq(A_norm, B, x0, U, system=None):
-    """This function calculate the trajectory for the system given our model if there are no constraints,
-    and the target state is unknown.
+FloatArray = npt.NDArray[np.float64]
 
-    Args:
-        A_norm (NxN numpy array): Normalized structural connectivity matrix
-        B (NxN, numpy array): Control node matrix. Diagonal entries designate which nodes are control nodes and how much
-            influence those nodes have of system dynamics. For example, B=np.eye(A_norm.shape[0]) would set all nodes as
-            controllers with equal weight (1). This is referred to as a uniform full control set.
-        x0 (Nx1, numpy array): Initial state. The initial condition of the system.
-        U (NxT numpy array): System inputs. T is the number of time points.
-            For example, if you want to simulate the trajectory resulting from stimulation, U could have
-            log(StimFreq)*StimAmp*StimDur as every element. You can also enter U's that vary with time
-        system (str): Time system. options, 'continuous' or 'discrete'.
 
-    Returns:
-        x (NxT, numpy array): Trajectory. This is trajectory of neural activity that results from simulating the
-            system with the above parameters
+def _as_float(a: npt.ArrayLike) -> npt.NDArray[Any]:
+    """`a` as an array of at least float64 precision.
 
+    Boolean and integer arrays become float64 (True -> 1.0), lower-precision floats are promoted, and float64 or
+    complex input is returned unchanged, without a copy.
     """
+    a = np.asarray(a)
+    return a.astype(np.result_type(a.dtype, np.float64), copy=False)
 
-    # state vectors to float if they're bools
-    if type(x0[0]) == np.bool_:
-        x0 = x0.astype(float)
 
-    # check dimensions of states
-    if x0.ndim == 1:
-        x0 = x0.reshape(-1, 1)
+def _column(a: npt.NDArray[Any]) -> npt.NDArray[Any]:
+    """A 1-D state vector as an (N, 1) column; anything else unchanged."""
+    return a.reshape(-1, 1) if a.ndim == 1 else a
 
-    # Simulate trajectory
-    T = np.size(U, 1)
-    N = np.size(A_norm, 0)
 
-    # initialize x
-    x = np.zeros((N, T))
+def sim_state_eq(
+    A_norm: npt.ArrayLike, B: npt.ArrayLike, x0: npt.ArrayLike, U: npt.ArrayLike, system: str | None = None
+) -> FloatArray:
+    """Simulate the state trajectory driven by given inputs, with no target state and no constraints.
+
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix.
+    B : (N, N) array_like
+        Control node matrix. Diagonal entries designate which nodes are control nodes and how much influence those
+        nodes have on system dynamics. For example, ``B=np.eye(A_norm.shape[0])`` sets all nodes as controllers with
+        equal weight (1); this is referred to as a uniform full control set.
+    x0 : (N,) or (N, 1) array_like
+        Initial state. Boolean states are converted to 0/1 floats.
+    U : (N, T) array_like
+        System inputs, one column per time point. For example, to simulate the trajectory resulting from
+        stimulation, every element of U could be ``log(StimFreq)*StimAmp*StimDur``. U may also vary over time.
+    system : {'continuous', 'discrete'}
+        Time system that A_norm was normalised for. Continuous time is integrated with forward Euler steps of
+        0.001.
+
+    Returns
+    -------
+    x : (N, T) ndarray
+        State trajectory: the neural activity that results from simulating the system with the above parameters.
+        Note the orientation, nodes x time, which is the transpose of :func:`get_control_inputs`' output.
+
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options.
+    """
+    A_norm, B, U = _as_float(A_norm), _as_float(B), _as_float(U)
+    x0 = _column(_as_float(x0))
+
+    n_steps = np.size(U, 1)
+    n_nodes = np.size(A_norm, 0)
+    x = np.zeros((n_nodes, n_steps))
     xt = x0
 
     _check_system(system)
-    if system == 'continuous':
-        for t in range(T):
+    if system == "continuous":
+        for t in range(n_steps):
             x[:, t] = xt[:, 0]
-            dt = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
-            dt = dt * 0.001
-            xt = dt + xt
-    elif system == 'discrete':
-        for t in range(T):
+            dxdt = A_norm @ xt + B @ np.reshape(U[:, t], (n_nodes, 1))  # state equation
+            xt = dxdt * 0.001 + xt
+    elif system == "discrete":
+        for t in range(n_steps):
             x[:, t] = xt[:, 0]
-            xt_1 = np.matmul(A_norm, xt) + np.matmul(B, np.reshape(U[:, t], (N, 1)))  # state equation
-            xt = xt_1
+            xt = A_norm @ xt + B @ np.reshape(U[:, t], (n_nodes, 1))  # state equation
 
     return x
 
 
-def get_control_inputs(A_norm, T, B, x0, xf, system=None, rho=1, S='identity', xr='zero', expm_version='scipy'):
-    """This function extracts the state trajectory (x) and the control signals (u) associated with a control task.
+def get_control_inputs(
+    A_norm: npt.ArrayLike,
+    T: float,
+    B: npt.ArrayLike,
+    x0: npt.ArrayLike,
+    xf: npt.ArrayLike,
+    system: str | None = None,
+    rho: float = 1,
+    S: npt.ArrayLike | str = "identity",
+    xr: npt.ArrayLike | str = "zero",
+    expm_version: str = "scipy",
+) -> tuple[FloatArray, FloatArray, list[np.floating[Any]]]:
+    """Compute the optimal control inputs and state trajectory that drive the system from x0 to xf.
 
-    Args:
-        A_norm (NxN, numpy array): normalized structural connectivity matrix.
-        T (float): time horizon. The amount of time the model will run for. Too long will yield a large error,
-            too short will not give enough time for control (i.e., the state transition may not complete).
-        B (NxN, numpy array): control node matrix. Diagonal entries designate which nodes are control nodes and how much
-            influence those nodes have of system dynamics. For example, B=np.eye(A_norm.shape[0]) would set all nodes as
-            controllers with equal weight (1). This is referred to as a uniform full control set.
-        x0 (Nx1, numpy array): initial state. The initial condition of the system.
-        xf (Nx1, numpy array): target state. The state that the system will be controlled toward and should arrive at
-            at time T.
-        system (str): string variable that designates whether A was normalized for a continuous-time system or a
-            discrete-time system. options: 'continuous' or 'discrete'. default=None.
-        rho (float): mixing parameter. Determines the extent to which the state trajectory is constrained alongside the
-            control signals. rho=1 equals maximum constraint. Note, rho must be >0 and will be ignored if
-            S=np.zeros((A_norm.shape[0], A_norm.shape[0])).
-        S (NxN, numpy array): constraint matrix for state trajectory. Determines which nodes in the state trajectory
-            will be constrained. By default, all nodes' neural activity will be constrained.
-        xr (Nx1, numpy array): reference state. This state governs the constraints placed on the state trajectory.
-            By default this will be a vector of zeros of length N. This will result in the state trajectory being
-            penalized for departing too far from 0 activity. Note, this only applies is S contains nodes to constrain.
+    The inputs u(t) minimise the cost ``integral of (x - xr)^T S (x - xr) + rho u^T u`` subject to the dynamics
+    and to the boundary conditions x(0) = x0 and x(T) = xf.
 
-    Returns:
-        x (txN, numpy array): state trajectory (neural activity). t will be equal to (T/0.001)+1.
-        u (txN, numpy array): control signals. t will be equal to (T/0.001)+1.
-        n_err (list): numerical error.
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix.
+    T : float
+        Time horizon: the amount of time the model runs for. Too long yields a large error; too short does not
+        give enough time for control (i.e., the state transition may not complete). For discrete-time systems T
+        is an integer number of steps, at least 2.
+    B : (N, N) array_like
+        Control node matrix. Diagonal entries designate which nodes are control nodes and how much influence those
+        nodes have on system dynamics. For example, ``B=np.eye(A_norm.shape[0])`` sets all nodes as controllers with
+        equal weight (1); this is referred to as a uniform full control set.
+    x0 : (N,) or (N, 1) array_like
+        Initial state: the initial condition of the system. Boolean states are converted to 0/1 floats.
+    xf : (N,) or (N, 1) array_like
+        Target state: the state the system is controlled toward and should arrive at at time T. Boolean states are
+        converted to 0/1 floats.
+    system : {'continuous', 'discrete'}
+        Whether A_norm was normalised for a continuous-time or a discrete-time system. Required.
+    rho : float, default 1
+        Mixing parameter. Determines the extent to which the state trajectory is constrained alongside the
+        control signals. rho=1 equals maximum constraint. Must be > 0, and has no effect if S is all zeros
+        (``S=np.zeros((N, N))``, minimum-energy control).
+    S : (N, N) array_like or 'identity', default 'identity'
+        Constraint matrix for the state trajectory. Determines which nodes in the state trajectory are
+        constrained. By default, all nodes' neural activity is constrained.
+    xr : (N,) or (N, 1) array_like, or {'zero', 'x0', 'xf', 'midpoint'}, default 'zero'
+        Reference state. This state governs the constraints placed on the state trajectory. By default it is a
+        vector of zeros, so the state trajectory is penalised for departing too far from 0 activity. 'midpoint'
+        is ``x0 + (xf - x0) / 2``. This only applies if S contains nodes to constrain.
+    expm_version : {'scipy', 'eig'}, default 'scipy'
+        Matrix exponential used in continuous time: :func:`scipy.linalg.expm`, or :func:`nctpy.utils.expm`
+        (eigendecomposition).
 
+    Returns
+    -------
+    x : (n_t, N) ndarray
+        State trajectory (neural activity), time x nodes. In continuous time n_t = T/0.001 + 1; in discrete time
+        n_t = T + 1.
+    u : (n_t, N) ndarray
+        Control signals, time x nodes. In continuous time n_t = T/0.001 + 1; in discrete time n_t = T.
+    err : list of two floats
+        Numerical error: ``[inversion error, reconstruction error]``. The inversion error is the residual of the
+        linear solve for the costate (continuous time) or for the whole trajectory (discrete time); the
+        reconstruction error is how far the trajectory misses xf (continuous time) or departs from the dynamics
+        (discrete time). A transition that did not complete or is ill-conditioned still returns, with large
+        errors, for the caller to inspect.
+
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options, or if T < 2 in discrete time.
+    ValueError
+        If rho is not positive.
     """
-
+    A_norm, B = _as_float(A_norm), _as_float(B)
     n_nodes = A_norm.shape[0]
 
-    # state vectors to float if they're bools
-    if type(x0[0]) == np.bool_:
-        x0 = x0.astype(float)
-    if type(xf[0]) == np.bool_:
-        xf = xf.astype(float)
+    x0 = _column(_as_float(x0))
+    xf = _column(_as_float(xf))
 
-    # check dimensions of states
-    if x0.ndim == 1:
-        x0 = x0.reshape(-1, 1)
-    if xf.ndim == 1:
-        xf = xf.reshape(-1, 1)
-
-    if type(xr) == str:
-        if xr == 'x0':
+    if isinstance(xr, str):
+        if xr == "x0":
             xr = x0
-        elif xr == 'xf':
+        elif xr == "xf":
             xr = xf
-        elif xr == 'zero':
+        elif xr == "zero":
             xr = np.zeros((n_nodes, 1))
-        elif xr == 'midpoint':
+        elif xr == "midpoint":
             xr = x0 + ((xf - x0) * 0.5)
     else:
-        if xr.ndim == 1:
-            xr = xr.reshape(-1, 1)
+        xr = _column(_as_float(xr))
 
-    if type(S) == str and S == 'identity':
-        S = np.eye(n_nodes)
+    if isinstance(S, str):
+        if S == "identity":
+            S = np.eye(n_nodes)
+    else:
+        S = _as_float(S)
 
     _check_system(system)
     _check_rho(rho)
-    if system == 'continuous':
-        # Set parameters
+    if system == "continuous":
         dt = 0.001
+        xr, S = cast(FloatArray, xr), cast(FloatArray, S)
 
-        # Define joint state-costate matrix
-        M = np.concatenate((np.concatenate((A_norm, np.dot(-B, B.T) / (2 * rho)), axis=1),
-                            np.concatenate((-2 * S, -A_norm.T), axis=1)), axis=0)
+        # Eq. 6: the state x and the costate p evolve jointly, d/dt [x; p] = M [x; p] + ref_input
+        costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
+        M = np.concatenate(
+            (np.concatenate((A_norm, costate_to_state), axis=1), np.concatenate((-2 * S, -A_norm.T), axis=1)),
+            axis=0,
+        )
+        ref_input = np.concatenate((np.zeros((n_nodes, 1)), 2 * np.dot(S, xr)), axis=0)
 
-        # Define constant vector due to cost deviation from reference state
-        c = np.concatenate((np.zeros((n_nodes, 1)), 2 * np.dot(S, xr)), axis=0)
-        c = np.linalg.solve(M, c)
+        # Eq. 8: [x(t); p(t)] = e^{Mt} [x0; p0] + (e^{Mt} - I) ref_offset
+        ref_offset = np.linalg.solve(M, ref_input)
 
-        # Compute matrix exponential and decompose into NxN blocks
-        if expm_version == 'scipy':
+        # Eq. 9: the top block row of e^{MT} maps [x0; p0] to x(T). Solve it for the initial costate p0.
+        if expm_version == "scipy":
             E = sp.linalg.expm(M * T)
-        elif expm_version == 'eig':
+        elif expm_version == "eig":
             E = expm(M * T)
         r = np.arange(n_nodes)
         E11 = E[r, :][:, r]
         E12 = E[r, :][:, r + n_nodes]
+        b1 = np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), ref_offset)
+        p0_rhs = xf - np.dot(E11, x0) - b1  # E12 p0 = xf - E11 x0 - b1
+        p0 = np.linalg.solve(E12, p0_rhs)
 
-        # Solve for initial costate as a function of initial and final states
-        l0 = np.linalg.solve(E12,
-                             (xf - np.dot(E11, x0) - np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
+        # Integrate the state-costate system exactly over steps of dt
+        n_steps = int(np.round(T / dt))
+        z = np.zeros((2 * n_nodes, n_steps + 1))
+        z[:, 0] = np.concatenate((x0, p0), axis=0).flatten()
+        if expm_version == "scipy":
+            E_dt = sp.linalg.expm(M * dt)
+        elif expm_version == "eig":
+            E_dt = expm(M * dt)
+        offset_dt = np.dot((E_dt - np.eye(2 * n_nodes)), ref_offset).flatten()
+        for i in np.arange(1, n_steps + 1):
+            z[:, i] = np.dot(E_dt, z[:, i - 1]) + offset_dt
 
-        # Construct discretized matrices to numerically integrate
-        z = np.zeros((2 * n_nodes, int(np.round(T / dt) + 1)))
-        z[:, 0] = np.concatenate((x0, l0), axis=0).flatten()
-        I = np.eye(2 * n_nodes)
-        if expm_version == 'scipy':
-            Ad = sp.linalg.expm(M * dt)
-        elif expm_version == 'eig':
-            Ad = expm(M * dt)
-        Bd = np.dot((Ad - I), c)
-
-        # Simulate the state-costate trajectory
-        for i in np.arange(1, int(np.round(T / dt)) + 1):
-            z[:, i] = np.dot(Ad, z[:, i - 1]) + Bd.flatten()
-
-        # Extract state and input from the joint state-costate equation
+        # Extract state and input from the joint state-costate trajectory
         x = z[r, :]
         u = np.dot(-B.T, z[r + n_nodes, :]) / (2 * rho)
 
         # Collect error
-        err_costate = np.linalg.norm(np.dot(E12, l0) -
-                                     (xf - np.dot(E11, x0) -
-                                      np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), c)))
+        err_costate = np.linalg.norm(np.dot(E12, p0) - p0_rhs)
         err_xf = np.linalg.norm(x[:, -1].reshape(-1, 1) - xf)
         err = [err_costate, err_xf]
 
         return x.T, u.T, err
-    elif system == 'discrete':
+    elif system == "discrete":
         if T <= 1:
             raise Exception("Discrete time systems must have T >= 2")
+        T = cast(int, T)
+        xr, S = cast(FloatArray, xr), cast(FloatArray, S)
 
-        # Define joint state - costate matrix
-        C = np.dot(-B, B.T) / (2 * rho)
-        D = 2 * S
-        I = np.eye(n_nodes)
-        z = np.arange(n_nodes)
+        # Solve for every unknown at once. The unknowns are the free states x(1)..x(T-1) and the costates
+        # p(0)..p(T-1), stacked in blocks of n_nodes, and the inputs are u(t) = -B^T p(t) / (2 rho). The rows are
+        #   state equations,   t = 0..T-1:  x(t+1) = A x(t) + costate_to_state p(t)
+        #   costate equations, t = 1..T-1:  p(t-1) = A^T p(t) + state_cost (x(t) - xr)
+        # with the known x(0) = x0 and x(T) = xf moved to the right-hand side.
+        costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
+        state_cost = 2 * S
+        eye = np.eye(n_nodes)
+        block = np.arange(n_nodes)
 
-        # Construct system matrix
+        def x_col(t: int) -> npt.NDArray[np.int_]:
+            return block + (t - 1) * n_nodes  # x(1) is the first block
+
+        def p_col(t: int) -> npt.NDArray[np.int_]:
+            return block + (T - 1 + t) * n_nodes
+
         M = np.zeros(((2 * T - 1) * n_nodes, (2 * T - 1) * n_nodes))
+        for t in range(T):
+            row = block + t * n_nodes
+            M[np.ix_(row, p_col(t))] = -costate_to_state
+            if t + 1 < T:
+                M[np.ix_(row, x_col(t + 1))] = eye
+            if t > 0:
+                M[np.ix_(row, x_col(t))] = -A_norm
+        for t in range(1, T):
+            row = block + (T - 1 + t) * n_nodes
+            M[np.ix_(row, x_col(t))] = -state_cost
+            M[np.ix_(row, p_col(t - 1))] = eye
+            M[np.ix_(row, p_col(t))] = -A_norm.T
 
-        # Constraints for the state equations
-        for i in np.arange(T + 1):
-            M[np.ix_(z + (i - 1) * n_nodes, z + (T - 2 + i) * n_nodes)] = -C
-            if i != T:
-                M[np.ix_(z + (i - 1) * n_nodes, z + (i - 1) * n_nodes)] = I
-            if i != 0:
-                M[np.ix_(z + (i - 0) * n_nodes, z + (i - 1) * n_nodes)] = -A_norm
-
-        # Constraints for the costate equations
-        for i in np.arange(1, T):
-            M[np.ix_(z + (i - 1 + T) * n_nodes, z + (i - 1) * n_nodes)] = -D
-            M[np.ix_(z + (i - 1 + T) * n_nodes, z + (T - 2 + i) * n_nodes)] = I
-            M[np.ix_(z + (i - 1 + T) * n_nodes, z + (T - 1 + i) * n_nodes)] = -A_norm.T
-
-        # Construct boundary condition vector
-        b = np.concatenate((np.dot(A_norm, x0), np.zeros((n_nodes * (T - 2), 1)), -xf, np.zeros((n_nodes * (T - 1), 1))),
-                           axis=0) - \
-            np.concatenate((np.zeros((n_nodes * T, 1)), np.tile(2 * np.dot(S, xr), (T - 1, 1))), axis=0)
+        # Right-hand side: A x0 in the first state row, -xf in the last, -state_cost xr in every costate row
+        boundary = np.concatenate(
+            (np.dot(A_norm, x0), np.zeros((n_nodes * (T - 2), 1)), -xf, np.zeros((n_nodes * (T - 1), 1))), axis=0
+        )
+        reference = np.concatenate((np.zeros((n_nodes * T, 1)), np.tile(2 * np.dot(S, xr), (T - 1, 1))), axis=0)
+        b = boundary - reference
 
         # Solve simultaneous state and costate equations
-        M = sparse.csc_matrix(M)
-        b = sparse.csc_matrix(b)
-        v = sparse.linalg.spsolve(M, b)
-        # v = np.linalg.solve(M, b)
-        V = v.reshape((n_nodes, int(len(v) / n_nodes)), order='F')
-        x = np.concatenate((x0, V[:, :T - 1], xf), axis=1)
-        u = np.dot(-B.T, V[:, T - 1:]) / (2 * rho)
+        M_sparse = sparse.csc_matrix(M)
+        b_sparse = sparse.csc_matrix(b)
+        v = sparse.linalg.spsolve(M_sparse, b_sparse)
+        V = v.reshape((n_nodes, int(len(v) / n_nodes)), order="F")
+        x = np.concatenate((x0, V[:, : T - 1], xf), axis=1)
+        u = np.dot(-B.T, V[:, T - 1 :]) / (2 * rho)
 
         # Collect error
-        v = sparse.csc_matrix(np.expand_dims(v, axis=1))
-        err_system = np.dot(M, v) - b
-        err_system = np.linalg.norm(err_system.todense())
+        residual = np.dot(M_sparse, sparse.csc_matrix(np.expand_dims(v, axis=1))) - b_sparse
+        err_system = np.linalg.norm(residual.todense())
         err_traj = np.linalg.norm(x[:, 1:] - (np.dot(A_norm, x[:, 0:-1]) + np.dot(B, u)))
         err = [err_system, err_traj]
 
         return x.T, u.T, err
+    raise AssertionError("unreachable: _check_system accepts only 'continuous' and 'discrete'")
 
-def integrate_u(u):
-    """This function integrates over some input squared to calculate energy using Simpson's integration.
 
-    If your control set (B) is the identity this will likely give energies that are nearly identical to those calculated
-    using a Reimann sum. However, when control sets are sparse inputs can be super curvy, so this method will be a bit
-    more accurate.
+def integrate_u(u: npt.ArrayLike) -> FloatArray:
+    """Integrate squared control inputs over time, with Simpson's rule, to give the energy at each node.
 
-    Args:
-        u (txN, numpy array): Control signals input to the system.
-            These can be obtained using get_control_inputs.
-      
-    Returns:
-        energy ((N,) numpy array): Energy input into each node.
+    If the control set (B) is the identity this gives energies nearly identical to a Riemann sum. When control
+    sets are sparse the inputs can be very curved, and Simpson's rule is more accurate.
 
+    Samples are taken to be one unit apart: the result is not scaled by the time step.
+
+    Parameters
+    ----------
+    u : (n_t, N) array_like
+        Control signals input to the system, time x nodes, as returned by :func:`get_control_inputs`.
+
+    Returns
+    -------
+    energy : (N,) ndarray
+        Energy input into each node.
     """
+    u = np.asarray(u)
+    return sp.integrate.simpson(u.T**2)
 
-    if Version(sp.__version__) < Version("1.6.0"):
-        energy = sp.integrate.simps(u.T**2)
-    else:
-        energy = sp.integrate.simpson(u.T**2)
-    return energy
 
-def gramian(A_norm, T, system=None):
-    """This function computes the controllability Gramian.
+def gramian(A_norm: npt.ArrayLike, T: float, system: str | None = None) -> FloatArray | float | None:
+    """Compute the controllability Gramian of (A_norm, I).
 
-    Args:
-        A_norm (NxN, numpy array): normalized structural connectivity matrix.
-        T (float): time horizon.
-        system (str): string variable that designates whether A was normalized for a continuous-time system or a
-            discrete-time system. options: 'continuous' or 'discrete'. default=None.
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix.
+    T : float
+        Time horizon. ``np.inf`` gives the infinite-horizon Gramian. For discrete-time systems a finite T is an
+        integer number of steps.
+    system : {'continuous', 'discrete'}
+        Whether A_norm was normalised for a continuous-time or a discrete-time system.
 
-    Returns:
-        Wc (NxN, numpy array): gramian matrix.
-
+    Returns
+    -------
+    Wc : (N, N) ndarray, or float
+        The Gramian. In continuous time with finite T it is integrated with Simpson's rule over steps of 0.001.
+        With T = np.inf it solves the Lyapunov equation if the system is stable; if it is not, it prints a
+        message and returns ``np.nan``. For any other `system`, including None, it returns None.
     """
-
-    # System Size
+    A_norm = _as_float(A_norm)
     n_nodes = A_norm.shape[0]
     B = np.eye(n_nodes)
 
-    u, v = eig(A_norm)
-    BB = mm(B, np.transpose(B))
+    eigvals, _ = np.linalg.eig(A_norm)
+    BB = B @ B.T
 
     # If time horizon is infinite, can only compute the Gramian when stable
     if T == np.inf:
-        # check system
-        if system == 'continuous':
+        if system == "continuous":
             # If stable: solve using Lyapunov equation
-            if np.max(np.real(u)) < 0:
+            if np.max(np.real(eigvals)) < 0:
                 return la.solve_continuous_lyapunov(A_norm, -BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
-        elif system == 'discrete':
+        elif system == "discrete":
             # If stable: solve using Lyapunov equation
-            if np.max(np.abs(u)) < 1:
+            if np.max(np.abs(eigvals)) < 1:
                 return la.solve_discrete_lyapunov(A_norm, BB)
             else:
                 print("cannot compute infinite-time Gramian for an unstable system!")
                 return np.nan
     # If time horizon is finite, perform numerical integration
     else:
-        # check system
-        if system == 'continuous':
-            # Number of integration steps
+        if system == "continuous":
             STEP = 0.001
-            t = np.arange(0, (T+STEP/2), STEP)
-            # Collect exponential difference
+            t = np.arange(0, (T + STEP / 2), STEP)
+            # Accumulate e^{A t} over the steps, and the integrand e^{A t} B B^T e^{A^T t}
             dE = sp.linalg.expm(A_norm * STEP)
             dEa = np.zeros((n_nodes, n_nodes, len(t)))
             dEa[:, :, 0] = np.eye(n_nodes)
-            # Collect Gramian difference
             dG = np.zeros((n_nodes, n_nodes, len(t)))
-            dG[:, :, 0] = mm(B, B.T)
+            dG[:, :, 0] = B @ B.T
             for i in np.arange(1, len(t)):
-                dEa[:, :, i] = mm(dEa[:, :, i-1], dE)
-                dEab = mm(dEa[:, :, i], B)
-                dG[:, :, i] = mm(dEab, dEab.T)
+                dEa[:, :, i] = dEa[:, :, i - 1] @ dE
+                dEab = dEa[:, :, i] @ B
+                dG[:, :, i] = dEab @ dEab.T
 
-            # Integrate
-            if Version(sp.__version__) < Version("1.6.0"):
-                G = sp.integrate.simps(dG, t, STEP, 2)
-            else:
-                G = sp.integrate.simpson(dG, x=t, dx=STEP, axis=2)
-
-            return G
-        elif system == 'discrete':
+            return sp.integrate.simpson(dG, x=t, dx=STEP, axis=2)
+        elif system == "discrete":
             Ap = np.eye(n_nodes)
             Wc = np.eye(n_nodes)
-            for i in range(T):
-                Ap = mm(Ap, A_norm)
-                Wc = Wc + mm(Ap, tp(Ap))
+            for _ in range(cast(int, T)):
+                Ap = Ap @ A_norm
+                Wc = Wc + Ap @ Ap.T
 
             return Wc
+    return None  # system not recognised: returned None since 1.0, kept for compatibility
 
 
-def minimum_energy_fast(A_norm, T, B, x0, xf):
-    # System Size
+def minimum_energy_fast(
+    A_norm: npt.ArrayLike, T: float, B: npt.ArrayLike, x0: npt.ArrayLike, xf: npt.ArrayLike
+) -> FloatArray:
+    """Compute the minimum control energy from x0 to xf in continuous time, from the controllability Gramian.
+
+    The Gramian of (A_norm, B) over [0, T] is integrated with Simpson's rule over 1000 steps, and the energy is
+    split across nodes as ``(pinv(Wc) d) * d``, where ``d = xf - e^{A T} x0``. It equals minimum-energy control
+    (``get_control_inputs`` with S all zeros) without simulating the trajectory.
+
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix, for a continuous-time system.
+    T : float
+        Time horizon.
+    B : (N, N) array_like
+        Control node matrix.
+    x0 : (N,) or (N, 1) array_like
+        Initial state. Boolean states are converted to 0/1 floats.
+    xf : (N,) or (N, 1) array_like
+        Target state. Boolean states are converted to 0/1 floats.
+
+    Returns
+    -------
+    energy : (N, 1) ndarray
+        Energy at each node; sum it for the total.
+    """
+    A_norm, B = _as_float(A_norm), _as_float(B)
     n_nodes = A_norm.shape[0]
-
-    try:
-        if type(x0[0][0]) == np.bool_:
-            x0 = x0.astype(float)
-        if type(xf[0][0]) == np.bool_:
-            xf = xf.astype(float)
-    except:
-        if type(x0[0]) == np.bool_:
-            x0 = x0.astype(float)
-        if type(xf[0]) == np.bool_:
-            xf = xf.astype(float)
-
-    if x0.ndim == 1:
-        x0 = x0.reshape(-1, 1)
-    if xf.ndim == 1:
-        xf = xf.reshape(-1, 1)
+    x0 = _column(_as_float(x0))
+    xf = _column(_as_float(xf))
 
     # Number of integration steps
     nt = 1000
-    dt = T/nt
+    dt = T / nt
 
     # Numerical integration with Simpson's 1/3 rule
-    # Integration step
-    dE = sp.linalg.expm(A_norm * dt)
-    # Accumulation of expm(A * dt)
-    dEA = np.eye(n_nodes)
-    # Gramian
-    G = np.zeros((n_nodes, n_nodes))
+    dE = sp.linalg.expm(A_norm * dt)  # integration step
+    dEA = np.eye(n_nodes)  # accumulates expm(A * dt)
+    G = np.zeros((n_nodes, n_nodes))  # Gramian
 
-    for i in np.arange(1, nt/2):
+    for _ in range(1, nt // 2):
         # Add odd terms
-        dEA = np.matmul(dEA, dE)
-        p1 = np.matmul(dEA, B)
+        dEA = dEA @ dE
+        p1 = dEA @ B
         # Add even terms
-        dEA = np.matmul(dEA, dE)
-        p2 = np.matmul(dEA, B)
-        G = G + 4 * (np.matmul(p1, p1.transpose())) + 2 * (np.matmul(p2, p2.transpose()))
+        dEA = dEA @ dE
+        p2 = dEA @ B
+        G = G + 4 * (p1 @ p1.T) + 2 * (p2 @ p2.T)
 
     # Add final odd term
-    dEA = np.matmul(dEA, dE)
-    p1 = np.matmul(dEA, B)
-    G = G + 4 * (np.matmul(p1, p1.transpose()))
+    dEA = dEA @ dE
+    p1 = dEA @ B
+    G = G + 4 * (p1 @ p1.T)
 
-    # Divide by integration step
-    E = sp.linalg.expm(A_norm * T)
-    G = (G + np.matmul(B, B.transpose()) + np.matmul(np.matmul(E, B), np.matmul(E, B).transpose())) * dt / 3
+    # Add the end points and scale by the step
+    eAT = sp.linalg.expm(A_norm * T)
+    G = (G + B @ B.T + (eAT @ B) @ (eAT @ B).T) * dt / 3
 
-    delx = xf - np.matmul(E, x0)
-    E = np.multiply(np.matmul(np.linalg.pinv(G), delx), delx)
-
-    return E
+    delx = xf - eAT @ x0
+    return np.multiply(np.linalg.pinv(G) @ delx, delx)

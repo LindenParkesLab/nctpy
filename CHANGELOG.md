@@ -11,6 +11,28 @@
   problem. `ComputeControlEnergy` and `ComputeOptimizedControlEnergy` now raise the same error
   for a task with `rho = 0`. Ill-conditioned or incomplete transitions are unaffected: they still
   return their energies and error terms.
+- `nctpy.energies` converts its array inputs to float64 before computing. Results for float64
+  input are unchanged, bit for bit. `gramian` on a lower-precision (e.g. float32) continuous-time
+  matrix previously computed in that precision; it now computes in float64, so its values change
+  slightly.
+
+### Fixed
+
+- Boolean states given as `(N, 1)` columns now work like 1-D Boolean states in
+  `get_control_inputs`, `sim_state_eq` and `minimum_energy_fast`. Previously they were not
+  converted to floats, so `get_control_inputs` raised `TypeError` in discrete time, and with
+  `xr='midpoint'` in continuous time.
+
+### Added
+
+- Type annotations for `nctpy.energies`, and a `py.typed` marker so type checkers use them. Other
+  modules are annotated in later releases.
+
+### Documentation
+
+- The `nctpy.energies` docstrings use numpydoc format and now state each function's return shapes,
+  including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
+  terms measure, and `gramian`'s infinite-horizon and unstable cases.
 
 ## 1.1.0 (2026-09-28)
 
