@@ -39,6 +39,12 @@
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.
 
+### Packaging
+
+- `packaging` is no longer a dependency. nctpy used it only to choose between `simps` and
+  `simpson` on SciPy < 1.6, which cannot be installed on Python 3.10 or later. The core
+  dependencies are now numpy, scipy, tqdm and statsmodels.
+
 ## 1.1.0 (2026-09-28)
 
 **Upgrading from 1.0.x:** if you use `nctpy.plotting` or run the code from the Nature Protocols paper,

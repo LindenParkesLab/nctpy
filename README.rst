@@ -41,7 +41,7 @@ Requirements
 ------------
 
 ``nctpy`` requires Python 3.10 or later. Installing it also installs its core dependencies: numpy, scipy,
-tqdm, packaging and statsmodels.
+tqdm and statsmodels.
 
 The ``plotting`` module needs extra packages (matplotlib, seaborn, nibabel and nilearn), which are
 optional and not installed by default. They come with the ``plot`` extra, shown below.

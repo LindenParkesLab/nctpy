@@ -16,7 +16,7 @@ install ``nctpy`` by opening a terminal and running the following:
 
     pip install nctpy
 
-This installs ``nctpy`` with its core dependencies (numpy, scipy, tqdm, packaging and statsmodels). The
+This installs ``nctpy`` with its core dependencies (numpy, scipy, tqdm and statsmodels). The
 ``nctpy.plotting`` module needs extra packages, which are optional:
 
 .. code-block:: bash

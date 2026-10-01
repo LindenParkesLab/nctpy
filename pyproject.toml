@@ -19,7 +19,6 @@ dependencies = [
     "numpy",
     "scipy",
     "tqdm",
-    "packaging",
     "statsmodels",
 ]
 classifiers = [
