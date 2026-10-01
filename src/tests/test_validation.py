@@ -11,6 +11,7 @@ import unittest
 import numpy as np
 
 from nctpy.energies import get_control_inputs, gramian, sim_state_eq
+from nctpy.metrics import ave_control
 from nctpy.pipelines import ComputeControlEnergy, ComputeOptimizedControlEnergy
 from nctpy.utils import matrix_normalization, normalize_state
 
@@ -65,6 +66,11 @@ class TestSystem(unittest.TestCase):
             for system, message in ((None, MISSING), ("cont", INVALID)):
                 with self.subTest(T=T, system=system):
                     self.assertRaisesExactly(message, gramian, self.A_c, T, system=system)
+
+    def test_ave_control(self):
+        for system, message in ((None, MISSING), ("cont", INVALID)):
+            with self.subTest(system=system):
+                self.assertRaisesExactly(message, ave_control, self.A_c, system=system)
 
 
 class TestRho(unittest.TestCase):

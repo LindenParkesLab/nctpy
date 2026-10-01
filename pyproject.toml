@@ -80,7 +80,6 @@ select = ["E4", "E7", "E9", "F"]
 # Files not yet in ruff's format. Phase 2 formats each module as it refactors it and removes its entry;
 # anything not listed here (i.e. every new file) must be formatted.
 exclude = [
-    "src/nctpy/metrics.py",
     "src/nctpy/pipelines.py",
     "src/nctpy/plotting.py",
     "src/nctpy/utils.py",

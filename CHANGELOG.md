@@ -20,6 +20,11 @@
   `ave_control` is unaffected. `gramian` also no longer stores every step's matrix exponential,
   which needed `N × N × (T/0.001 + 1)` floats (about 1.3 GB for 400 nodes at T = 1). Its results
   are unchanged up to floating-point rounding (within 1e-14 relative).
+- `nctpy.metrics` also computes in float64. `ave_control` is unchanged, bit for bit, for float64
+  input. `modal_control` now sums in a different order, which changes its values by rounding only
+  (within 3e-15 relative). Discrete `ave_control` and `modal_control` on lower-precision (e.g.
+  float32) matrices previously computed and returned float32. They now return float64 (for
+  `modal_control`, values move by up to ~3e-4 relative, float32's own precision).
 
 ### Fixed
 
@@ -30,11 +35,12 @@
 
 ### Added
 
-- Type annotations for `nctpy.energies`, and a `py.typed` marker so type checkers use them. Other
-  modules are annotated in later releases.
+- Type annotations for `nctpy.energies` and `nctpy.metrics`, and a `py.typed` marker so type
+  checkers use them. Other modules are annotated in later releases.
 
 ### Documentation
 
+- The `nctpy.metrics` docstrings use numpydoc format and state each metric's formula.
 - The `nctpy.energies` docstrings use numpydoc format and now state each function's return shapes,
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.
