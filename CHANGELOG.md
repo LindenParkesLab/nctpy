@@ -32,6 +32,29 @@
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 
+### Performance
+
+- Computing many transitions on one system is much faster. The parts of `get_control_inputs` and
+  `minimum_energy_fast` that depend only on the system, not on the states, are now computed once
+  and reused while consecutive calls share that system. For `get_control_inputs` those are the
+  matrix exponentials and the discrete-time factorisation; for `minimum_energy_fast` they are the
+  Gramian and its pseudo-inverse. Results are identical, bit for bit: reuse happens only when
+  `A_norm`, `T`, `B`, `S` and `rho` are identical byte for byte. All 49 transitions between 7
+  states, the protocol paper's workload (`benchmarks/transitions.py`, 8 BLAS threads):
+
+  | workload | 200 nodes | 400 nodes |
+  |---|---|---|
+  | `get_control_inputs`, continuous, T = 1 | 34.5 → 18.7 ms | 116 → 37 ms |
+  | `get_control_inputs`, discrete, T = 3 | 61.9 → 2.1 ms | 423 → 11.5 ms |
+  | `ComputeControlEnergy`, continuous, T = 1 | 33.8 → 17.5 ms | 130 → 28.5 ms |
+  | `minimum_energy_fast`, T = 1 (100 nodes) | 90.6 → 1.9 ms | |
+
+  (per transition). Calls that never share a system, such as a loop that perturbs B, cost about the
+  same as before. The most recent system's matrices stay in memory until a call uses a different
+  system. In continuous time that is about 15 N² floats (about 19 MB at N = 400).
+- `minimum_energy_fast` documents that it accepts k transitions at once, as `(N, k)` columns of
+  initial and target states.
+
 ### Fixed
 
 - Boolean states given as `(N, 1)` columns now work like 1-D Boolean states in

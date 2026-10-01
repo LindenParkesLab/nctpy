@@ -140,5 +140,61 @@ class TestGramian(unittest.TestCase):
                 )
 
 
+class TestReuseAcrossTransitions(unittest.TestCase):
+    """System-only work is reused between calls (Roadmap 2.5); results must not depend on call order."""
+
+    def setUp(self):
+        rng = np.random.default_rng(3)
+        self.A = connectome()
+        self.states = [(rng.normal(size=N), rng.normal(size=N)) for _ in range(3)]
+        partial = np.diag((np.arange(N) % 3 > 0).astype(float))
+        self.systems = [
+            (system, T, B, S, rho)
+            for system, T in HORIZON.items()
+            for B in (np.eye(N), partial)
+            for S, rho in ((np.eye(N), 1), (np.zeros((N, N)), 0.5))
+        ]
+
+    def solve(self, system, T, B, S, rho, x0, xf, A=None):
+        A_norm = matrix_normalization(self.A if A is None else A, system=system)
+        return get_control_inputs(A_norm, T, B, x0, xf, system=system, rho=rho, S=S)
+
+    def assertSameResult(self, got, expected):
+        np.testing.assert_array_equal(got[0], expected[0])
+        np.testing.assert_array_equal(got[1], expected[1])
+        self.assertEqual(got[2], expected[2])
+
+    def test_call_order_does_not_matter(self):
+        calls = [(s, x) for s in range(len(self.systems)) for x in range(len(self.states))]
+        by_system = {c: self.solve(*self.systems[c[0]], *self.states[c[1]]) for c in calls}
+        interleaved = calls[::2] + calls[1::2]  # alternate between systems on every call
+        for c in reversed(interleaved):
+            with self.subTest(system=c[0], states=c[1]):
+                self.assertSameResult(self.solve(*self.systems[c[0]], *self.states[c[1]]), by_system[c])
+
+    def test_matrix_changed_in_place_is_recomputed(self):
+        for system, T in HORIZON.items():
+            with self.subTest(system=system):
+                A_norm = matrix_normalization(self.A, system=system)
+                x0, xf = self.states[0]
+                get_control_inputs(A_norm, T, np.eye(N), x0, xf, system=system)
+                A_norm[0, 1] += 0.01  # same array object, new contents
+                got = get_control_inputs(A_norm, T, np.eye(N), x0, xf, system=system)
+                expected = get_control_inputs(A_norm.copy(), T, np.eye(N) * 1, x0, xf, system=system)
+                self.assertSameResult(got, expected)
+
+    def test_minimum_energy_fast_batches_states(self):
+        # the numerics page's advice: one Gramian for many transitions, passed as columns
+        A_c = matrix_normalization(self.A, system="continuous")
+        X0 = np.column_stack([x0 for x0, _ in self.states])
+        XF = np.column_stack([xf for _, xf in self.states])
+        batched = minimum_energy_fast(A_c, 1, np.eye(N), X0, XF)
+        for k, (x0, xf) in enumerate(self.states):
+            with self.subTest(transition=k):
+                # equal to rounding: BLAS multiplies a block of columns and a single column differently
+                single = minimum_energy_fast(A_c, 1, np.eye(N), x0, xf)
+                np.testing.assert_allclose(batched[:, [k]], single, rtol=1e-12, atol=1e-14 * np.abs(single).max())
+
+
 if __name__ == "__main__":
     unittest.main()

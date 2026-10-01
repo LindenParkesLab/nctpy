@@ -8,19 +8,50 @@ with A normalised by :func:`nctpy.utils.matrix_normalization` for the matching t
 in comments refer to Kim et al., Nat Commun 16:11639 (2025), Methods.
 """
 
-from typing import Any, cast
+from collections.abc import Callable
+from typing import Any, TypeVar, cast
 
 import numpy as np
 import numpy.typing as npt
 import scipy as sp
 import scipy.integrate  # noqa: F401  (makes sp.integrate available)
 import scipy.linalg as la
+import scipy.sparse.linalg
 from scipy import sparse
 
 from nctpy._validation import _check_rho, _check_system
 from nctpy.utils import expm
 
 FloatArray = npt.NDArray[np.float64]
+_R = TypeVar("_R")
+
+DT = 0.001  # continuous-time integration step
+
+
+class _LastCall:
+    """Wrap a function so that it remembers its most recent result.
+
+    Transitions are usually computed one after another for the same system (A_norm, B, S, rho, T), and the
+    expensive parts of each depend only on the system. Wrapped, those parts are computed once for a run of
+    calls on one system. Arguments are compared byte for byte, so a result is reused only for identical input.
+    One result is kept per wrapped function.
+    """
+
+    def __init__(self, fn: Callable[..., Any]) -> None:
+        self._fn = fn
+        self._entry: tuple[tuple[Any, ...], Any] | None = None
+
+    def __call__(self, *args: Any) -> Any:
+        key = tuple((a.dtype.str, a.shape, a.tobytes()) if isinstance(a, np.ndarray) else (type(a), a) for a in args)
+        entry = self._entry  # read once: another thread may replace it
+        if entry is None or entry[0] != key:
+            entry = (key, self._fn(*args))
+            self._entry = entry
+        return entry[1]
+
+
+def _last_call(fn: Callable[..., _R]) -> Callable[..., _R]:
+    return _LastCall(fn)
 
 
 def _as_float(a: npt.ArrayLike) -> npt.NDArray[Any]:
@@ -164,6 +195,12 @@ def get_control_inputs(
         If `system` is missing or not one of the two options, or if T < 2 in discrete time.
     ValueError
         If rho is not positive.
+
+    Notes
+    -----
+    Everything that depends only on the system (A_norm, T, B, S, rho), not on the states, is computed once and
+    reused while consecutive calls share that system, e.g. in a loop over transitions. Results are identical either
+    way: reuse happens only when those inputs are identical byte for byte.
     """
     A_norm, B = _as_float(A_norm), _as_float(B)
     n_nodes = A_norm.shape[0]
@@ -192,25 +229,14 @@ def get_control_inputs(
     _check_system(system)
     _check_rho(rho)
     if system == "continuous":
-        dt = 0.001
         xr, S = cast(FloatArray, xr), cast(FloatArray, S)
-
-        # Eq. 6: the state x and the costate p evolve jointly, d/dt [x; p] = M [x; p] + ref_input
-        costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
-        M = np.concatenate(
-            (np.concatenate((A_norm, costate_to_state), axis=1), np.concatenate((-2 * S, -A_norm.T), axis=1)),
-            axis=0,
-        )
-        ref_input = np.concatenate((np.zeros((n_nodes, 1)), 2 * np.dot(S, xr)), axis=0)
+        M, E, E_dt = _continuous_system(A_norm, T, B, S, rho, expm_version)  # Eq. 6, e^{MT}, e^{M DT}
 
         # Eq. 8: [x(t); p(t)] = e^{Mt} [x0; p0] + (e^{Mt} - I) ref_offset
+        ref_input = np.concatenate((np.zeros((n_nodes, 1)), 2 * np.dot(S, xr)), axis=0)
         ref_offset = np.linalg.solve(M, ref_input)
 
-        # Eq. 9: the top block row of e^{MT} maps [x0; p0] to x(T). Solve it for the initial costate p0.
-        if expm_version == "scipy":
-            E = sp.linalg.expm(M * T)
-        elif expm_version == "eig":
-            E = expm(M * T)
+        # Eq. 9: the top block row of E = e^{MT} maps [x0; p0] to x(T). Solve it for the initial costate p0.
         r = np.arange(n_nodes)
         E11 = E[r, :][:, r]
         E12 = E[r, :][:, r + n_nodes]
@@ -218,14 +244,10 @@ def get_control_inputs(
         p0_rhs = xf - np.dot(E11, x0) - b1  # E12 p0 = xf - E11 x0 - b1
         p0 = np.linalg.solve(E12, p0_rhs)
 
-        # Integrate the state-costate system exactly over steps of dt
-        n_steps = int(np.round(T / dt))
+        # Integrate the state-costate system exactly over steps of DT, with E_dt = e^{M DT}
+        n_steps = int(np.round(T / DT))
         z = np.zeros((2 * n_nodes, n_steps + 1))
         z[:, 0] = np.concatenate((x0, p0), axis=0).flatten()
-        if expm_version == "scipy":
-            E_dt = sp.linalg.expm(M * dt)
-        elif expm_version == "eig":
-            E_dt = expm(M * dt)
         offset_dt = np.dot((E_dt - np.eye(2 * n_nodes)), ref_offset).flatten()
         for i in np.arange(1, n_steps + 1):
             z[:, i] = np.dot(E_dt, z[:, i - 1]) + offset_dt
@@ -246,35 +268,7 @@ def get_control_inputs(
         T = cast(int, T)
         xr, S = cast(FloatArray, xr), cast(FloatArray, S)
 
-        # Solve for every unknown at once. The unknowns are the free states x(1)..x(T-1) and the costates
-        # p(0)..p(T-1), stacked in blocks of n_nodes, and the inputs are u(t) = -B^T p(t) / (2 rho). The rows are
-        #   state equations,   t = 0..T-1:  x(t+1) = A x(t) + costate_to_state p(t)
-        #   costate equations, t = 1..T-1:  p(t-1) = A^T p(t) + state_cost (x(t) - xr)
-        # with the known x(0) = x0 and x(T) = xf moved to the right-hand side.
-        costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
-        state_cost = 2 * S
-        eye = np.eye(n_nodes)
-        block = np.arange(n_nodes)
-
-        def x_col(t: int) -> npt.NDArray[np.int_]:
-            return block + (t - 1) * n_nodes  # x(1) is the first block
-
-        def p_col(t: int) -> npt.NDArray[np.int_]:
-            return block + (T - 1 + t) * n_nodes
-
-        M = np.zeros(((2 * T - 1) * n_nodes, (2 * T - 1) * n_nodes))
-        for t in range(T):
-            row = block + t * n_nodes
-            M[np.ix_(row, p_col(t))] = -costate_to_state
-            if t + 1 < T:
-                M[np.ix_(row, x_col(t + 1))] = eye
-            if t > 0:
-                M[np.ix_(row, x_col(t))] = -A_norm
-        for t in range(1, T):
-            row = block + (T - 1 + t) * n_nodes
-            M[np.ix_(row, x_col(t))] = -state_cost
-            M[np.ix_(row, p_col(t - 1))] = eye
-            M[np.ix_(row, p_col(t))] = -A_norm.T
+        M_sparse, M_lu = _discrete_system(A_norm, T, B, S, rho)  # the system matrix and its LU
 
         # Right-hand side: A x0 in the first state row, -xf in the last, -state_cost xr in every costate row
         boundary = np.concatenate(
@@ -284,9 +278,8 @@ def get_control_inputs(
         b = boundary - reference
 
         # Solve simultaneous state and costate equations
-        M_sparse = sparse.csc_matrix(M)
         b_sparse = sparse.csc_matrix(b)
-        v = sparse.linalg.spsolve(M_sparse, b_sparse)
+        v = M_lu.solve(b[:, 0])
         V = v.reshape((n_nodes, int(len(v) / n_nodes)), order="F")
         x = np.concatenate((x0, V[:, : T - 1], xf), axis=1)
         u = np.dot(-B.T, V[:, T - 1 :]) / (2 * rho)
@@ -401,20 +394,98 @@ def minimum_energy_fast(
         Time horizon.
     B : (N, N) array_like
         Control node matrix.
-    x0 : (N,) or (N, 1) array_like
-        Initial state. Boolean states are converted to 0/1 floats.
-    xf : (N,) or (N, 1) array_like
-        Target state. Boolean states are converted to 0/1 floats.
+    x0 : (N,) or (N, k) array_like
+        Initial state, or k initial states as columns. Boolean states are converted to 0/1 floats.
+    xf : (N,) or (N, k) array_like
+        Target state, or k target states as columns, paired with those of x0.
 
     Returns
     -------
-    energy : (N, 1) ndarray
-        Energy at each node; sum it for the total.
+    energy : (N, 1) or (N, k) ndarray
+        Energy at each node, one column per transition; sum a column for the total.
+
+    Notes
+    -----
+    The Gramian and e^{AT} depend only on (A_norm, T, B). They are computed once and reused while consecutive calls
+    share them, so looping over transitions is fast; passing all transitions at once as columns is equivalent.
     """
     A_norm, B = _as_float(A_norm), _as_float(B)
-    n_nodes = A_norm.shape[0]
     x0 = _column(_as_float(x0))
     xf = _column(_as_float(xf))
+
+    G_pinv, eAT = _minimum_energy_system(A_norm, T, B)
+
+    delx = xf - eAT @ x0
+    return np.multiply(G_pinv @ delx, delx)
+
+
+# Everything below depends only on the system, not on the states, and is reused across transitions (_last_call).
+
+
+@_last_call
+def _continuous_system(
+    A_norm: FloatArray, T: float, B: FloatArray, S: FloatArray, rho: float, expm_version: str
+) -> tuple[FloatArray, FloatArray, FloatArray]:
+    """M (Eq. 6), e^{MT} and e^{M DT}.
+
+    The state x and the costate p evolve jointly, d/dt [x; p] = M [x; p] + [0; 2 S xr], with
+    M = [[A, -B B^T / (2 rho)], [-2 S, -A^T]].
+    """
+    costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
+    M = np.concatenate(
+        (np.concatenate((A_norm, costate_to_state), axis=1), np.concatenate((-2 * S, -A_norm.T), axis=1)),
+        axis=0,
+    )
+    if expm_version == "scipy":
+        E, E_dt = sp.linalg.expm(M * T), sp.linalg.expm(M * DT)
+    elif expm_version == "eig":
+        E, E_dt = expm(M * T), expm(M * DT)
+    return M, E, E_dt
+
+
+@_last_call
+def _discrete_system(A_norm: FloatArray, T: int, B: FloatArray, S: FloatArray, rho: float) -> tuple[Any, Any]:
+    """The discrete-time system matrix (sparse) and its LU factorisation."""
+    n_nodes = A_norm.shape[0]
+
+    # Solve for every unknown at once. The unknowns are the free states x(1)..x(T-1) and the costates
+    # p(0)..p(T-1), stacked in blocks of n_nodes, and the inputs are u(t) = -B^T p(t) / (2 rho). The rows are
+    #   state equations,   t = 0..T-1:  x(t+1) = A x(t) + costate_to_state p(t)
+    #   costate equations, t = 1..T-1:  p(t-1) = A^T p(t) + state_cost (x(t) - xr)
+    # with the known x(0) = x0 and x(T) = xf moved to the right-hand side.
+    costate_to_state = np.dot(-B, B.T) / (2 * rho)  # B u(t) = costate_to_state p(t)
+    state_cost = 2 * S
+    eye = np.eye(n_nodes)
+    block = np.arange(n_nodes)
+
+    def x_col(t: int) -> npt.NDArray[np.int_]:
+        return block + (t - 1) * n_nodes  # x(1) is the first block
+
+    def p_col(t: int) -> npt.NDArray[np.int_]:
+        return block + (T - 1 + t) * n_nodes
+
+    M = np.zeros(((2 * T - 1) * n_nodes, (2 * T - 1) * n_nodes))
+    for t in range(T):
+        row = block + t * n_nodes
+        M[np.ix_(row, p_col(t))] = -costate_to_state
+        if t + 1 < T:
+            M[np.ix_(row, x_col(t + 1))] = eye
+        if t > 0:
+            M[np.ix_(row, x_col(t))] = -A_norm
+    for t in range(1, T):
+        row = block + (T - 1 + t) * n_nodes
+        M[np.ix_(row, x_col(t))] = -state_cost
+        M[np.ix_(row, p_col(t - 1))] = eye
+        M[np.ix_(row, p_col(t))] = -A_norm.T
+
+    M_sparse = sparse.csc_matrix(M)
+    return M_sparse, sparse.linalg.splu(M_sparse)
+
+
+@_last_call
+def _minimum_energy_system(A_norm: FloatArray, T: float, B: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """The pseudo-inverse of the controllability Gramian of (A_norm, B) over [0, T], and e^{AT}."""
+    n_nodes = A_norm.shape[0]
 
     # Number of integration steps
     nt = 1000
@@ -442,6 +513,4 @@ def minimum_energy_fast(
     # Add the end points and scale by the step
     eAT = sp.linalg.expm(A_norm * T)
     G = (G + B @ B.T + (eAT @ B) @ (eAT @ B).T) * dt / 3
-
-    delx = xf - eAT @ x0
-    return np.multiply(np.linalg.pinv(G) @ delx, delx)
+    return np.linalg.pinv(G), eAT
