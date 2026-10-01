@@ -1,235 +1,229 @@
-import os
+"""Normalisation, brain states, null-model p-values and other helpers."""
+
+from typing import Any
+
 import numpy as np
-import scipy as sp
-from scipy import stats
-from numpy.linalg import eig
-from statsmodels.stats import multitest
+import numpy.typing as npt
+from scipy.stats import rankdata
+from statsmodels.stats.multitest import multipletests
+
+from nctpy._validation import _check_system
 
 
-def matrix_normalization(A, system=None, c=1, l=None):
-    '''Normalize A for modeling linear dynamics.
-    Args:
-        A (NxN, numpy array): adjacency matrix representing a structural connectome.
-        system (str): 'continuous' or 'discrete'. default=None.
-        c (int): normalization constant. default=1.
-        l (float): optional fixed spectral radius. If provided, A is normalized by
-            (c + l) instead of (c + the spectral radius of A). Pass a fixed l shared
-            across subjects (e.g. the maximum spectral radius over all subjects). default=None.
-    Returns:
-        A_norm (NxN, numpy array): normalized adjacency matrix.
-    '''
-    if system is None:
-        raise Exception("Time system not specified. "
-                        "Please nominate whether you are normalizing A for a continuous-time or a discrete-time system "
-                        "(see function help).")
-    elif system != 'continuous' and system != 'discrete':
-        raise Exception("Incorrect system specification. "
-                        "Please specify either 'system=discrete' or 'system=continuous'.")
-    else:
-        if l is None:
-            w, _ = eig(A)
-            l = np.abs(w).max()
-        A_norm = A / (c + l)
+def matrix_normalization(
+    A: npt.ArrayLike, system: str | None = None, c: float = 1, l: float | None = None
+) -> npt.NDArray[np.float64]:
+    """Normalise a structural connectome A for modelling linear dynamics.
 
-        if system == 'continuous':
-            A_norm = A_norm - np.eye(A.shape[0])
+    ``A_norm = A / (c + l) - I`` for continuous-time systems and ``A_norm = A / (c + l)`` for discrete-time
+    systems, where by default l is the spectral radius of A (its largest absolute eigenvalue).
 
-        return A_norm
+    Parameters
+    ----------
+    A : (N, N) array_like
+        Adjacency matrix representing a structural connectome.
+    system : {'continuous', 'discrete'}
+        Time system to normalise A for. Required.
+    c : float, default 1
+        Normalisation constant.
+    l : float, optional
+        Fixed spectral radius to normalise by, in place of A's own. Use one l across several connectomes (e.g.
+        subjects) so that they share a normalisation, typically the maximum spectral radius over all of them.
 
+        The normalised system is guaranteed to be stable when c + l exceeds the spectral radius of A, which the
+        default l always satisfies for c > 0. An l below A's own spectral radius forfeits that guarantee. No check
+        is made: an unstable system still returns values.
 
-def get_p_val_string(p_val):
-    if p_val == 0.0:
-        p_str = "-log10($\mathit{:}$)>25".format('{p}')
-    elif p_val < 0.05:
-        p_str = '$\mathit{:}$ = {:0.0e}'.format('{p}', p_val)
-    else:
-        p_str = "$\mathit{:}$ = {:.3f}".format('{p}', p_val)
+    Returns
+    -------
+    A_norm : (N, N) ndarray
+        Normalised adjacency matrix.
 
-    return p_str
-
-
-def expand_states(states):
-    """This function takes an array of integer values that designate a distinct set of binary brain states and returns
-    a pair of matrices (x0_mat, xf_mat) that encode all possible pairwise transitions between those states.
-
-    Args:
-        states (N, numpy array): a vector of integers that designate which regions belong to which states.
-            Note, regions cannot belong to more than one brain state.
-            For example, assuming N = 12, if states = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
-            then the first 4 regions belong to state 0, the next 4 to state 1, and the final 4 to state 2.
-
-    Returns:
-        x0_mat (Nxn_transitions, numpy boolean array): boolean array of initial states.
-            In each column, True designates regions belonging to a given initial state.
-        xf_mat (Nxn_transitions, numpy boolean array): boolean array of target states.
-            In each column, True designates regions belonging to a given target state.
-
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options.
     """
+    _check_system(system, see="function help")
+    A = np.asarray(A)
+    A = A.astype(np.result_type(A.dtype, np.float64), copy=False)
+    if l is None:
+        l = np.abs(np.linalg.eig(A)[0]).max()
+    A_norm = A / (c + l)
+    if system == "continuous":
+        A_norm = A_norm - np.eye(A.shape[0])
+    return A_norm
 
-    unique, counts = np.unique(states, return_counts=True)
-    n_parcels = len(states)
-    n_states = len(unique)
 
-    x0_mat = np.zeros((n_parcels, 1)).astype(bool)
-    xf_mat = np.zeros((n_parcels, 1)).astype(bool)
+def get_p_val_string(p_val: float) -> str:
+    """Format a p-value for a matplotlib label: '-log10(p)>25' for 0, scientific below 0.05, else 3 decimals."""
+    if p_val == 0.0:
+        return r"-log10($\mathit{p}$)>25"
+    if p_val < 0.05:
+        return rf"$\mathit{{p}}$ = {p_val:0.0e}"
+    return rf"$\mathit{{p}}$ = {p_val:.3f}"
 
-    for i in np.arange(n_states):
-        for j in np.arange(n_states):
-            x0 = states == i
-            xf = states == j
 
-            x0_mat = np.append(x0_mat, x0.reshape(-1, 1), axis=1)
-            xf_mat = np.append(xf_mat, xf.reshape(-1, 1), axis=1)
+def expand_states(states: npt.ArrayLike) -> tuple[npt.NDArray[np.bool_], npt.NDArray[np.bool_]]:
+    """Encode every pairwise transition between a set of binary brain states.
 
-    x0_mat = x0_mat[:, 1:]
-    xf_mat = xf_mat[:, 1:]
+    Parameters
+    ----------
+    states : (N,) array_like of int
+        The state each region belongs to, numbered 0 to n_states - 1. Regions cannot belong to more than one
+        state. For example, with N = 12, ``states = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])`` puts the first
+        4 regions in state 0, the next 4 in state 1, and the final 4 in state 2.
 
+    Returns
+    -------
+    x0_mat : (N, n_states**2) ndarray of bool
+        Initial states, one transition per column: True marks the regions in that transition's initial state.
+    xf_mat : (N, n_states**2) ndarray of bool
+        Target states, in the same column order. Column ``i * n_states + j`` is the transition from state i to
+        state j, self-transitions included.
+    """
+    states = np.asarray(states)
+    n_states = len(np.unique(states))
+    labels = np.arange(n_states)
+    x0_mat = states[:, np.newaxis] == np.repeat(labels, n_states)
+    xf_mat = states[:, np.newaxis] == np.tile(labels, n_states)
     return x0_mat, xf_mat
 
 
-def normalize_state(x):
-    """This function will normalize a brain state's magnitude using its euclidean norm.
+def normalize_state(x: npt.ArrayLike) -> npt.NDArray[np.float64]:
+    """Scale a brain state to unit Euclidean norm.
 
-    Args:
-        x (N, numpy array): brain state to be normalized.
+    Parameters
+    ----------
+    x : (N,) array_like
+        Brain state. Boolean states are accepted and become floats.
 
-    Returns:
-        x_norm (N, numpy array): normalized brain state.
-
+    Returns
+    -------
+    x_norm : (N,) ndarray
+        The state divided by its Euclidean norm.
     """
-
-    x_norm = x / np.linalg.norm(x, ord=2)
-
-    return x_norm
+    x = np.asarray(x)
+    return x / np.linalg.norm(x, ord=2)
 
 
-def normalize_weights(x, rank=True, add_constant=True):
-    """This function normalizes the weights on B. By default, this involves (i) ranking the data, (ii) rescaling to
-    the unit interval, and (iii) adding a constant value. If rank=False and add_constant=False, then only unit rescaling
-    is performed.
+def normalize_weights(x: npt.ArrayLike, rank: bool = True, add_constant: bool = True) -> npt.NDArray[np.float64]:
+    """Normalise weights for the diagonal of B.
 
-    Args:
-        x (N, numpy array): weights assigned to diagonal of NxN B matrix.
-        rank: determines whether normalization includes ranking the data. default=True.
-        add_constant: determines whether normalization includes adds a constant to the data. default=True.
+    By default: (i) rank the data, (ii) rescale to the unit interval, and (iii) add 1, giving weights on [1, 2].
+    With rank=False and add_constant=False, only the rescaling is done.
 
-    Returns:
-        x (N, numpy array): normalized weights.
+    Parameters
+    ----------
+    x : (N,) array_like
+        Weights for the diagonal of an N x N B matrix.
+    rank : bool, default True
+        Rank the data first.
+    add_constant : bool, default True
+        Add 1 after rescaling.
 
+    Returns
+    -------
+    x : (N,) ndarray
+        Normalised weights.
     """
-
-    if rank:
-        # rank data
-        x = sp.stats.rankdata(x)
-
-    # rescale to unit interval
-    x = (x - min(x)) / (max(x) - min(x))
-
+    w = rankdata(x) if rank else np.asarray(x)
+    w = (w - min(w)) / (max(w) - min(w))
     if add_constant:
-        x = x + 1
+        w = w + 1
+    return w
 
-    return x
 
+def get_null_p(x: Any, null: npt.ArrayLike, version: str = "standard", abs: bool = False) -> float:
+    """Compute a p-value from an empirical null distribution.
 
-def get_null_p(x, null, version='standard', abs=False):
-    """This function will compute p-values using an empirical null distribution.
+    Parameters
+    ----------
+    x : float
+        Observed test statistic.
+    null : (n,) array_like
+        Null distribution.
+    version : {'standard', 'reverse', 'smallest'}, default 'standard'
+        'standard' is the fraction of the null at or above x; 'reverse' the fraction at or below x; 'smallest' the
+        smaller of the two.
+    abs : bool, default False
+        Take absolute values of both x and the null first.
 
-    Args:
-        x: observed test statistic.
-        null: null distribution.
-        version: determins how p-value will be computed, see below. default='standard'.
-        abs: determines whether absolute values are taken for both x and null.
+    Returns
+    -------
+    p_val : float
 
-    Returns:
-        p_val: p-value from null.
-
+    Raises
+    ------
+    ValueError
+        If `version` is not one of the three options.
     """
-
+    null_arr = np.abs(null) if abs else np.asarray(null)
     if abs:
         x = np.abs(x)
-        null = np.abs(null)
 
-    if version == 'standard':
-        p_val = np.sum(null >= x) / len(null)
-    elif version == 'reverse':
-        p_val = np.sum(x >= null) / len(null)
-    elif version == 'smallest':
-        p_val = np.min([np.sum(null >= x) / len(null),
-                        np.sum(x >= null) / len(null)])
+    upper = np.sum(null_arr >= x) / len(null_arr)
+    lower = np.sum(x >= null_arr) / len(null_arr)
+    if version == "standard":
+        return upper
+    if version == "reverse":
+        return lower
+    if version == "smallest":
+        return np.min([upper, lower])
+    raise ValueError(f"version must be 'standard', 'reverse' or 'smallest', got {version!r}")
 
-    return p_val
 
+def get_fdr_p(p_vals: npt.ArrayLike, alpha: float = 0.05) -> npt.NDArray[np.float64]:
+    """Correct p-values for multiple comparisons with the Benjamini-Hochberg false discovery rate.
 
-def get_fdr_p(p_vals, alpha=0.05):
-    """This function will correct p-values for multiple comparisons using FDR.
+    Parameters
+    ----------
+    p_vals : array_like
+        p-values, of any shape (e.g. a vector, or a matrix of transitions). All are corrected together.
+    alpha : float, default 0.05
+        False discovery rate.
 
-    Args:
-        p_vals (numpy array): array of p-values. Can be (n,) vector or (nxn) matrix.
-        alpha (float): false discovery rate. default=0.05
-
-    Returns:
-        p_fdr (numpy array): corrected p-values.
-
+    Returns
+    -------
+    p_fdr : ndarray
+        Corrected p-values, in the same shape as `p_vals`.
     """
-
-    if p_vals.ndim == 2:
-        do_reshape = True
-        dims = p_vals.shape
-        p_vals = p_vals.flatten()
-    else:
-        do_reshape = False
-
-    out = multitest.multipletests(p_vals, alpha=alpha, method='fdr_bh')
-    p_fdr = out[1]
-
-    if do_reshape:
-        p_fdr = p_fdr.reshape(dims)
-
-    return p_fdr
+    p_vals = np.asarray(p_vals)
+    return multipletests(p_vals.ravel(), alpha=alpha, method="fdr_bh")[1].reshape(p_vals.shape)
 
 
-def convert_states_str2int(states_str):
-    """This function takes a list of strings that designate a distinct set of binary brain states and returns
-    a numpy array of integers encoding those states alongside a list of keys for those integers.
+def convert_states_str2int(states_str: Any) -> tuple[npt.NDArray[np.int_], list[Any]]:
+    """Encode a list of state names as integers.
 
-    Args:
-        states_str (N, list): a list of strings that designate which regions belong to which states.
-            For example, states = ['Vis', 'Vis', 'Vis', 'SomMot', 'SomMot', 'SomMot']
+    Parameters
+    ----------
+    states_str : (N,) list of str
+        The state each region belongs to, e.g. ``['Vis', 'Vis', 'Vis', 'SomMot', 'SomMot', 'SomMot']``.
 
-    Returns:
-        states (N, numpy array): array of integers denoting which node belongs to which state.
-        state_labels (n_states, list): list of keys corresponding to integers.
-            For example, if state_labels[1] = 'SomMot' then the integer 1 in `states` corresponds to 'SomMot'.
-            Together, a binary state can be extracted like so: x0 = states == state_labels.index('SomMot')
-
+    Returns
+    -------
+    states : (N,) ndarray of int
+        The integer code of each region's state.
+    state_labels : list
+        The state names in alphabetical order; the integer i stands for ``state_labels[i]``. A binary state
+        can be extracted like so: ``x0 = states == state_labels.index('SomMot')``.
     """
-
-    n_states = len(states_str)
-    state_labels = list(np.unique(states_str))
-
-    states = np.zeros(n_states)
-    for i, state in enumerate(state_labels):
-        for j in np.arange(n_states):
-            if state == states_str[j]:
-                states[j] = i
-
-    return states.astype(int), state_labels
+    labels, states = np.unique(states_str, return_inverse=True)
+    return states.reshape(-1).astype(int), list(labels)
 
 
-def expm(A):
-    """This function computes the matrix exponential using eigen decomposition as per the Spectral Mapping Theorem
+def expm(A: npt.ArrayLike) -> npt.NDArray[np.float64]:
+    """Compute the matrix exponential by eigendecomposition (spectral mapping theorem), keeping the real part.
 
-    Args:
-        A: matrix to exponentiate
+    Parameters
+    ----------
+    A : (N, N) array_like
+        Matrix to exponentiate; it must be diagonalisable.
 
-    Returns:
-        eA: the matrix exponential
+    Returns
+    -------
+    eA : (N, N) ndarray
+        The real part of ``V diag(exp(w)) V^-1``, where A = V diag(w) V^-1.
     """
-
-    A_eig = np.linalg.eig(A)  # get eigenvalues and eigenvectors of A
-    eA = np.diag(np.exp(A_eig[0]))  # put exponentiated eigenvalues on diagonal of a matrix
-    eA = np.matmul(A_eig[1], eA)  # multiply by eigenvectors
-    eA = np.matmul(eA, np.linalg.inv(A_eig[1]))  # multiple by inverse of eigenvectors
-    eA = np.real(eA)  # retain real components
-
-    return eA
+    w, V = np.linalg.eig(np.asarray(A))
+    return np.real(V @ np.diag(np.exp(w)) @ np.linalg.inv(V))

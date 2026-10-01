@@ -25,6 +25,12 @@
   (within 3e-15 relative). Discrete `ave_control` and `modal_control` on lower-precision (e.g.
   float32) matrices previously computed and returned float32. They now return float64 (for
   `modal_control`, values move by up to ~3e-4 relative, float32's own precision).
+- `matrix_normalization` also computes in float64. Results for float64, integer and Boolean input
+  are unchanged, bit for bit. A float32 matrix previously had its spectral radius computed in
+  single precision (and, for discrete time, a float32 result). It now gets a float64 result,
+  which moves values by up to ~5e-8 relative.
+- `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
+  `UnboundLocalError`.
 
 ### Fixed
 
@@ -32,15 +38,23 @@
   `get_control_inputs`, `sim_state_eq` and `minimum_energy_fast`. Previously they were not
   converted to floats, so `get_control_inputs` raised `TypeError` in discrete time, and with
   `xr='midpoint'` in continuous time.
+- `get_fdr_p` accepts p-values of any shape and returns them corrected in that shape. Previously
+  input with more than two dimensions failed with an `AssertionError`. 1-D and 2-D results are
+  unchanged.
+- Importing `nctpy.utils` on Python 3.12 or later no longer emits `SyntaxWarning: invalid escape
+  sequence '\m'` (from `get_p_val_string`'s labels, which are unchanged).
 
 ### Added
 
-- Type annotations for `nctpy.energies` and `nctpy.metrics`, and a `py.typed` marker so type
-  checkers use them. Other modules are annotated in later releases.
+- Type annotations for `nctpy.energies`, `nctpy.metrics` and `nctpy.utils`, and a `py.typed`
+  marker so type checkers use them. Other modules are annotated in later releases.
 
 ### Documentation
 
 - The `nctpy.metrics` docstrings use numpydoc format and state each metric's formula.
+- The `nctpy.utils` docstrings use numpydoc format. `matrix_normalization` documents its formula
+  and `l`, including that an `l` below the matrix's own spectral radius forfeits the stability
+  guarantee (nothing checks this, and an unstable system still returns values).
 - The `nctpy.energies` docstrings use numpydoc format and now state each function's return shapes,
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.

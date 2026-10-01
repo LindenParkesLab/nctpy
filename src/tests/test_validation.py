@@ -67,6 +67,15 @@ class TestSystem(unittest.TestCase):
                 with self.subTest(T=T, system=system):
                     self.assertRaisesExactly(message, gramian, self.A_c, T, system=system)
 
+    def test_matrix_normalization(self):
+        # utils points to its own docstring rather than to matrix_normalization's
+        for system, message in (
+            (None, MISSING.replace("matrix_normalization help", "function help")),
+            ("cont", INVALID),
+        ):
+            with self.subTest(system=system):
+                self.assertRaisesExactly(message, matrix_normalization, self.A, system=system)
+
     def test_ave_control(self):
         for system, message in ((None, MISSING), ("cont", INVALID)):
             with self.subTest(system=system):
