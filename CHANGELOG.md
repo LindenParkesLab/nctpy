@@ -112,6 +112,14 @@
 
 ### Added
 
+- `nctpy.utils.random_control_set(n_nodes, n_control_nodes, seed=0, baseline=0.0)` and
+  `mask_control_set(mask, baseline=0.0)` build partial control sets (B).
+  - `random_control_set` draws its control nodes at random. The same seed gives the same nodes as in
+    Kim et al. (2025), Fig. 3, but uses a local random generator, leaving numpy's global state
+    untouched.
+  - `mask_control_set` controls the nodes in a mask, e.g. one system's nodes,
+    `states == state_labels.index('Vis')`.
+  - `baseline` gives every other node a small control weight.
 - `nctpy.energies.minimum_energy_infinite(A_norm, B, xf, system)` and
   `average_energy_infinite(A_norm, B, system)`: control energy from the infinite-horizon
   controllability Gramian, which solves a Lyapunov equation instead of integrating numerically or

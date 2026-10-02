@@ -11,8 +11,10 @@ from nctpy.utils import (
     get_fdr_p,
     get_null_p,
     get_p_val_string,
+    mask_control_set,
     matrix_normalization,
     normalize_weights,
+    random_control_set,
 )
 
 
@@ -170,6 +172,55 @@ class TestDecay(unittest.TestCase):
     def test_keyword_only(self):
         with self.assertRaises(TypeError):
             matrix_normalization(self.connectomes["undirected"], "continuous", 1, None, False, self.decay)
+
+
+class TestControlSets(unittest.TestCase):
+    def test_random_control_set(self):
+        for n, k in ((43, 5), (400, 124)):
+            for seed in (0, 7):
+                with self.subTest(n=n, k=k, seed=seed):
+                    B = random_control_set(n, k, seed=seed)
+                    self.assertEqual(B.shape, (n, n))
+                    np.testing.assert_array_equal(B, np.diag(np.diag(B)))
+                    self.assertEqual(np.count_nonzero(B), k)
+                    np.testing.assert_array_equal(random_control_set(n, k, seed=seed), B)
+        self.assertFalse(np.array_equal(random_control_set(400, 124, seed=0), random_control_set(400, 124, seed=1)))
+
+    def test_random_control_set_matches_seeding_numpy_globally(self):
+        # the same seed draws the same control nodes as np.random.seed(seed); np.random.choice(...), which is how
+        # the control sets of Kim et al. (2025) were drawn, without touching numpy's global state
+        saved = np.random.get_state()
+        try:
+            for seed in range(5):
+                np.random.seed(seed)
+                expected = np.sort(np.random.choice(np.arange(400), size=64, replace=False))
+                np.random.seed(12345)
+                before = np.random.get_state()[1].copy()
+                got = np.flatnonzero(np.diag(random_control_set(400, 64, seed=seed)))
+                np.testing.assert_array_equal(got, expected)
+                np.testing.assert_array_equal(np.random.get_state()[1], before)
+        finally:
+            np.random.set_state(saved)
+
+    def test_baseline(self):
+        B = random_control_set(50, 10, seed=3, baseline=1e-5)
+        weights = np.diag(B)
+        self.assertEqual(np.sum(weights == 1), 10)
+        self.assertTrue(np.all(weights[weights != 1] == 1e-5))
+
+    def test_mask_control_set(self):
+        mask = np.array([True, False, True, False])
+        np.testing.assert_array_equal(mask_control_set(mask), np.diag([1.0, 0.0, 1.0, 0.0]))
+        np.testing.assert_array_equal(mask_control_set(mask.astype(int)), mask_control_set(mask))
+        np.testing.assert_array_equal(mask_control_set(mask, baseline=1e-3), np.diag([1.0, 1e-3, 1.0, 1e-3]))
+        states, labels = convert_states_str2int(["Vis", "Vis", "Default", "Default"])
+        np.testing.assert_array_equal(mask_control_set(states == labels.index("Vis")), np.diag([1.0, 1.0, 0.0, 0.0]))
+
+    def test_invalid_input_raises(self):
+        with self.assertRaisesRegex(ValueError, "one-dimensional"):
+            mask_control_set(np.ones((4, 4), dtype=bool))
+        with self.assertRaises(ValueError):
+            random_control_set(10, 11)
 
 
 class TestStates(unittest.TestCase):

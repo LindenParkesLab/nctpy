@@ -176,6 +176,60 @@ def normalize_weights(x: npt.ArrayLike, rank: bool = True, add_constant: bool = 
     return w
 
 
+def mask_control_set(mask: npt.ArrayLike, baseline: float = 0.0) -> npt.NDArray[np.float64]:
+    """Build a control set (B) from a mask of control nodes.
+
+    Parameters
+    ----------
+    mask : (N,) array_like
+        Which nodes are control nodes: nonzero (or True) entries. For example, the nodes of one system,
+        ``states == state_labels.index('Vis')`` with the output of :func:`convert_states_str2int`.
+    baseline : float, default 0.0
+        Control weight given to every other node. With the default, only the masked nodes receive input; a small
+        positive value (e.g. 1e-5) gives every node a little control, which can help numerically.
+
+    Returns
+    -------
+    B : (N, N) ndarray
+        Diagonal control matrix: 1 for control nodes, `baseline` elsewhere.
+    """
+    mask = np.asarray(mask)
+    if mask.ndim != 1:
+        raise ValueError(f"mask must be one-dimensional, with one entry per node; got shape {mask.shape}")
+    return np.diag(np.where(mask != 0, 1.0, float(baseline)))
+
+
+def random_control_set(
+    n_nodes: int, n_control_nodes: int, seed: int = 0, baseline: float = 0.0
+) -> npt.NDArray[np.float64]:
+    """Build a random partial control set: `n_control_nodes` control nodes drawn uniformly without replacement.
+
+    Kim et al. (Nat Commun 2025, Fig. 3) used 20 such sets per size (seeds 0-19). The same seed gives the same
+    control nodes as in that work. The draw uses a local random generator, so numpy's global random state is left
+    untouched.
+
+    Parameters
+    ----------
+    n_nodes : int
+        Number of nodes in the system.
+    n_control_nodes : int
+        Number of control nodes, at most n_nodes.
+    seed : int, default 0
+        Seed for the draw.
+    baseline : float, default 0.0
+        Control weight given to every other node (see :func:`mask_control_set`).
+
+    Returns
+    -------
+    B : (n_nodes, n_nodes) ndarray
+        Diagonal control matrix: 1 for control nodes, `baseline` elsewhere.
+    """
+    control_nodes = np.random.RandomState(seed).choice(np.arange(n_nodes), size=n_control_nodes, replace=False)
+    mask = np.zeros(n_nodes, dtype=bool)
+    mask[control_nodes] = True
+    return mask_control_set(mask, baseline=baseline)
+
+
 def get_null_p(x: Any, null: npt.ArrayLike, version: str = "standard", abs: bool = False) -> float:
     """Compute a p-value from an empirical null distribution.
 

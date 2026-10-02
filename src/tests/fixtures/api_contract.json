@@ -497,6 +497,55 @@
     },
     {
       "module": "nctpy.utils",
+      "name": "mask_control_set",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "mask",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "baseline",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
+      "name": "random_control_set",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "n_nodes",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "n_control_nodes",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "seed",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0
+          }
+        },
+        {
+          "name": "baseline",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.utils",
       "name": "get_null_p",
       "tier": "contract",
       "sources": [
