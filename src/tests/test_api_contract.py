@@ -104,6 +104,19 @@ class TestImportPaths(unittest.TestCase):
                 self.assertEqual(public - recorded, set(),
                                  'public symbols missing from api_contract.json; run make_api_contract.py')
 
+    def test_null_models_under_nctpy(self):
+        # both paths ship (Roadmap 2.7): the top-level one the paper prints, and nctpy.null_models, which
+        # re-exports the same objects, so the contract's signatures cover both
+        import null_models.geomsurr as top_level
+        from nctpy.null_models import geomsurr as within_nctpy
+        public = {s['name'] for s in CONTRACT if s['module'] == 'null_models.geomsurr'}
+        self.assertEqual(set(within_nctpy.__all__), public)
+        for name in public:
+            with self.subTest(name=name):
+                self.assertIs(getattr(within_nctpy, name), getattr(top_level, name))
+        from nctpy.null_models.geomsurr import geomsurr  # the paper's import, under nctpy
+        self.assertIs(geomsurr, top_level.geomsurr)
+
 
 class TestOptionalDependencies(unittest.TestCase):
     """The plotting dependencies are an optional extra (nctpy[plot]); everything else must work without them."""
@@ -123,6 +136,7 @@ class TestOptionalDependencies(unittest.TestCase):
 
             sys.meta_path.insert(0, Block())
             import nctpy.energies, nctpy.metrics, nctpy.pipelines, nctpy.utils, null_models.geomsurr
+            import nctpy.null_models.geomsurr
             print('core imported')
             try:
                 import nctpy.plotting

@@ -82,6 +82,9 @@
 
 ### Added
 
+- `nctpy.null_models`: the null models are also importable from within nctpy, e.g.
+  `from nctpy.null_models.geomsurr import geomsurr`. It re-exports the same functions as the
+  top-level `null_models` package, which the protocol paper imports from and which keeps working.
 - `matrix_normalization(..., zero_diagonal=False)`: a keyword-only option that sets the diagonal of
   a copy of `A` to zero before normalising. The model assumes no self-connections: each node's own
   dynamics come from the normalisation, not from `diag(A)`. nctpy still never removes
