@@ -844,6 +844,182 @@
       ]
     },
     {
+      "module": "nctpy.optimize",
+      "name": "DecayRateFit",
+      "tier": "public-unlisted",
+      "kind": "class",
+      "params": [
+        {
+          "name": "decay",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "w",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "loss",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "max_eigenvalue",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "n_steps_run",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "stopped_early",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        }
+      ],
+      "methods": {}
+    },
+    {
+      "module": "nctpy.optimize",
+      "name": "optimize_decay_rates",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "x0",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xf",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "T",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "B",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "S",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "rho",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "xr",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "xf"
+          }
+        },
+        {
+          "name": "c",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 1
+          }
+        },
+        {
+          "name": "zero_diagonal",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": true
+          }
+        },
+        {
+          "name": "init",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "one"
+          }
+        },
+        {
+          "name": "n_steps",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 1000
+          }
+        },
+        {
+          "name": "lr",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 0.01
+          }
+        },
+        {
+          "name": "eig_weight",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 1.0
+          }
+        },
+        {
+          "name": "reg_weight",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": 0.0001
+          }
+        },
+        {
+          "name": "reg_type",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "l2"
+          }
+        },
+        {
+          "name": "eigenvalues",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "symmetric"
+          }
+        },
+        {
+          "name": "early_stopping",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": true
+          }
+        },
+        {
+          "name": "device",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "progress",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": true
+          }
+        }
+      ]
+    },
+    {
       "module": "null_models.geomsurr",
       "name": "rank_reorder",
       "tier": "public-unlisted",

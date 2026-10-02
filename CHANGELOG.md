@@ -112,6 +112,17 @@
 
 ### Added
 
+- **`nctpy.optimize.optimize_decay_rates`**: fits each node's decay rate (intrinsic neural timescale) for a state
+  transition, as in Kim et al., Nat Commun 16:11639 (2025). It takes the raw connectome, normalises it for continuous
+  time, and fits the decay rates by gradient descent (PyTorch). The aim is that the optimal trajectory passes through
+  the reference state at the midpoint, while every eigenvalue stays negative.
+  - The defaults are the paper's. By default it removes self-connections first (`zero_diagonal=True`), because the
+    method assumes a connectome without them.
+  - It returns a `DecayRateFit` with the fitted decay rates (in `matrix_normalization`'s `decay` convention), the
+    fitted matrix, and the training traces.
+  - On the paper's mouse connectome it reproduces the published fits to within 1e-15, and stops at the same step.
+  - It needs PyTorch: `pip install "nctpy[optimize]"`. Without it, importing `nctpy.optimize` raises an
+    `ImportError` that says so.
 - `nctpy.utils.random_control_set(n_nodes, n_control_nodes, seed=0, baseline=0.0)` and
   `mask_control_set(mask, baseline=0.0)` build partial control sets (B).
   - `random_control_set` draws its control nodes at random. The same seed gives the same nodes as in

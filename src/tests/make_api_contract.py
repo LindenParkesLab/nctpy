@@ -30,6 +30,7 @@ MODULES = {
     "nctpy.pipelines": "nctpy/pipelines.py",
     "nctpy.utils": "nctpy/utils.py",
     "nctpy.plotting": "nctpy/plotting.py",
+    "nctpy.optimize": "nctpy/optimize.py",
     "null_models.geomsurr": "null_models/geomsurr.py",
 }
 
@@ -123,7 +124,14 @@ def _symbols(module, path):
         else:
             entry["kind"] = "class"
             methods = {m.name: m for m in node.body if isinstance(m, ast.FunctionDef)}
-            entry["params"] = _params(methods["__init__"], skip_self=True)
+            if "__init__" in methods:
+                entry["params"] = _params(methods["__init__"], skip_self=True)
+            else:  # a dataclass: its constructor takes the annotated fields, in order
+                entry["params"] = [
+                    {"name": f.target.id, "kind": "POSITIONAL_OR_KEYWORD",
+                     **({"default": _default(f.value)} if f.value is not None else {})}
+                    for f in node.body if isinstance(f, ast.AnnAssign) and isinstance(f.target, ast.Name)
+                ]
             entry["methods"] = {name: _params(m, skip_self=True)
                                 for name, m in methods.items() if not name.startswith("_")}
         out.append(entry)

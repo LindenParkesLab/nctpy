@@ -35,13 +35,13 @@ LITERALS = (type(None), bool, int, float, str)
 
 
 def import_module(name):
-    """Import a contract module; nctpy.plotting is skipped when its optional dependencies are missing."""
-    if name != 'nctpy.plotting':
-        return importlib.import_module(name)
-    try:
-        import nilearn.datasets  # noqa: F401
-    except ImportError as exc:
-        raise unittest.SkipTest('plotting dependencies not installed: {0}'.format(exc))
+    """Import a contract module; modules with optional dependencies are skipped when those are missing."""
+    optional = {'nctpy.plotting': 'nilearn.datasets', 'nctpy.optimize': 'torch'}
+    if name in optional:
+        try:
+            importlib.import_module(optional[name])
+        except ImportError as exc:
+            raise unittest.SkipTest('optional dependencies of {0} not installed: {1}'.format(name, exc))
     return importlib.import_module(name)
 
 

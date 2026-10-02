@@ -70,6 +70,13 @@ To run the code printed in our Nature Protocols paper, which also uses pandas an
 
     pip install "nctpy[paper]"
 
+To fit nodes' decay rates with ``nctpy.optimize`` (Kim et al., Nature Communications 2025), which needs
+PyTorch:
+
+.. code-block:: bash
+
+    pip install "nctpy[optimize]"
+
 Questions
 ---------
 

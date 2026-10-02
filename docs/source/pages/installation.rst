@@ -23,6 +23,7 @@ This installs ``nctpy`` with its core dependencies (numpy, scipy, tqdm and stats
 
     pip install "nctpy[plot]"    # matplotlib, seaborn, nibabel, nilearn
     pip install "nctpy[paper]"   # the above plus pandas and scikit-learn, to run the protocol paper's code
+    pip install "nctpy[optimize]"   # PyTorch, for nctpy.optimize (fitting decay rates)
 
 GitHub installation
 ===================
