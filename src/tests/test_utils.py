@@ -1,4 +1,4 @@
-"""nctpy.utils (Roadmap 2.3b)."""
+"""nctpy.utils."""
 
 import unittest
 
@@ -68,7 +68,7 @@ class TestMatrixNormalization(unittest.TestCase):
 
 
 class TestZeroDiagonal(unittest.TestCase):
-    """matrix_normalization(..., zero_diagonal=True) applies the no-self-connections assumption (Roadmap 2.6c)."""
+    """matrix_normalization(..., zero_diagonal=True) applies the no-self-connections assumption."""
 
     def setUp(self):
         self.A = connectome()
@@ -112,7 +112,7 @@ class TestZeroDiagonal(unittest.TestCase):
 
 
 class TestDecay(unittest.TestCase):
-    """matrix_normalization(..., decay=) implements Kim et al. (2025), Eq. 4 (Roadmap 3.3, D1)."""
+    """matrix_normalization(..., decay=) implements Kim et al. (2025), Eq. 4."""
 
     def setUp(self):
         rng = np.random.default_rng(5)

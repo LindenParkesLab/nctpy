@@ -1,4 +1,4 @@
-"""Input validation (Roadmap 2.1).
+"""Input validation.
 
 Validation rejects input that does not define a problem, and nothing else: an ill-conditioned or
 incomplete control problem must still return its energies and error terms.
@@ -61,7 +61,7 @@ class TestSystem(unittest.TestCase):
                 self.assertRaisesExactly(message, sim_state_eq, self.A_c, np.eye(N), self.x0, U, system=system)
 
     def test_gramian(self):
-        # until 1.1.0 gramian returned None here (D19)
+        # until 1.1.0 gramian returned None here
         for T in (1, np.inf):
             for system, message in ((None, MISSING), ("cont", INVALID)):
                 with self.subTest(T=T, system=system):
@@ -83,7 +83,7 @@ class TestSystem(unittest.TestCase):
 
 
 class TestRho(unittest.TestCase):
-    """rho must be positive (decision D2); rho <= 0 used to return NaN with numpy warnings."""
+    """rho must be positive; rho <= 0 used to return NaN with numpy warnings."""
 
     def setUp(self):
         self.A, self.x0, self.xf = system_inputs()

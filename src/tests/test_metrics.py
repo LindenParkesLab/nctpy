@@ -1,4 +1,4 @@
-"""nctpy.metrics: input handling (Roadmap 2.3a).
+"""nctpy.metrics: input handling.
 
 The formulas themselves are checked against theory in test_properties.py and against stored values in
 test_regression.py.

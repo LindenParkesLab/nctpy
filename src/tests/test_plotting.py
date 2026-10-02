@@ -1,8 +1,8 @@
-"""Smoke tests for nctpy.plotting that need no data, with the non-interactive Agg backend (Roadmap 2.8).
+"""Smoke tests for nctpy.plotting that need no data, with the non-interactive Agg backend.
 
 surface_plot is drawn on nilearn's bundled fsaverage5 surface, using a synthetic parcellation
 written to a temporary FreeSurfer annotation file. It is checked with signed, non-integer data:
-nilearn >= 0.13 rejects both in plot_surf_roi, which surface_plot used to call (Roadmap D17).
+nilearn >= 0.13 rejects both in plot_surf_roi, which surface_plot used to call.
 """
 import os
 import tempfile
@@ -162,7 +162,7 @@ class TestOtherPlots(unittest.TestCase):
         self.assertEqual((vmin, vmax), (0, 30))
 
     def test_roi_to_vtx_unlabelled_vertices_are_background(self):
-        # a black colour-table entry reads back as -1 (unlabelled); those vertices stay 0 (D22). Until 1.1 they took
+        # a black colour-table entry reads back as -1 (unlabelled); those vertices stay 0. Until 1.1 they took
         # roi_data[-2], the second-to-last parcel's value
         import nibabel as nib
         from nctpy.plotting import roi_to_vtx

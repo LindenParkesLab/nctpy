@@ -4,7 +4,7 @@ Usage, after `pytest --cov=nctpy --cov=null_models --cov-branch --cov-report=jso
 
     python check_coverage.py coverage.json
 
-The baseline is a floor (Roadmap 0.8): a change may raise coverage but must not lower it. The
+The baseline is a floor: a change may raise coverage but must not lower it. The
 "public" figures are the ones CI can reach, since tests that need the paper's data skip there.
 """
 

@@ -1,4 +1,4 @@
-"""nctpy.pipelines (Roadmap 2.4): the wrapper classes do what the direct calls do, in task order."""
+"""nctpy.pipelines: the wrapper classes do what the direct calls do, in task order."""
 
 import contextlib
 import io
@@ -50,7 +50,7 @@ def quietly(fn):
 
 
 class TestComputeControlEnergy(unittest.TestCase):
-    """Tasks sharing a system are solved together (Roadmap 2.6b, D21).
+    """Tasks sharing a system are solved together.
 
     A transition that completes agrees with a direct call to rounding; one that does not complete is solved again
     on its own, so it equals the direct call exactly.
@@ -144,7 +144,7 @@ class TestComputeOptimizedControlEnergy(unittest.TestCase):
 
     def test_first_step(self):
         # one step from B = I: the gradient is estimated by adding 0.1 to each weight, then rescaled to ||I||.
-        # Every energy uses the task's xr, if it has one (D20; until 2.4b the class always used 'zero').
+        # Every energy uses the task's xr, if it has one (until 1.1 the class always used 'zero').
         A = connectome()
         A_norm = matrix_normalization(A, system="continuous")
         for extra in ({}, {"xr": "xf"}, {"xr": "midpoint"}):

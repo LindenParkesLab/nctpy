@@ -12,7 +12,7 @@ each listed next to the block and each required to match exactly as many times a
   placeholder file names) and cut the SI's 5000 null-model permutations to a few.
 
 The checks are: every block runs; outputs have the printed shape and type; the paper's own error
-threshold holds; and printed values are reproduced to within 1% (decision D5). Error terms are
+threshold holds; and printed values are reproduced to within 1%. Error terms are
 never matched, only thresholded: they are rounding noise.
 
 The main-text chain (imports, Procedure 1 steps 1-6, Box 1, Procedure 2) runs once and is shared.
@@ -34,7 +34,7 @@ import numpy as np  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 DATADIR = REPO / 'data'
 ANNOT_DIR = DATADIR / 'schaefer_parc' / 'fsaverage5'
-REL = 0.01  # D5: printed values are sanity checks at 1% relative
+REL = 0.01  # printed values are sanity checks at 1% relative
 THR = 1e-8  # the paper's threshold for both error terms
 
 
@@ -355,7 +355,7 @@ class TestMainText(PaperTestCase):
         self.assertEqual([str(s) for s in self.ns['system_labels'][:20]], PRINTED_FIRST_20_LABELS)
         state_labels = self.ns['state_labels']
         self.assertIsInstance(state_labels, list)
-        # values, not repr: numpy >= 2 prints np.str_('Cont') (D11, accepted as cosmetic)
+        # values, not repr: numpy >= 2 prints np.str_('Cont') (accepted as cosmetic)
         self.assertEqual([str(s) for s in state_labels], PRINTED_STATE_LABELS)
         states = self.ns['states']
         self.assertIsInstance(states, np.ndarray)

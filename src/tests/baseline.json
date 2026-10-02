@@ -1,5 +1,5 @@
 {
- "description": "Baseline test coverage and runtime before any refactor (Roadmap 0.8). Coverage is a floor: later changes must not lower it. \"public\" is what CI without the paper's data measures (test_paper_code.py and test_notebooks.py skip); \"local\" includes them. Coverage is line + branch (coverage.py percent_covered). The notebook tests run in a separate kernel process, which coverage does not follow, so they add runtime but not coverage.",
+ "description": "Baseline test coverage and runtime before any refactor. Coverage is a floor: later changes must not lower it. \"public\" is what CI without the paper's data measures (test_paper_code.py and test_notebooks.py skip); \"local\" includes them. Coverage is line + branch (coverage.py percent_covered). The notebook tests run in a separate kernel process, which coverage does not follow, so they add runtime but not coverage.",
  "measured": "2026-09-27",
  "nctpy_commit": "62394620b67ab524bb22320599c20da0b251b99f",
  "environment": {

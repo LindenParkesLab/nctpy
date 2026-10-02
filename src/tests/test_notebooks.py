@@ -1,4 +1,4 @@
-"""Notebook test: the notebooks in scripts/ execute (Roadmap 0.7).
+"""Notebook test: the notebooks in scripts/ execute.
 
 Each notebook is run top to bottom with nbclient, from scripts/, so its projdir (the parent of the
 working directory) is this checkout. The files are not modified; before running, a few listed

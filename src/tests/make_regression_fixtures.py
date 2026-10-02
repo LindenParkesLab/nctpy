@@ -1,4 +1,4 @@
-"""Generate the regression fixtures in fixtures/regression/ (Roadmap 0.4; see docs TESTING section 3).
+"""Generate the regression fixtures in fixtures/regression/.
 
 The fixtures are a drift alarm, not the definition of correct: they record what nctpy returns
 today so that any later change to a result must be noticed and explained. Floating-point drift
@@ -19,11 +19,10 @@ Contents:
 Control tasks: the full grid (system x c x T x rho x S x xr x states x B x expm_version) has
 over 20,000 cells per connectome, so a seeded greedy covering design is used instead, in which
 every pair of parameter values appears in at least one cell. The same design is applied to every
-connectome. rho=0 is recorded in separate cells: it currently returns NaN (decision D2 will turn
-it into a ValueError). Cells that raise are recorded with the exception type and message.
+connectome. rho=0 is recorded in separate cells: get_control_inputs raises ValueError for it. Cells that raise are recorded with the exception type and message.
 
 Run from src/tests. Regenerating replaces every fixture and the manifest; do it only for a
-documented reason, with sign-off (TESTING.md, "Regenerating fixtures"):
+documented reason (which values moved, by how much, and why), with a maintainer's sign-off:
 
     python make_regression_fixtures.py
 """

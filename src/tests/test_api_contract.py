@@ -99,7 +99,7 @@ class TestImportPaths(unittest.TestCase):
                                  'public symbols missing from api_contract.json; run make_api_contract.py')
 
     def test_null_models_under_nctpy(self):
-        # both paths ship (Roadmap 2.7): the top-level one the paper prints, and nctpy.null_models, which
+        # both paths ship: the top-level one the paper prints, and nctpy.null_models, which
         # re-exports the same objects, so the contract's signatures cover both
         import null_models.geomsurr as top_level
         from nctpy.null_models import geomsurr as within_nctpy

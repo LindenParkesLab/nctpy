@@ -1,4 +1,4 @@
-"""Property tests: mathematical facts the package's outputs must satisfy (Roadmap 0.6).
+"""Property tests: mathematical facts the package's outputs must satisfy.
 
 Fixtures catch drift from what nctpy used to return; these catch errors that were always there.
 Each property below holds by theory. Where theory needs a condition, the test states it.
@@ -8,7 +8,7 @@ Each property below holds by theory. Where theory needs a condition, the test st
   solver trades trajectory cost against input cost, so input energy alone is not guaranteed to be
   monotone; those cases are not asserted here.
 - ave_control is the trace of the Gramian with input at node i alone (Gu et al.), i.e. the diagonal
-  of the Gramian of A^T (D15); for symmetric A, of A. modal_control reads the diagonal of a real Schur
+  of the Gramian of A^T; for symmetric A, of A. modal_control reads the diagonal of a real Schur
   decomposition, which is the eigendecomposition only for normal (e.g. symmetric) A, so its
   relabelling property is checked on symmetric A, and is a known failure for directed A.
 - sim_state_eq integrates continuous time with forward Euler steps of 0.001, so it agrees with
@@ -163,7 +163,7 @@ class TestRelabelling(PropertyTestCase):
 
     @unittest.expectedFailure
     def test_modal_control_permutes_for_directed_A(self):
-        # Known, documented limitation (Roadmap D15): modal_control reads the diagonal of a real Schur
+        # Known, documented limitation: modal_control reads the diagonal of a real Schur
         # decomposition, which is the eigendecomposition only for normal (e.g. symmetric) A. For directed A the
         # result depends on node order (~5e-4 relative here). Modal controllability is defined for undirected
         # connectomes.
@@ -174,7 +174,7 @@ class TestRelabelling(PropertyTestCase):
 
 
 class TestAverageControllability(PropertyTestCase):
-    """Average controllability of node i = trace of the Gramian with input at node i alone (Gu et al.; D15)."""
+    """Average controllability of node i = trace of the Gramian with input at node i alone (Gu et al.)."""
 
     def test_is_diagonal_of_the_gramian_of_A_transpose(self):
         for name, (A, A_c, A_d) in self.systems.items():

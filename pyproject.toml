@@ -72,7 +72,7 @@ select = ["E4", "E7", "E9", "F"]
 # Pre-existing violations, removed module by module in Phase 2 with the tests watching. Some are
 # behaviour-sensitive (e.g. utils.py's "unused" `from scipy import stats` loads the submodule that
 # `sp.stats` relies on on older SciPy), so they are not auto-fixed here. New code must pass.
-"src/nctpy/utils.py" = ["E741"]  # E741: `l` is a released, frozen parameter name (D4)
+"src/nctpy/utils.py" = ["E741"]  # E741: `l` is a released, frozen parameter name
 "src/tests/test_nctpy.py" = ["E741"]
 
 [tool.ruff.format]

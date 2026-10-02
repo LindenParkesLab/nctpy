@@ -1,8 +1,8 @@
-"""Regression test: recompute the fixtures in fixtures/regression/ and compare (Roadmap 0.5).
+"""Regression test: recompute the fixtures in fixtures/regression/ and compare.
 
 The fixtures are a drift alarm. make_regression_fixtures.build() recomputes every stored array in
 memory from the same seeded synthetic inputs, and each is compared against the stored copy with
-the tolerances decided under D12:
+these tolerances:
 
 - inputs (states, B and S diagonals, sampled indices, sim_state_eq's U): integer, string and
   boolean inputs exactly equal, float inputs within rtol 1e-12. Some inputs involve arithmetic
@@ -19,7 +19,7 @@ the tolerances decided under D12:
   utilities): rtol 1e-10, with an absolute floor of 1e-10 times the array's scale.
 
 A failure means something moved. Explain it: if it is floating-point drift, propose regenerating
-(TESTING.md, "Regenerating fixtures", with sign-off); if it is a behavioural change, the change
+(with a maintainer's sign-off); if it is a behavioural change, the change
 is wrong. TestManifest also fails if any fixture file is changed without regenerating the manifest.
 """
 import json
@@ -85,7 +85,7 @@ class TestManifest(unittest.TestCase):
             with self.subTest(file=name):
                 self.assertEqual(generator.content_sha256(REGRESSION / name), digest,
                                  '{0} changed without regenerating manifest.json '
-                                 '(run make_regression_fixtures.py; see TESTING.md)'.format(name))
+                                 '(run make_regression_fixtures.py)'.format(name))
 
 
 class TestRegression(unittest.TestCase):

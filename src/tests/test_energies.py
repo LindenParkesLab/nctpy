@@ -1,4 +1,4 @@
-"""nctpy.energies: input handling and the Gramian's branches (Roadmap 2.2).
+"""nctpy.energies: input handling and the Gramian's branches.
 
 States may be Boolean, integer or float, as 1-D vectors or (N, 1) columns: all are converted to float64 and
 give the same results. Array inputs are computed in float64 whatever their precision.
@@ -148,7 +148,7 @@ class TestGramian(unittest.TestCase):
 
 
 class TestReuseAcrossTransitions(unittest.TestCase):
-    """System-only work is reused between calls (Roadmap 2.5); results must not depend on call order."""
+    """System-only work is reused between calls; results must not depend on call order."""
 
     def setUp(self):
         rng = np.random.default_rng(3)
@@ -204,7 +204,7 @@ class TestReuseAcrossTransitions(unittest.TestCase):
 
 
 class TestBatchedCore(unittest.TestCase):
-    """get_control_inputs runs on a private core that solves k transitions of one system at once (Roadmap 2.6a)."""
+    """get_control_inputs runs on a private core that solves k transitions of one system at once."""
 
     def setUp(self):
         rng = np.random.default_rng(4)
