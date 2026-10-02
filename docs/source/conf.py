@@ -39,8 +39,8 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "Thumbs.db",
     ".DS_Store",
-    # The existing example notebooks are rendered through their .rst copies until each page is converted.
-    "pages/**/*.ipynb",
+    # The example notebooks are rendered through their .rst copies until each page is converted.
+    "pages/examples/*.ipynb",
 ]
 
 # -- Autodoc / autosummary ---------------------------------------------------------------------

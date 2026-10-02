@@ -179,6 +179,11 @@
   `null_models.geomsurr` functions use numpydoc format.
 - The documentation has an API reference covering every public function and class, generated from
   the docstrings. A test checks that it lists every public symbol.
+- The Getting started page is an executed notebook: its outputs and figures come from running the code
+  shown, on the same synthetic example as before. CI executes it (and every tutorial added later) with
+  `docs/execute_notebooks.py`, which also refreshes the committed outputs (`--write`). The example
+  matrix is directed, so its average controllability values change with `ave_control`'s move to
+  Gu et al.'s definition (above).
 
 ### Repository
 
