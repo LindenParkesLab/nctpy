@@ -235,10 +235,10 @@ class TestBatchedCore(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "x0 must be a single state"):
             get_control_inputs(A_c, 1, np.eye(N), self.X0, self.XF, system="continuous")
 
-    def test_unknown_xr_string_still_fails(self):
-        # an unknown reference-state string reaches numpy and fails there, as it always has
+    def test_unknown_xr_string_raises(self):
+        # until 1.1 an unknown reference-state string reached numpy and failed there with a TypeError
         A_c = matrix_normalization(connectome(), system="continuous")
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(ValueError, "xr must be 'zero', 'x0', 'xf', 'midpoint'"):
             get_control_inputs(A_c, 1, np.eye(N), self.X0[:, 0], self.XF[:, 0], system="continuous", xr="target")
 
 

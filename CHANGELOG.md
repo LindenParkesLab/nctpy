@@ -42,6 +42,9 @@
   was imported, so importing the module loaded the surface even if `surface_plot` was never called.
   Every call that passes `fsaverage` (as all code in the protocol paper does), by keyword or by
   position, behaves exactly as before.
+- `get_control_inputs` raises `ValueError` naming the options when `xr` is a string other than
+  `'zero'`, `'x0'`, `'xf'` or `'midpoint'` (so does `ComputeControlEnergy` for such a task).
+  Previously it failed inside numpy with a `TypeError` about ufunc loops.
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 

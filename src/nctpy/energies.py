@@ -194,7 +194,8 @@ def get_control_inputs(
     Exception
         If `system` is missing or not one of the two options, or if T < 2 in discrete time.
     ValueError
-        If rho is not positive.
+        If rho is not positive, if xr is a string other than the four options, or if x0, xf or xr hold more
+        than one state.
 
     Notes
     -----
@@ -239,6 +240,12 @@ def _reference(xr: npt.ArrayLike | str, x0: FloatArray, xf: FloatArray, n_nodes:
     return xr
 
 
+def _check_reference(XR: Any) -> None:
+    """Raise if the reference state is a string that _reference did not recognise."""
+    if isinstance(XR, str):
+        raise ValueError(f"xr must be 'zero', 'x0', 'xf', 'midpoint' or a state of shape (N,) or (N, 1); got {XR!r}")
+
+
 def _control_inputs(
     A_norm: FloatArray,
     T: float,
@@ -263,6 +270,7 @@ def _control_inputs(
         M, E, E_dt = _continuous_system(A_norm, T, B, S, rho, expm_version)  # Eq. 6, e^{MT}, e^{M DT}
 
         # Eq. 8: [x(t); p(t)] = e^{Mt} [x0; p0] + (e^{Mt} - I) ref_offset
+        _check_reference(XR)
         ref_input = np.concatenate((np.zeros((n_nodes, k)), 2 * np.dot(S, XR)), axis=0)
         ref_offset = np.linalg.solve(M, ref_input)
 
@@ -306,6 +314,7 @@ def _control_inputs(
     boundary = np.concatenate(
         (np.dot(A_norm, X0), np.zeros((n_nodes * (T - 2), k)), -XF, np.zeros((n_nodes * (T - 1), k))), axis=0
     )
+    _check_reference(XR)
     reference = np.concatenate((np.zeros((n_nodes * T, k)), np.tile(2 * np.dot(S, XR), (T - 1, 1))), axis=0)
     b = boundary - reference
 

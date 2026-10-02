@@ -107,7 +107,7 @@ class TestComputeControlEnergy(unittest.TestCase):
         self.assertMatchesDirectCalls(pipeline, A_norm, expected, "continuous", 1)
 
         tasks[4]["xr"] = "target"  # not a reference state: fails as a direct call does
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(ValueError, "xr must be"):
             quietly(ComputeControlEnergy(A=A, control_tasks=tasks, system="continuous").run)
 
     def test_xr_key_is_used(self):
