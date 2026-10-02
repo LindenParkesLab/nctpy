@@ -1,0 +1,21 @@
+/* Tighten the API summary tables: signatures are noise in an index you are scanning. */
+table.autosummary td:first-child {
+    white-space: nowrap;
+}
+
+/* Notebook figures are generated small and at high dpi for print; stop the theme upscaling them
+   into a blurry mess. */
+.cell_output img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Give stdout/stderr blocks a quieter treatment than code input. */
+.cell_output .output.stream {
+    font-size: 0.85em;
+}
+
+/* The landing page hero. */
+.bd-content h1 {
+    margin-bottom: 0.5rem;
+}

@@ -38,7 +38,16 @@ plot = ["matplotlib", "seaborn", "nibabel", "nilearn"]
 paper = ["nctpy[plot]", "pandas", "scikit-learn"]
 # nctpy.optimize (fitting decay rates; Kim et al. 2025)
 optimize = ["torch"]
-docs = ["sphinx", "sphinx-rtd-theme"]
+# building the documentation: the same toolchain as the lab's other packages (snaplab_tools)
+docs = [
+    "sphinx>=7.2",
+    "myst-nb>=1.1",
+    "pydata-sphinx-theme>=0.15",
+    "sphinx-copybutton>=0.5",
+    "sphinx-design>=0.6",
+    "ipykernel",
+    "jupyter-cache",
+]
 dev = ["nctpy[paper]", "pytest", "pytest-cov", "nbclient", "nbformat", "ipykernel", "pre-commit"]
 
 [project.urls]

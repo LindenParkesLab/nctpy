@@ -186,6 +186,9 @@
 
 ### Packaging
 
+- The documentation is built with pydata-sphinx-theme, MyST and myst-nb, matching the lab's other packages. The
+  `docs` extra installs that toolchain; `docs/requirements.txt` is gone, and Read the Docs and CI install
+  `nctpy[docs]` instead.
 - `packaging` is no longer a dependency. nctpy used it only to choose between `simps` and
   `simpson` on SciPy < 1.6, which cannot be installed on Python 3.10 or later. The core
   dependencies are now numpy, scipy, tqdm and statsmodels.
