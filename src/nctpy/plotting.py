@@ -1,3 +1,8 @@
+"""Figures used in the protocol paper: scatter plots, null distributions, cortical surfaces and module boundaries.
+
+Needs the optional plotting dependencies: ``pip install 'nctpy[plot]'``.
+"""
+
 import inspect
 
 import numpy as np
@@ -23,6 +28,16 @@ from nctpy.utils import get_p_val_string
 
 
 def set_plotting_params(format="png"):
+    """Set the matplotlib and seaborn style used for the protocol paper's figures.
+
+    Embeds TrueType fonts in PDF and PostScript output, keeps SVG text editable, sets the font size to 10 and
+    applies seaborn's ``"white"`` style. Changes matplotlib's global ``rcParams``.
+
+    Parameters
+    ----------
+    format : str, default "png"
+        Default file format for ``savefig`` (``rcParams["savefig.format"]``).
+    """
     plt.rcParams["pdf.fonttype"] = 42
     plt.rcParams["ps.fonttype"] = 42
     plt.rcParams["savefig.format"] = format
@@ -33,6 +48,33 @@ def set_plotting_params(format="png"):
 
 
 def reg_plot(x, y, xlabel, ylabel, ax, c="gray", annotate="pearson", regr_line=True, kde=True, fontsize=8):
+    """Scatter plot of ``y`` against ``x`` with a regression line, a density contour and a correlation.
+
+    Pairs in which either value is NaN are left out. If ``x`` and ``y`` are both square matrices (e.g. two
+    node-by-node matrices), their diagonals are left out too and the remaining entries are plotted against each
+    other.
+
+    Parameters
+    ----------
+    x, y : numpy.ndarray
+        Values to plot, both 1-D or both 2-D, of the same shape.
+    xlabel, ylabel : str
+        Axis labels.
+    ax : matplotlib.axes.Axes
+        Axes to draw on.
+    c : str or numpy.ndarray, default "gray"
+        A matplotlib colour for every point, or one value per point (same shape as ``x``), coloured with
+        ``viridis``.
+    annotate : {"pearson", "spearman", "both"} or tuple, default "pearson"
+        Text in the top-left corner: Pearson's r, Spearman's rho, or both, each with its p-value. A tuple
+        ``(coef, p)`` prints that coefficient and p-value instead. Anything else prints nothing.
+    regr_line : bool, default True
+        Draw a linear regression line with its confidence band.
+    kde : bool, default True
+        Draw a kernel density contour behind the points.
+    fontsize : float, default 8
+        Font size of the annotation.
+    """
     if len(x.shape) > 1 and len(y.shape) > 1:
         if x.shape[0] == x.shape[1] and y.shape[0] == y.shape[1]:
             mask_x = ~np.eye(x.shape[0], dtype=bool) * ~np.isnan(x)
@@ -115,6 +157,22 @@ def reg_plot(x, y, xlabel, ylabel, ax, c="gray", annotate="pearson", regr_line=T
 
 
 def null_plot(observed, null, xlabel, ax, p_val=None):
+    """Histogram of a null distribution, with the observed value marked.
+
+    Parameters
+    ----------
+    observed : float
+        Observed value of the statistic, drawn as a vertical line and labelled (rounded to an integer).
+    null : numpy.ndarray
+        Values of the statistic under the null, e.g. one per surrogate network.
+    xlabel : str
+        Label of the x-axis.
+    ax : matplotlib.axes.Axes
+        Axes to draw on.
+    p_val : float, optional
+        p-value to print next to the observed value, e.g. from :func:`nctpy.utils.get_null_p`. Not printed if
+        it is None or 0.
+    """
     color_blue = sns.color_palette("Set1")[1]
     color_red = sns.color_palette("Set1")[0]
     sns.histplot(x=null, ax=ax, color="gray")
@@ -152,8 +210,21 @@ def roi_to_vtx(roi_data, annot_file):
     """Project one value per parcel onto the vertices of a FreeSurfer annotation.
 
     Parcel ``k`` (annotation label k >= 1) takes ``roi_data[k - 1]``. Vertices labelled 0 (e.g. the medial
-    wall) or -1 (unlabelled) are background and stay 0. Returns the vertex data and its minimum and maximum
-    (both 0 if the data are constant).
+    wall) or -1 (unlabelled) are background and stay 0.
+
+    Parameters
+    ----------
+    roi_data : numpy.ndarray
+        One value per parcel of the hemisphere, in the order of the annotation's labels.
+    annot_file : str or os.PathLike
+        FreeSurfer annotation file (``.annot``) for the hemisphere.
+
+    Returns
+    -------
+    vtx_data : numpy.ndarray
+        One value per vertex.
+    vtx_data_min, vtx_data_max : float
+        Minimum and maximum of ``vtx_data`` (both 0 if it is constant).
     """
     labels = nib.freesurfer.read_annot(annot_file)[0]
     vtx_data = np.zeros(labels.shape)
@@ -194,6 +265,33 @@ def _plot_surf_panel(surf_mesh, surf_map, bg_map, hemi, view, vmin, vmax, cmap, 
 
 
 def surface_plot(data, lh_annot_file, rh_annot_file, fsaverage=None, order="lr", cmap="viridis", cblim=None):
+    """Plot one value per parcel on the inflated cortical surface, in lateral and medial views of each hemisphere.
+
+    The first half of ``data`` is drawn on one hemisphere and the second half on the other, through
+    :func:`roi_to_vtx`. The figure is shown and returned.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        One value per parcel, for both hemispheres.
+    lh_annot_file, rh_annot_file : str or os.PathLike
+        FreeSurfer annotation files of the left and right hemispheres, on the mesh of ``fsaverage``.
+    fsaverage : dict-like, optional
+        Surface meshes and sulcal depth maps (``infl_left``, ``infl_right``, ``sulc_left``, ``sulc_right``), as
+        returned by :func:`nilearn.datasets.fetch_surf_fsaverage`. Defaults to fsaverage5, loaded when the plot
+        is drawn.
+    order : {"lr", "rl"}, default "lr"
+        Whether ``data`` lists the left hemisphere's parcels first ("lr") or the right's ("rl").
+    cmap : str, default "viridis"
+        Matplotlib colormap. With ``"coolwarm"`` the colour limits are symmetric about zero.
+    cblim : tuple of float, optional
+        Colour limits as ``(vmax, vmin)``. Default: the range of ``data`` (see ``cmap``).
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        A 2 x 2 grid of views with a colorbar.
+    """
     # fsaverage5 is loaded when the plot is drawn; until 1.1.0 the default was evaluated on importing nctpy.plotting
     if fsaverage is None:
         fsaverage = datasets.fetch_surf_fsaverage(mesh="fsaverage5")
@@ -247,7 +345,19 @@ def surface_plot(data, lh_annot_file, rh_annot_file, fsaverage=None, order="lr",
 
 
 def add_module_lines(modules, ax):
+    """Draw white boxes around the blocks of a matrix plot that belong to the same module.
 
+    For a node-by-node matrix whose rows and columns are sorted by module, each module's block on the diagonal
+    is outlined. Prints the modules found.
+
+    Parameters
+    ----------
+    modules : pandas.Series
+        Module (e.g. functional system) of each node, in the order of the matrix's rows; nodes of the same
+        module must be contiguous.
+    ax : matplotlib.axes.Axes
+        Axes holding the matrix plot, e.g. from :func:`seaborn.heatmap`.
+    """
     # get unqiue modules
     unique_modules = modules.unique()
     print(unique_modules)

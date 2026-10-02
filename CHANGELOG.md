@@ -175,6 +175,10 @@
 - The `nctpy.energies` docstrings use numpydoc format and now state each function's return shapes,
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.
+- The `nctpy.plotting` functions have docstrings, and `get_p_val_string`, `roi_to_vtx` and the
+  `null_models.geomsurr` functions use numpydoc format.
+- The documentation has an API reference covering every public function and class, generated from
+  the docstrings. A test checks that it lists every public symbol.
 
 ### Repository
 

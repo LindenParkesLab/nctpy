@@ -2,11 +2,24 @@ import numpy as np
 
 
 def rank_reorder(x, scaffold):
-    """Helper function for geomsurr (see below).
+    """Reorder the values of ``x`` to have the same rank order as ``scaffold``. Helper for :func:`geomsurr`.
+
     Original authors: M Breakspear, J Roberts
     Translated to Python by Linden Parkes
 
     If you use this code, please cite the original publication: Roberts et al. (2016) NeuroImage 124:379-393.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Values to reorder.
+    scaffold : numpy.ndarray
+        Values whose rank order is copied, of the same length as ``x``.
+
+    Returns
+    -------
+    numpy.ndarray
+        The values of ``x``, placed so that the k-th smallest sits where the k-th smallest of ``scaffold`` is.
     """
 
     # reorder vector x to have same rank order as vector scaffold
@@ -21,11 +34,29 @@ def rank_reorder(x, scaffold):
 
 
 def strength_correct(W, ss, nreps=9):
-    """Helper function for geomsurr (see below).
+    """Rescale a symmetric weighted network towards a given strength sequence. Helper for :func:`geomsurr`.
+
+    Each node's connections are rescaled to match its target strength, then the matrix is symmetrised again;
+    this is repeated ``nreps + 1`` times. Nodes without connections are left disconnected.
+
     Original authors: M Breakspear, J Roberts
     Translated to Python by Linden Parkes
 
     If you use this code, please cite the original publication: Roberts et al. (2016) NeuroImage 124:379-393.
+
+    Parameters
+    ----------
+    W : numpy.ndarray
+        Symmetric N x N adjacency matrix.
+    ss : numpy.ndarray
+        Target strength of each node, length N.
+    nreps : int, default 9
+        Number of repeats after the first rescaling.
+
+    Returns
+    -------
+    numpy.ndarray
+        Symmetric N x N adjacency matrix whose node strengths approximate ``ss``.
     """
 
     N = len(ss)
@@ -47,7 +78,8 @@ def strength_correct(W, ss, nreps=9):
 
 
 def geomsurr(W, D, nmean=3, nstd=2, seed=123):
-    """This function will generate a surrogate connectome that preserves nodes' spatial embedding.
+    """Generate surrogate connectomes that preserve nodes' spatial embedding.
+
     Note: Wsp and Wssp are generated assuming that W is undirected.
 
     geomsurr rewires the edges between pairs of nodes, so the surrogates it returns always have a zero
@@ -61,19 +93,28 @@ def geomsurr(W, D, nmean=3, nstd=2, seed=123):
 
     If you use this code, please cite the original publication: Roberts et al. (2016) NeuroImage 124:379-393.
 
-    Args:
-        W (NxN, numpy array): adjacency matrix to be rewired. Not modified.
-        D (NxN, numpy array): matrix of inter-nodal distance.
-        nmean (int): order parameter for mean.
-        nstd (int): order parameter for standard deviation.
-        seed (int): for random number generator. Only a local generator is used; numpy's global random state is
-            left untouched.
+    Parameters
+    ----------
+    W : numpy.ndarray
+        N x N adjacency matrix to be rewired. Not modified.
+    D : numpy.ndarray
+        N x N matrix of inter-nodal distance.
+    nmean : int, default 3
+        Order parameter for mean.
+    nstd : int, default 2
+        Order parameter for standard deviation.
+    seed : int, default 123
+        Seed for the random number generator. Only a local generator is used; numpy's global random state is
+        left untouched.
 
-    Returns:
-        Wwp (NxN, numpy array): adjacency matrix rewired while preserving space and edge distribution.
-        Wsp (NxN, numpy array): adjacency matrix rewired while preserving space and nodes' strength distribution.
-        Wssp (NxN, numpy array): adjacency matrix rewired while preserving space and nodes' strength sequence.
-
+    Returns
+    -------
+    Wwp : numpy.ndarray
+        N x N adjacency matrix rewired while preserving space and edge distribution.
+    Wsp : numpy.ndarray
+        N x N adjacency matrix rewired while preserving space and nodes' strength distribution.
+    Wssp : numpy.ndarray
+        N x N adjacency matrix rewired while preserving space and nodes' strength sequence.
     """
 
     # set state (local generator; draws the same sequence as np.random.seed(seed) did)

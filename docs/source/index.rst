@@ -16,5 +16,6 @@ Contents
     pages/theory/index
     pages/numerics/index
     pages/examples/index
+    api/index
     pages/references
 

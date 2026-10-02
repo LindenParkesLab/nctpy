@@ -48,15 +48,19 @@ autosummary_generate = True
 autodoc_default_options = {
     "members": True,
     "inherited-members": False,
-    "show-inheritance": True,
 }
 autodoc_typehints = "description"
+# Types come from the docstrings; annotations only add a type to a documented parameter that has none.
+autodoc_typehints_description_target = "documented"
 autodoc_member_order = "bysource"
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = True
+# The optional dependencies of nctpy.plotting ([plot]) and nctpy.optimize ([optimize]) are not part of the docs
+# install, so they are mocked: the API reference is built from the docstrings and never runs this code.
+autodoc_mock_imports = ["matplotlib", "nibabel", "nilearn", "seaborn", "torch"]
 
 # -- Intersphinx -------------------------------------------------------------------------------
 intersphinx_mapping = {

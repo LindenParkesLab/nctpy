@@ -98,7 +98,19 @@ def _decay_rates(decay: npt.ArrayLike, n_nodes: int) -> npt.NDArray[np.float64]:
 
 
 def get_p_val_string(p_val: float) -> str:
-    """Format a p-value for a matplotlib label: '-log10(p)>25' for 0, scientific below 0.05, else 3 decimals."""
+    """Format a p-value for a matplotlib label.
+
+    Parameters
+    ----------
+    p_val : float
+        The p-value.
+
+    Returns
+    -------
+    str
+        Mathtext: ``-log10(p)>25`` if ``p_val`` is 0, scientific notation (one significant figure) below 0.05,
+        and three decimals otherwise.
+    """
     if p_val == 0.0:
         return r"-log10($\mathit{p}$)>25"
     if p_val < 0.05:
