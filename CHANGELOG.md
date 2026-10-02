@@ -92,6 +92,10 @@
 
 ### Fixed
 
+- `nctpy.plotting.roi_to_vtx` (and so `surface_plot`) leaves unlabelled vertices (label -1 in a
+  FreeSurfer annotation) at 0, like label 0 (e.g. the medial wall). Previously they took the
+  second-to-last parcel's value. The Schaefer annotations used in the protocol paper have no
+  unlabelled vertices, so its figures are unchanged.
 - Boolean states given as `(N, 1)` columns now work like 1-D Boolean states in
   `get_control_inputs`, `sim_state_eq` and `minimum_energy_fast`. Previously they were not
   converted to floats, so `get_control_inputs` raised `TypeError` in discrete time, and with

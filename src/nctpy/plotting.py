@@ -149,19 +149,19 @@ def null_plot(observed, null, xlabel, ax, p_val=None):
 
 
 def roi_to_vtx(roi_data, annot_file):
-    labels, ctab, surf_names = nib.freesurfer.read_annot(annot_file)
+    """Project one value per parcel onto the vertices of a FreeSurfer annotation.
+
+    Parcel ``k`` (annotation label k >= 1) takes ``roi_data[k - 1]``. Vertices labelled 0 (e.g. the medial
+    wall) or -1 (unlabelled) are background and stay 0. Returns the vertex data and its minimum and maximum
+    (both 0 if the data are constant).
+    """
+    labels = nib.freesurfer.read_annot(annot_file)[0]
     vtx_data = np.zeros(labels.shape)
-
-    unique_labels = np.unique(labels)
-    if unique_labels[0] == 0:
-        unique_labels = unique_labels[1:]
-
-    for i in unique_labels:
+    for i in np.unique(labels[labels > 0]):
         vtx_data[labels == i] = roi_data[i - 1]
 
-    # get min/max for plottin
-    x = np.sort(np.unique(vtx_data))
-
+    # get min/max for plotting
+    x = np.unique(vtx_data)
     if x.shape[0] > 1:
         vtx_data_min = x[0]
         vtx_data_max = x[-1]

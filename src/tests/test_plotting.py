@@ -161,6 +161,21 @@ class TestOtherPlots(unittest.TestCase):
         np.testing.assert_array_equal(vtx, [0, 10, 10, 20, 30, 30, 0])
         self.assertEqual((vmin, vmax), (0, 30))
 
+    def test_roi_to_vtx_unlabelled_vertices_are_background(self):
+        # a black colour-table entry reads back as -1 (unlabelled); those vertices stay 0 (D22). Until 1.1 they took
+        # roi_data[-2], the second-to-last parcel's value
+        import nibabel as nib
+        from nctpy.plotting import roi_to_vtx
+        labels = np.array([0, 1, 1, 2, 3, 3, 0])
+        ctab = np.c_[np.arange(4) * 50, np.arange(4) * 40, np.arange(4) * 30, np.zeros(4, dtype=int)]  # row 0 black
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, 'lh.test.annot')
+            nib.freesurfer.write_annot(path, labels, ctab, ['unknown', 'a', 'b', 'c'], fill_ctab=True)
+            self.assertEqual(nib.freesurfer.read_annot(path)[0][0], -1)
+            vtx, vmin, vmax = roi_to_vtx(np.array([10.0, 20.0, 30.0]), path)
+        np.testing.assert_array_equal(vtx, [0, 10, 10, 20, 30, 30, 0])
+        self.assertEqual((vmin, vmax), (0, 30))
+
     def test_add_module_lines(self):
         try:
             import pandas as pd
