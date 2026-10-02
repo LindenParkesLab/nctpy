@@ -137,6 +137,14 @@
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.
 
+### Repository
+
+- The notebooks in `scripts/` run from any clone. They find the repository's root from their own
+  location instead of hard-coded paths. They use the installed nctpy (`pip install -e ".[paper]"`)
+  instead of adding `src/` to `sys.path`, and create `results/` if needed. A cell that plots saved
+  null models skips, with a message, when the nulls have not been computed. `scripts/README.md`
+  explains how to run them. On a machine that has the saved nulls, every cell runs as before.
+
 ### Packaging
 
 - `packaging` is no longer a dependency. nctpy used it only to choose between `simps` and

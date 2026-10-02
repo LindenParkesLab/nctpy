@@ -1,15 +1,15 @@
 """Notebook test: the notebooks in scripts/ execute (Roadmap 0.7).
 
-Each notebook is run top to bottom with nbclient. The files are not modified; before running, a
-few listed substitutions are made in memory, each required to match an exact number of times:
+Each notebook is run top to bottom with nbclient, from scripts/, so its projdir (the parent of the
+working directory) is this checkout. The files are not modified; before running, a few listed
+substitutions are made in memory, each required to match an exact number of times:
 
-- projdir: the notebooks set it from a hard-coded, per-user path; it is pointed at this checkout.
 - resultsdir: pointed at a temporary directory, so cached results in results/ are never overwritten.
 - the 5000-permutation null models are cut to 3, and every `run = False` becomes `run = True`, so
   cells that would load cached nulls from results/ compute them (quickly) instead.
 
-The kernel runs with this checkout's src/ first on PYTHONPATH. The notebooks append src/ to
-sys.path, which would otherwise let an installed copy of nctpy shadow this one.
+The notebooks import the installed nctpy; the kernel runs with this checkout's src/ first on
+PYTHONPATH, so they test this checkout.
 
 The notebooks read the paper's data from data/, which is not in the repository and may not be
 shared, so this test runs only where a local copy exists and skips everywhere else. It checks
@@ -41,10 +41,6 @@ REQUIRED_DATA = [
     ANNOT_DIR / 'rh.Schaefer2018_200Parcels_7Networks_order.annot',
 ]
 
-PROJDIR_BLOCK = ("if sys.platform == 'darwin' and username == 'lindenmp':\n"
-                 "    projdir = '/Users/lindenmp/Google-Drive-Personal/work/research_projects/nctpy'\n"
-                 "elif sys.platform == 'linux' and username == 'lindenmp':\n"
-                 "    projdir = '/home/lindenmp/research_projects/nctpy'\n")
 RESULTSDIR = "resultsdir = os.path.join(projdir, 'results')"
 
 
@@ -71,7 +67,6 @@ def run_notebook(test, filename, n_perms=0, n_run_flags=0):
     code_cells = [c for c in nb.cells if c.cell_type == 'code']
     with tempfile.TemporaryDirectory() as results:
         substitutions = [
-            (PROJDIR_BLOCK, 'projdir = {0!r}\n'.format(str(REPO)), 1),
             (RESULTSDIR, 'resultsdir = {0!r}'.format(results), 1),
             ('n_perms = 5000', 'n_perms = {0}'.format(N_PERMS), n_perms),
             ('run = False', 'run = True', n_run_flags),
