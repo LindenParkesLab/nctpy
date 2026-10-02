@@ -205,21 +205,9 @@ def get_control_inputs(
     A_norm, B = _as_float(A_norm), _as_float(B)
     n_nodes = A_norm.shape[0]
 
-    x0 = _column(_as_float(x0))
-    xf = _column(_as_float(xf))
-
-    if isinstance(xr, str):
-        if xr == "x0":
-            xr = x0
-        elif xr == "xf":
-            xr = xf
-        elif xr == "zero":
-            xr = np.zeros((n_nodes, 1))
-        elif xr == "midpoint":
-            xr = x0 + ((xf - x0) * 0.5)
-    else:
-        xr = _column(_as_float(xr))
-
+    X0 = _column(_as_float(x0))
+    XF = _column(_as_float(xf))
+    XR = _reference(xr, X0, XF, n_nodes)
     if isinstance(S, str):
         if S == "identity":
             S = np.eye(n_nodes)
@@ -228,12 +216,54 @@ def get_control_inputs(
 
     _check_system(system)
     _check_rho(rho)
+    for name, state in (("x0", X0), ("xf", XF), ("xr", XR)):
+        if not isinstance(state, str) and state.ndim == 2 and state.shape[1] != 1:
+            raise ValueError(f"{name} must be a single state, of shape (N,) or (N, 1); got shape {state.shape}")
+
+    x, u, err = _control_inputs(A_norm, T, B, X0, XF, XR, S, system, rho, expm_version)
+    return x[:, :, 0], u[:, :, 0], err[0]
+
+
+def _reference(xr: npt.ArrayLike | str, x0: FloatArray, xf: FloatArray, n_nodes: int) -> Any:
+    """The reference state as a column (or columns, for columns of states). An unknown string is returned as is."""
+    if not isinstance(xr, str):
+        return _column(_as_float(xr))
+    if xr == "x0":
+        return x0
+    if xr == "xf":
+        return xf
+    if xr == "zero":
+        return np.zeros((n_nodes, x0.shape[1]))
+    if xr == "midpoint":
+        return x0 + ((xf - x0) * 0.5)
+    return xr
+
+
+def _control_inputs(
+    A_norm: FloatArray,
+    T: float,
+    B: FloatArray,
+    X0: FloatArray,
+    XF: FloatArray,
+    XR: Any,
+    S: Any,
+    system: str | None,
+    rho: float,
+    expm_version: str,
+) -> tuple[FloatArray, FloatArray, list[list[np.floating[Any]]]]:
+    """Solve k transitions of one system at once: column j of X0, XF and XR is transition j.
+
+    Returns x and u as (n_t, N, k) arrays, time x nodes x transitions, and err as k pairs
+    [inversion error, reconstruction error]. With k = 1 this is exactly get_control_inputs.
+    """
+    _check_system(system)
+    _check_rho(rho)
+    n_nodes, k = X0.shape
     if system == "continuous":
-        xr, S = cast(FloatArray, xr), cast(FloatArray, S)
         M, E, E_dt = _continuous_system(A_norm, T, B, S, rho, expm_version)  # Eq. 6, e^{MT}, e^{M DT}
 
         # Eq. 8: [x(t); p(t)] = e^{Mt} [x0; p0] + (e^{Mt} - I) ref_offset
-        ref_input = np.concatenate((np.zeros((n_nodes, 1)), 2 * np.dot(S, xr)), axis=0)
+        ref_input = np.concatenate((np.zeros((n_nodes, k)), 2 * np.dot(S, XR)), axis=0)
         ref_offset = np.linalg.solve(M, ref_input)
 
         # Eq. 9: the top block row of E = e^{MT} maps [x0; p0] to x(T). Solve it for the initial costate p0.
@@ -241,56 +271,57 @@ def get_control_inputs(
         E11 = E[r, :][:, r]
         E12 = E[r, :][:, r + n_nodes]
         b1 = np.dot(np.concatenate((E11 - np.eye(n_nodes), E12), axis=1), ref_offset)
-        p0_rhs = xf - np.dot(E11, x0) - b1  # E12 p0 = xf - E11 x0 - b1
-        p0 = np.linalg.solve(E12, p0_rhs)
+        p0_rhs = XF - np.dot(E11, X0) - b1  # E12 p0 = xf - E11 x0 - b1
+        P0 = np.linalg.solve(E12, p0_rhs)
 
         # Integrate the state-costate system exactly over steps of DT, with E_dt = e^{M DT}
         n_steps = int(np.round(T / DT))
-        z = np.zeros((2 * n_nodes, n_steps + 1))
-        z[:, 0] = np.concatenate((x0, p0), axis=0).flatten()
-        offset_dt = np.dot((E_dt - np.eye(2 * n_nodes)), ref_offset).flatten()
-        for i in np.arange(1, n_steps + 1):
-            z[:, i] = np.dot(E_dt, z[:, i - 1]) + offset_dt
+        z = np.zeros((2 * n_nodes, n_steps + 1, k))  # [x; p] x time x transition, as before batching for k = 1
+        z[:, 0, :] = np.concatenate((X0, P0), axis=0)
+        offset_dt = np.dot((E_dt - np.eye(2 * n_nodes)), ref_offset)
+        # a single transition steps a (strided) vector, not a one-column matrix: BLAS rounds the two differently
+        steps, offset = (z[:, :, 0], offset_dt[:, 0]) if k == 1 else (z, offset_dt)
+        for i in range(1, n_steps + 1):
+            steps[:, i] = np.dot(E_dt, steps[:, i - 1]) + offset
 
-        # Extract state and input from the joint state-costate trajectory
-        x = z[r, :]
-        u = np.dot(-B.T, z[r + n_nodes, :]) / (2 * rho)
+        # Extract state and input from the joint state-costate trajectory, as time x nodes x transitions
+        x = z[:n_nodes].transpose(1, 0, 2)
+        u = np.dot(-B.T, z[n_nodes:].reshape(n_nodes, -1)) / (2 * rho)
+        u = u.reshape(n_nodes, n_steps + 1, k).transpose(1, 0, 2)
 
         # Collect error
-        err_costate = np.linalg.norm(np.dot(E12, p0) - p0_rhs)
-        err_xf = np.linalg.norm(x[:, -1].reshape(-1, 1) - xf)
-        err = [err_costate, err_xf]
+        costate_residual = np.dot(E12, P0) - p0_rhs
+        err = [
+            [np.linalg.norm(costate_residual[:, [j]]), np.linalg.norm(x[-1, :, j].reshape(-1, 1) - XF[:, [j]])]
+            for j in range(k)
+        ]
+        return x, u, err
 
-        return x.T, u.T, err
-    else:
-        if T <= 1:
-            raise Exception("Discrete time systems must have T >= 2")
-        T = cast(int, T)
-        xr, S = cast(FloatArray, xr), cast(FloatArray, S)
+    if T <= 1:
+        raise Exception("Discrete time systems must have T >= 2")
+    T = cast(int, T)
+    M_sparse, M_lu = _discrete_system(A_norm, T, B, S, rho)  # the system matrix and its LU
 
-        M_sparse, M_lu = _discrete_system(A_norm, T, B, S, rho)  # the system matrix and its LU
+    # Right-hand side: A x0 in the first state row, -xf in the last, -state_cost xr in every costate row
+    boundary = np.concatenate(
+        (np.dot(A_norm, X0), np.zeros((n_nodes * (T - 2), k)), -XF, np.zeros((n_nodes * (T - 1), k))), axis=0
+    )
+    reference = np.concatenate((np.zeros((n_nodes * T, k)), np.tile(2 * np.dot(S, XR), (T - 1, 1))), axis=0)
+    b = boundary - reference
 
-        # Right-hand side: A x0 in the first state row, -xf in the last, -state_cost xr in every costate row
-        boundary = np.concatenate(
-            (np.dot(A_norm, x0), np.zeros((n_nodes * (T - 2), 1)), -xf, np.zeros((n_nodes * (T - 1), 1))), axis=0
-        )
-        reference = np.concatenate((np.zeros((n_nodes * T, 1)), np.tile(2 * np.dot(S, xr), (T - 1, 1))), axis=0)
-        b = boundary - reference
-
-        # Solve simultaneous state and costate equations
-        b_sparse = sparse.csc_matrix(b)
-        v = M_lu.solve(b[:, 0])
+    # Solve the simultaneous state and costate equations, one transition at a time with the shared LU
+    xs, us, err = [], [], []
+    for j in range(k):
+        v = M_lu.solve(b[:, j])
         V = v.reshape((n_nodes, int(len(v) / n_nodes)), order="F")
-        x = np.concatenate((x0, V[:, : T - 1], xf), axis=1)
+        x = np.concatenate((X0[:, [j]], V[:, : T - 1], XF[:, [j]]), axis=1)
         u = np.dot(-B.T, V[:, T - 1 :]) / (2 * rho)
-
-        # Collect error
-        residual = np.dot(M_sparse, sparse.csc_matrix(np.expand_dims(v, axis=1))) - b_sparse
-        err_system = np.linalg.norm(residual.todense())
+        residual = np.dot(M_sparse, sparse.csc_matrix(np.expand_dims(v, axis=1))) - sparse.csc_matrix(b[:, [j]])
         err_traj = np.linalg.norm(x[:, 1:] - (np.dot(A_norm, x[:, 0:-1]) + np.dot(B, u)))
-        err = [err_system, err_traj]
-
-        return x.T, u.T, err
+        xs.append(x.T)
+        us.append(u.T)
+        err.append([np.linalg.norm(residual.todense()), err_traj])
+    return np.stack(xs, axis=2), np.stack(us, axis=2), err
 
 
 def integrate_u(u: npt.ArrayLike) -> FloatArray:

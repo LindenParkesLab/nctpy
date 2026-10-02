@@ -11,8 +11,15 @@ import unittest
 import numpy as np
 import scipy.linalg as la
 
-from nctpy.energies import get_control_inputs, gramian, minimum_energy_fast, sim_state_eq
-from nctpy.utils import matrix_normalization
+from nctpy.energies import (
+    _control_inputs,
+    _reference,
+    get_control_inputs,
+    gramian,
+    minimum_energy_fast,
+    sim_state_eq,
+)
+from nctpy.utils import matrix_normalization, normalize_state
 
 N = 8
 HORIZON = {"continuous": 1, "discrete": 4}
@@ -194,6 +201,45 @@ class TestReuseAcrossTransitions(unittest.TestCase):
                 # equal to rounding: BLAS multiplies a block of columns and a single column differently
                 single = minimum_energy_fast(A_c, 1, np.eye(N), x0, xf)
                 np.testing.assert_allclose(batched[:, [k]], single, rtol=1e-12, atol=1e-14 * np.abs(single).max())
+
+
+class TestBatchedCore(unittest.TestCase):
+    """get_control_inputs runs on a private core that solves k transitions of one system at once (Roadmap 2.6a)."""
+
+    def setUp(self):
+        rng = np.random.default_rng(4)
+        self.X0 = np.column_stack([normalize_state(rng.random(N)) for _ in range(5)])
+        self.XF = np.column_stack([normalize_state(rng.random(N)) for _ in range(5)])
+
+    def test_batch_matches_single_calls(self):
+        # agreement to rounding for transitions that complete (BLAS multiplies a block of columns and a single
+        # column differently, so batched results are not bit-identical)
+        for system, T in HORIZON.items():
+            for xr in ("zero", "midpoint"):
+                with self.subTest(system=system, xr=xr):
+                    A_norm = matrix_normalization(connectome(), system=system)
+                    XR = _reference(xr, self.X0, self.XF, N)
+                    x, u, err = _control_inputs(
+                        A_norm, T, np.eye(N), self.X0, self.XF, XR, np.eye(N), system, 1, "scipy"
+                    )
+                    for j in range(self.X0.shape[1]):
+                        xj, uj, errj = get_control_inputs(
+                            A_norm, T, np.eye(N), self.X0[:, j], self.XF[:, j], system=system, xr=xr
+                        )
+                        self.assertLess(max(errj), 1e-8)
+                        np.testing.assert_allclose(x[:, :, j], xj, rtol=1e-10, atol=1e-12)
+                        np.testing.assert_allclose(u[:, :, j], uj, rtol=1e-10, atol=1e-12)
+
+    def test_several_states_rejected(self):
+        A_c = matrix_normalization(connectome(), system="continuous")
+        with self.assertRaisesRegex(ValueError, "x0 must be a single state"):
+            get_control_inputs(A_c, 1, np.eye(N), self.X0, self.XF, system="continuous")
+
+    def test_unknown_xr_string_still_fails(self):
+        # an unknown reference-state string reaches numpy and fails there, as it always has
+        A_c = matrix_normalization(connectome(), system="continuous")
+        with self.assertRaises(TypeError):
+            get_control_inputs(A_c, 1, np.eye(N), self.X0[:, 0], self.XF[:, 0], system="continuous", xr="target")
 
 
 if __name__ == "__main__":

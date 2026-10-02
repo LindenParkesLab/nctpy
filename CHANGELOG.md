@@ -34,6 +34,9 @@
   Tasks without `'xr'` (including the one in the protocol paper's Supplementary Information) give
   unchanged results; tasks that set it now get energies and optimised weights for that reference
   state.
+- `get_control_inputs` given several states at once (e.g. `x0` of shape `(N, k)`) now raises a
+  `ValueError` saying it takes a single state. It already raised `ValueError`, from inside numpy,
+  with a message about broadcasting.
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 
