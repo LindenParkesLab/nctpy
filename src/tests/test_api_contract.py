@@ -24,7 +24,6 @@ import sys
 import textwrap
 import unittest
 from pathlib import Path
-from unittest import mock
 
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
@@ -36,19 +35,14 @@ LITERALS = (type(None), bool, int, float, str)
 
 
 def import_module(name):
-    """Import a contract module without touching the network.
-
-    nctpy.plotting evaluates datasets.fetch_surf_fsaverage() as a default argument when it is
-    imported, so the fetch is patched out. Printed code always passes fsaverage explicitly.
-    """
+    """Import a contract module; nctpy.plotting is skipped when its optional dependencies are missing."""
     if name != 'nctpy.plotting':
         return importlib.import_module(name)
     try:
         import nilearn.datasets  # noqa: F401
     except ImportError as exc:
         raise unittest.SkipTest('plotting dependencies not installed: {0}'.format(exc))
-    with mock.patch('nilearn.datasets.fetch_surf_fsaverage', return_value={}):
-        return importlib.import_module(name)
+    return importlib.import_module(name)
 
 
 def describe(params):

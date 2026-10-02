@@ -691,7 +691,7 @@
           "name": "fsaverage",
           "kind": "POSITIONAL_OR_KEYWORD",
           "default": {
-            "expr": "datasets.fetch_surf_fsaverage(mesh='fsaverage5')"
+            "value": null
           }
         },
         {

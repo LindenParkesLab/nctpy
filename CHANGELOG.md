@@ -37,6 +37,11 @@
 - `get_control_inputs` given several states at once (e.g. `x0` of shape `(N, k)`) now raises a
   `ValueError` saying it takes a single state. It already raised `ValueError`, from inside numpy,
   with a message about broadcasting.
+- `nctpy.plotting.surface_plot`'s `fsaverage` argument now defaults to `None`, meaning fsaverage5 is
+  loaded when the plot is drawn. Previously the default was evaluated once, when `nctpy.plotting`
+  was imported, so importing the module loaded the surface even if `surface_plot` was never called.
+  Every call that passes `fsaverage` (as all code in the protocol paper does), by keyword or by
+  position, behaves exactly as before.
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 
@@ -77,8 +82,9 @@
 - `get_fdr_p` accepts p-values of any shape and returns them corrected in that shape. Previously
   input with more than two dimensions failed with an `AssertionError`. 1-D and 2-D results are
   unchanged.
-- Importing `nctpy.utils` on Python 3.12 or later no longer emits `SyntaxWarning: invalid escape
-  sequence '\m'` (from `get_p_val_string`'s labels, which are unchanged).
+- Importing `nctpy.utils` or `nctpy.plotting` on Python 3.12 or later no longer emits
+  `SyntaxWarning: invalid escape sequence '\m'` (from the p-value and correlation labels, which are
+  unchanged).
 
 ### Added
 
