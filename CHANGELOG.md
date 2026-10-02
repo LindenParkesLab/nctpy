@@ -184,6 +184,9 @@
   `docs/execute_notebooks.py`, which also refreshes the committed outputs (`--write`). The example
   matrix is directed, so its average controllability values change with `ave_control`'s move to
   Gu et al.'s definition (above).
+- A Tutorials section, starting with the protocol workflow on a synthetic, spatially embedded
+  connectome: control energy for one transition (Procedures 1 and 2, Box 1), energies for every
+  pair of states with `ComputeControlEnergy`, and spatial null networks with `geomsurr`.
 
 ### Repository
 

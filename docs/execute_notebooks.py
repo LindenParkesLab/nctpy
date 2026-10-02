@@ -31,6 +31,8 @@ def main() -> int:
 
     # A forced backend (CI sets MPLBACKEND=Agg) stops the kernel's inline backend from emitting figures as outputs.
     os.environ.pop("MPLBACKEND", None)
+    # Progress bars print their timings, which would change the committed outputs on every run.
+    os.environ["TQDM_DISABLE"] = "1"
 
     failures = []
     for path in NOTEBOOKS:

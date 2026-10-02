@@ -13,6 +13,7 @@ Contents
 
     pages/installation
     pages/getting_started/index
+    tutorials/index
     pages/theory/index
     pages/numerics/index
     pages/examples/index
