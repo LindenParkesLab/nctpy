@@ -67,6 +67,50 @@ class TestMatrixNormalization(unittest.TestCase):
                 np.testing.assert_array_equal(got, matrix_normalization(A32.astype(np.float64), system=system))
 
 
+class TestZeroDiagonal(unittest.TestCase):
+    """matrix_normalization(..., zero_diagonal=True) applies the no-self-connections assumption (Roadmap 2.6c)."""
+
+    def setUp(self):
+        self.A = connectome()
+        np.fill_diagonal(self.A, np.arange(1, 11))  # self-connections, as in the protocol paper's PNC connectome
+
+    def test_default_keeps_the_diagonal(self):
+        for system in ("continuous", "discrete"):
+            with self.subTest(system=system):
+                np.testing.assert_array_equal(
+                    matrix_normalization(self.A, system=system, zero_diagonal=False),
+                    matrix_normalization(self.A, system=system),
+                )
+                self.assertFalse(
+                    np.array_equal(
+                        matrix_normalization(self.A, system=system),
+                        matrix_normalization(self.A, system=system, zero_diagonal=True),
+                    )
+                )
+
+    def test_equals_normalising_a_zero_diagonal_copy(self):
+        A0 = self.A.copy()
+        np.fill_diagonal(A0, 0)
+        for system in ("continuous", "discrete"):
+            for c, fixed in ((1, None), (0.5, None), (1, 7.0)):
+                with self.subTest(system=system, c=c, l=fixed):
+                    np.testing.assert_array_equal(
+                        matrix_normalization(self.A, system=system, c=c, l=fixed, zero_diagonal=True),
+                        matrix_normalization(A0, system=system, c=c, l=fixed),
+                    )
+
+    def test_input_not_modified(self):
+        for A in (self.A, self.A.astype(np.float32), self.A.round().astype(int)):
+            with self.subTest(dtype=A.dtype):
+                before = A.copy()
+                matrix_normalization(A, system="continuous", zero_diagonal=True)
+                np.testing.assert_array_equal(A, before)
+
+    def test_keyword_only(self):
+        with self.assertRaises(TypeError):
+            matrix_normalization(self.A, "continuous", 1, None, True)
+
+
 class TestStates(unittest.TestCase):
     def test_expand_states(self):
         states = np.array([0, 0, 1, 1, 2, 2])

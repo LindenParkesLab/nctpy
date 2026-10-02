@@ -11,7 +11,7 @@ from nctpy._validation import _check_system
 
 
 def matrix_normalization(
-    A: npt.ArrayLike, system: str | None = None, c: float = 1, l: float | None = None
+    A: npt.ArrayLike, system: str | None = None, c: float = 1, l: float | None = None, *, zero_diagonal: bool = False
 ) -> npt.NDArray[np.float64]:
     """Normalise a structural connectome A for modelling linear dynamics.
 
@@ -33,6 +33,12 @@ def matrix_normalization(
         The normalised system is guaranteed to be stable when c + l exceeds the spectral radius of A, which the
         default l always satisfies for c > 0. An l below A's own spectral radius forfeits that guarantee. No check
         is made: an unstable system still returns values.
+    zero_diagonal : bool, default False, keyword-only
+        Set the diagonal of (a copy of) A to zero before normalising. The model assumes A has no self-connections:
+        each node's own dynamics come from the normalisation (in continuous time, the ``- I`` term), not from
+        diag(A). A connectome with a non-zero diagonal is otherwise used as given; nctpy never removes
+        self-connections unless asked. The protocol paper's code uses the PNC connectome with its diagonal intact,
+        so the default stays False. The array passed in is never modified.
 
     Returns
     -------
@@ -47,6 +53,9 @@ def matrix_normalization(
     _check_system(system, see="function help")
     A = np.asarray(A)
     A = A.astype(np.result_type(A.dtype, np.float64), copy=False)
+    if zero_diagonal:
+        A = A.copy()
+        np.fill_diagonal(A, 0)
     if l is None:
         l = np.abs(np.linalg.eig(A)[0]).max()
     A_norm = A / (c + l)

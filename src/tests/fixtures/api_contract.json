@@ -351,6 +351,13 @@
           "default": {
             "value": null
           }
+        },
+        {
+          "name": "zero_diagonal",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": false
+          }
         }
       ]
     },

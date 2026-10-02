@@ -82,6 +82,12 @@
 
 ### Added
 
+- `matrix_normalization(..., zero_diagonal=False)`: a keyword-only option that sets the diagonal of
+  a copy of `A` to zero before normalising. The model assumes no self-connections: each node's own
+  dynamics come from the normalisation, not from `diag(A)`. nctpy still never removes
+  self-connections unless asked, and the default stays `False`. The protocol paper's code uses the
+  PNC connectome with its diagonal intact (Vis → Default energy 2604.71; with
+  `zero_diagonal=True`, 2638.03). The array passed in is never modified.
 - Type annotations for `nctpy.energies`, `nctpy.metrics`, `nctpy.utils` and `nctpy.pipelines`, and
   a `py.typed` marker so type checkers use them. Other modules are annotated in later releases.
 
