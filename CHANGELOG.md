@@ -112,6 +112,13 @@
 
 ### Added
 
+- `matrix_normalization(..., decay=None)`: a keyword-only decay rate per node for continuous-time
+  systems, implementing Kim et al. (2025), Eq. 4: `A / (c + l) - diag(decay)`. A larger decay
+  means stronger self-inhibition. A scalar applies to every node, and the default (`None`, or
+  `decay=1`) gives exactly today's `A / (c + l) - I`. Self-connections in `A` are kept, so
+  `zero_diagonal=True` removes them first if wanted. Passing `decay` for a discrete-time system,
+  or a vector without one value per node, raises `ValueError`. A value `v` reported in that
+  paper's Fig. 2B corresponds to `decay = 1 - v`.
 - `nctpy.null_models`: the null models are also importable from within nctpy, e.g.
   `from nctpy.null_models.geomsurr import geomsurr`. It re-exports the same functions as the
   top-level `null_models` package, which the protocol paper imports from and which keeps working.

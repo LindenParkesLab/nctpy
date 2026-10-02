@@ -111,6 +111,67 @@ class TestZeroDiagonal(unittest.TestCase):
             matrix_normalization(self.A, "continuous", 1, None, True)
 
 
+class TestDecay(unittest.TestCase):
+    """matrix_normalization(..., decay=) implements Kim et al. (2025), Eq. 4 (Roadmap 3.3, D1)."""
+
+    def setUp(self):
+        rng = np.random.default_rng(5)
+        n = 10
+        undirected = connectome(n)
+        directed = rng.random((n, n))
+        for A in (undirected, directed):
+            np.fill_diagonal(A, rng.uniform(1, 5, size=n))  # self-connections, as in the PNC connectome
+        self.connectomes = {"undirected": undirected, "directed": directed}
+        self.decay = rng.uniform(0.5, 2.5, size=n)
+
+    def test_default_is_unit_decay(self):
+        for name, A in self.connectomes.items():
+            with self.subTest(connectome=name):
+                default = matrix_normalization(A, system="continuous")
+                np.testing.assert_array_equal(matrix_normalization(A, system="continuous", decay=1), default)
+                np.testing.assert_array_equal(matrix_normalization(A, system="continuous", decay=np.ones(10)), default)
+
+    def test_decay_is_subtracted_and_self_connections_are_kept(self):
+        for name, A in self.connectomes.items():
+            for c, fixed in ((1, None), (0.5, 9.0)):
+                with self.subTest(connectome=name, c=c, l=fixed):
+                    scale = c + (spectral_radius(A) if fixed is None else fixed)
+                    A_norm = matrix_normalization(A, system="continuous", c=c, l=fixed, decay=self.decay)
+                    off = ~np.eye(10, dtype=bool)
+                    np.testing.assert_array_equal(A_norm[off], (A / scale)[off])
+                    np.testing.assert_allclose(np.diag(A_norm), np.diag(A) / scale - self.decay, rtol=1e-14)
+
+    def test_composes_with_zero_diagonal(self):
+        for name, A in self.connectomes.items():
+            with self.subTest(connectome=name):
+                A_norm = matrix_normalization(A, system="continuous", zero_diagonal=True, decay=self.decay)
+                np.testing.assert_array_equal(np.diag(A_norm), -self.decay)
+                A0 = A.copy()
+                np.fill_diagonal(A0, 0)
+                off = ~np.eye(10, dtype=bool)
+                np.testing.assert_array_equal(A_norm[off], matrix_normalization(A0, system="continuous")[off])
+
+    def test_uniform_decay_of_at_least_one_is_stable(self):
+        for name, A in self.connectomes.items():
+            for decay in (1, 1.5, 4):
+                with self.subTest(connectome=name, decay=decay):
+                    eigvals = np.linalg.eigvals(matrix_normalization(A, system="continuous", decay=decay))
+                    self.assertLess(eigvals.real.max(), 0)
+
+    def test_invalid_input_raises(self):
+        A = self.connectomes["undirected"]
+        with self.assertRaisesRegex(ValueError, "continuous-time systems only"):
+            matrix_normalization(A, system="discrete", decay=self.decay)
+        for bad in (np.ones(9), np.ones((10, 1)), np.ones((10, 10))):
+            with self.subTest(shape=bad.shape), self.assertRaisesRegex(ValueError, "one value per node"):
+                matrix_normalization(A, system="continuous", decay=bad)
+        matrix_normalization(A, system="discrete")  # decay=None is fine in discrete time
+
+    def test_keyword_only(self):
+        with self.assertRaises(TypeError):
+            matrix_normalization(self.connectomes["undirected"], "continuous", 1, None, False, self.decay)
+
+
 class TestStates(unittest.TestCase):
     def test_expand_states(self):
         states = np.array([0, 0, 1, 1, 2, 2])

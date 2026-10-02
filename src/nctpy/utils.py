@@ -11,12 +11,19 @@ from nctpy._validation import _check_system
 
 
 def matrix_normalization(
-    A: npt.ArrayLike, system: str | None = None, c: float = 1, l: float | None = None, *, zero_diagonal: bool = False
+    A: npt.ArrayLike,
+    system: str | None = None,
+    c: float = 1,
+    l: float | None = None,
+    *,
+    zero_diagonal: bool = False,
+    decay: npt.ArrayLike | None = None,
 ) -> npt.NDArray[np.float64]:
     """Normalise a structural connectome A for modelling linear dynamics.
 
-    ``A_norm = A / (c + l) - I`` for continuous-time systems and ``A_norm = A / (c + l)`` for discrete-time
-    systems, where by default l is the spectral radius of A (its largest absolute eigenvalue).
+    ``A_norm = A / (c + l) - diag(decay)`` for continuous-time systems (Kim et al., Nat Commun 2025, Eq. 4) and
+    ``A_norm = A / (c + l)`` for discrete-time systems. By default l is the spectral radius of A (its largest
+    absolute eigenvalue) and decay is 1 at every node, i.e. ``A / (c + l) - I``.
 
     Parameters
     ----------
@@ -39,6 +46,18 @@ def matrix_normalization(
         diag(A). A connectome with a non-zero diagonal is otherwise used as given; nctpy never removes
         self-connections unless asked. The protocol paper's code uses the PNC connectome with its diagonal intact,
         so the default stays False. The array passed in is never modified.
+    decay : float or (N,) array_like, optional, keyword-only
+        Continuous time only: the decay rate of each node, subtracted from the diagonal (Eq. 4), so a larger value
+        means stronger self-inhibition (dx_i/dt = -decay_i x_i + ...). A scalar applies to every node. The default,
+        None, is 1 at every node, as in the protocol paper. With the default l and c > 0, a uniform decay of at
+        least 1 keeps the system stable, as does decay >= 1 at every node for a symmetric A; smaller (or negative)
+        rates forfeit that guarantee.
+        Nothing is checked: an unstable system still returns values.
+
+        Without ``decay``, self-connections already make the effective decay rate non-uniform: node i's is
+        ``1 - A_ii / (c + l)``. Decay rates fitted by optimising them (Kim et al., 2025) assume a connectome without
+        self-connections, so that every node starts from the same baseline. A value v reported in that paper's
+        Fig. 2B corresponds to ``decay = 1 - v`` here: the fitted diagonal of A_norm is v - 1.
 
     Returns
     -------
@@ -49,8 +68,12 @@ def matrix_normalization(
     ------
     Exception
         If `system` is missing or not one of the two options.
+    ValueError
+        If `decay` is given for a discrete-time system, or is neither a scalar nor one value per node.
     """
     _check_system(system, see="function help")
+    if decay is not None and system == "discrete":
+        raise ValueError("decay applies to continuous-time systems only (Eq. 4); discrete-time normalisation has none")
     A = np.asarray(A)
     A = A.astype(np.result_type(A.dtype, np.float64), copy=False)
     if zero_diagonal:
@@ -60,8 +83,18 @@ def matrix_normalization(
         l = np.abs(np.linalg.eig(A)[0]).max()
     A_norm = A / (c + l)
     if system == "continuous":
-        A_norm = A_norm - np.eye(A.shape[0])
+        A_norm = A_norm - (np.eye(A.shape[0]) if decay is None else np.diag(_decay_rates(decay, A.shape[0])))
     return A_norm
+
+
+def _decay_rates(decay: npt.ArrayLike, n_nodes: int) -> npt.NDArray[np.float64]:
+    """decay as one float per node: a scalar is broadcast; anything else must have one value per node."""
+    rates = np.asarray(decay, dtype=float)
+    if rates.ndim == 0:
+        return np.full(n_nodes, float(rates))
+    if rates.shape != (n_nodes,):
+        raise ValueError(f"decay must be a scalar or have one value per node ({n_nodes},); got shape {rates.shape}")
+    return rates
 
 
 def get_p_val_string(p_val: float) -> str:

@@ -358,6 +358,13 @@
           "default": {
             "value": false
           }
+        },
+        {
+          "name": "decay",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": null
+          }
         }
       ]
     },
