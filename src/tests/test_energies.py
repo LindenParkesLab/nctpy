@@ -14,9 +14,11 @@ import scipy.linalg as la
 from nctpy.energies import (
     _control_inputs,
     _reference,
+    average_energy_infinite,
     get_control_inputs,
     gramian,
     minimum_energy_fast,
+    minimum_energy_infinite,
     sim_state_eq,
 )
 from nctpy.utils import matrix_normalization, normalize_state
@@ -240,6 +242,62 @@ class TestBatchedCore(unittest.TestCase):
         A_c = matrix_normalization(connectome(), system="continuous")
         with self.assertRaisesRegex(ValueError, "xr must be 'zero', 'x0', 'xf', 'midpoint'"):
             get_control_inputs(A_c, 1, np.eye(N), self.X0[:, 0], self.XF[:, 0], system="continuous", xr="target")
+
+
+class TestInfiniteHorizon(unittest.TestCase):
+    """Energies from the infinite-horizon controllability Gramian (Kim et al., Nat Commun 2025)."""
+
+    def setUp(self):
+        self.A = connectome()
+        self.A_c = matrix_normalization(self.A, system="continuous")
+        self.A_d = matrix_normalization(self.A, system="discrete")
+        rng = np.random.default_rng(6)
+        self.XF = np.column_stack([normalize_state(rng.random(N)) for _ in range(3)])
+
+    def test_average_is_the_sum_over_unit_targets(self):
+        for system, A_norm in (("continuous", self.A_c), ("discrete", self.A_d)):
+            with self.subTest(system=system):
+                energy, _ = minimum_energy_infinite(A_norm, np.eye(N), np.eye(N), system=system)
+                np.testing.assert_allclose(
+                    average_energy_infinite(A_norm, np.eye(N), system=system), np.trace(energy), rtol=1e-10
+                )
+
+    def test_limit_of_the_finite_horizon_energy(self):
+        # from x0 = 0, the finite-horizon minimum energy falls to the infinite-horizon one as T grows
+        energy, _ = minimum_energy_infinite(self.A_c, np.eye(N), self.XF, system="continuous")
+        finite = minimum_energy_fast(self.A_c, 60, np.eye(N), np.zeros_like(self.XF), self.XF)
+        np.testing.assert_allclose(np.sum(energy, axis=0), np.sum(finite, axis=0), rtol=1e-4)
+
+    def test_discrete_matches_gramian(self):
+        Wc = gramian(self.A_d, np.inf, system="discrete")
+        expected = np.sum(np.linalg.solve(Wc, self.XF) * self.XF, axis=0)
+        energy, _ = minimum_energy_infinite(self.A_d, np.eye(N), self.XF, system="discrete")
+        np.testing.assert_allclose(np.sum(energy, axis=0), expected, rtol=1e-10)
+
+    def test_full_control_reaches_the_target(self):
+        _, reached = minimum_energy_infinite(self.A_c, np.eye(N), self.XF, system="continuous")
+        np.testing.assert_allclose(reached, self.XF, rtol=1e-10, atol=1e-12)
+
+    def test_columns_and_boolean_targets(self):
+        energy, _ = minimum_energy_infinite(self.A_c, np.eye(N), self.XF, system="continuous")
+        for k in range(self.XF.shape[1]):
+            with self.subTest(target=k):
+                single, _ = minimum_energy_infinite(self.A_c, np.eye(N), self.XF[:, k], system="continuous")
+                self.assertEqual(single.shape, (N, 1))
+                np.testing.assert_allclose(single[:, 0], energy[:, k], rtol=1e-12)
+        mask = np.arange(N) < 3
+        np.testing.assert_array_equal(
+            minimum_energy_infinite(self.A_c, np.eye(N), mask, system="continuous")[0],
+            minimum_energy_infinite(self.A_c, np.eye(N), mask.astype(float), system="continuous")[0],
+        )
+
+    def test_unstable_system_returns_nan(self):
+        # the raw connectome is unstable in both senses; the infinite-horizon Gramian does not exist
+        for system in ("continuous", "discrete"):
+            with self.subTest(system=system):
+                energy, reached = minimum_energy_infinite(self.A, np.eye(N), self.XF, system=system)
+                self.assertTrue(np.all(np.isnan(energy)) and np.all(np.isnan(reached)))
+                self.assertTrue(np.isnan(average_energy_infinite(self.A, np.eye(N), system=system)))
 
 
 if __name__ == "__main__":

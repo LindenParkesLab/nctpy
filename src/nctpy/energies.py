@@ -459,6 +459,92 @@ def minimum_energy_fast(
     return np.multiply(G_pinv @ delx, delx)
 
 
+def minimum_energy_infinite(
+    A_norm: npt.ArrayLike, B: npt.ArrayLike, xf: npt.ArrayLike, system: str | None = None
+) -> tuple[FloatArray, FloatArray]:
+    """Compute the minimum control energy to reach xf over an infinite time horizon.
+
+    Uses the infinite-horizon controllability Gramian Wc of (A_norm, B), the solution of a Lyapunov equation, so it
+    needs no numerical integration or matrix exponential (Kim et al., Nat Commun 2025). The minimum energy is
+    ``xf^T Wc^-1 xf``. Over an infinite horizon the initial state's contribution decays away, so the energy depends
+    only on the target.
+
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix. It must be stable: in continuous time every eigenvalue has a
+        negative real part, in discrete time every eigenvalue lies inside the unit circle.
+    B : (N, N) array_like
+        Control node matrix.
+    xf : (N,) or (N, k) array_like
+        Target state, or k target states as columns. Boolean states are converted to 0/1 floats.
+    system : {'continuous', 'discrete'}
+        Whether A_norm was normalised for a continuous-time or a discrete-time system. Required.
+
+    Returns
+    -------
+    energy : (N, 1) or (N, k) ndarray
+        Energy at each node, ``(Wc^-1 xf) * xf``, one column per target; sum a column for the total. All NaN if
+        A_norm is not stable, since the infinite-horizon Gramian does not exist.
+    xf_reached : (N, 1) or (N, k) ndarray
+        ``Wc Wc^-1 xf``: the target as reconstructed through the inverse Gramian. Its difference from xf measures
+        how accurately Wc could be inverted, which degrades as control sets get sparser (Kim et al., Fig. 3A-B).
+
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options.
+
+    Notes
+    -----
+    With few control nodes Wc is close to singular, and ``xf^T Wc^-1 xf`` can lose all accuracy (even its sign);
+    check ``xf_reached`` against xf. See also :func:`average_energy_infinite`, which does not depend on a target.
+    """
+    _check_system(system)
+    A_norm, B = _as_float(A_norm), _as_float(B)
+    xf = _column(_as_float(xf))
+    Wc = _infinite_gramian(A_norm, B, system)
+    if Wc is None:
+        nan = np.full(xf.shape, np.nan)
+        return nan, nan.copy()
+    Wc_inv_xf = np.linalg.solve(Wc, xf)
+    return np.multiply(Wc_inv_xf, xf), Wc @ Wc_inv_xf
+
+
+def average_energy_infinite(A_norm: npt.ArrayLike, B: npt.ArrayLike, system: str | None = None) -> float:
+    """Compute the average minimum control energy over an infinite time horizon: the trace of the inverse Gramian.
+
+    ``trace(Wc^-1)``, where Wc is the infinite-horizon controllability Gramian of (A_norm, B). It equals the sum of the
+    minimum energies to reach each unit vector, and is proportional to the average minimum energy over all
+    unit-norm target states, so it does not depend on any particular transition. This is the control energy shown in
+    Kim et al. (Nat Commun 2025), Fig. 3C, there multiplied by dt = 0.001.
+
+    Parameters
+    ----------
+    A_norm : (N, N) array_like
+        Normalised structural connectivity matrix. It must be stable (see :func:`minimum_energy_infinite`).
+    B : (N, N) array_like
+        Control node matrix.
+    system : {'continuous', 'discrete'}
+        Whether A_norm was normalised for a continuous-time or a discrete-time system. Required.
+
+    Returns
+    -------
+    energy : float
+        ``trace(Wc^-1)``, computed as the sum of the reciprocal singular values of Wc. NaN if A_norm is not stable.
+
+    Raises
+    ------
+    Exception
+        If `system` is missing or not one of the two options.
+    """
+    _check_system(system)
+    Wc = _infinite_gramian(_as_float(A_norm), _as_float(B), system)
+    if Wc is None:
+        return np.nan
+    return np.sum(1 / la.svdvals(Wc))
+
+
 # Everything below depends only on the system, not on the states, and is reused across transitions (_last_call).
 
 
@@ -554,3 +640,16 @@ def _minimum_energy_system(A_norm: FloatArray, T: float, B: FloatArray) -> tuple
     eAT = sp.linalg.expm(A_norm * T)
     G = (G + B @ B.T + (eAT @ B) @ (eAT @ B).T) * dt / 3
     return np.linalg.pinv(G), eAT
+
+
+@_last_call
+def _infinite_gramian(A_norm: FloatArray, B: FloatArray, system: str) -> FloatArray | None:
+    """The infinite-horizon controllability Gramian of (A_norm, B); None if A_norm is not stable."""
+    eigvals = np.linalg.eigvals(A_norm)
+    if system == "continuous":
+        if np.max(eigvals.real) >= 0:
+            return None
+        return la.solve_continuous_lyapunov(A_norm, -(B @ B.T))
+    if np.max(np.abs(eigvals)) >= 1:
+        return None
+    return la.solve_discrete_lyapunov(A_norm, B @ B.T)

@@ -112,6 +112,19 @@
 
 ### Added
 
+- `nctpy.energies.minimum_energy_infinite(A_norm, B, xf, system)` and
+  `average_energy_infinite(A_norm, B, system)`: control energy from the infinite-horizon
+  controllability Gramian, which solves a Lyapunov equation instead of integrating numerically or
+  taking a matrix exponential (Kim et al., 2025).
+  - `minimum_energy_infinite` returns the node-wise minimum energy to reach `xf`
+    (`xf^T Wc^-1 xf` in total), and the target as reconstructed through the inverse Gramian, which
+    shows how accurately the Gramian could be inverted.
+  - `average_energy_infinite` returns `trace(Wc^-1)`, the average minimum energy over target
+    states, which does not depend on a transition. This is the energy shown in that paper's Fig. 3C
+    (multiplied there by dt = 0.001).
+
+  Both work in continuous and discrete time, and return NaN for an unstable system, for which the
+  infinite-horizon Gramian does not exist.
 - `matrix_normalization(..., decay=None)`: a keyword-only decay rate per node for continuous-time
   systems, implementing Kim et al. (2025), Eq. 4: `A / (c + l) - diag(decay)`. A larger decay
   means stronger self-inhibition. A scalar applies to every node, and the default (`None`, or

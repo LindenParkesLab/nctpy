@@ -177,6 +177,56 @@
       ]
     },
     {
+      "module": "nctpy.energies",
+      "name": "minimum_energy_infinite",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "B",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "xf",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
+      "module": "nctpy.energies",
+      "name": "average_energy_infinite",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "A_norm",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "B",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        }
+      ]
+    },
+    {
       "module": "nctpy.metrics",
       "name": "ave_control",
       "tier": "contract",

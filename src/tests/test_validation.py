@@ -10,7 +10,13 @@ import unittest
 
 import numpy as np
 
-from nctpy.energies import get_control_inputs, gramian, sim_state_eq
+from nctpy.energies import (
+    average_energy_infinite,
+    get_control_inputs,
+    gramian,
+    minimum_energy_infinite,
+    sim_state_eq,
+)
 from nctpy.metrics import ave_control
 from nctpy.pipelines import ComputeControlEnergy, ComputeOptimizedControlEnergy
 from nctpy.utils import matrix_normalization, normalize_state
@@ -75,6 +81,12 @@ class TestSystem(unittest.TestCase):
         ):
             with self.subTest(system=system):
                 self.assertRaisesExactly(message, matrix_normalization, self.A, system=system)
+
+    def test_infinite_horizon_energies(self):
+        for system, message in ((None, MISSING), ("cont", INVALID)):
+            with self.subTest(system=system):
+                self.assertRaisesExactly(message, minimum_energy_infinite, self.A_c, np.eye(N), self.xf, system=system)
+                self.assertRaisesExactly(message, average_energy_infinite, self.A_c, np.eye(N), system=system)
 
     def test_ave_control(self):
         for system, message in ((None, MISSING), ("cont", INVALID)):
