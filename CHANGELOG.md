@@ -54,12 +54,17 @@
   |---|---|---|
   | `get_control_inputs`, continuous, T = 1 | 34.5 → 18.7 ms | 116 → 37 ms |
   | `get_control_inputs`, discrete, T = 3 | 61.9 → 2.1 ms | 423 → 11.5 ms |
-  | `ComputeControlEnergy`, continuous, T = 1 | 33.8 → 17.5 ms | 130 → 28.5 ms |
+  | `ComputeControlEnergy`, continuous, T = 1 | 33.8 → 4.7 ms | 130 → 12.7 ms |
   | `minimum_energy_fast`, T = 1 (100 nodes) | 90.6 → 1.9 ms | |
 
   (per transition). Calls that never share a system, such as a loop that perturbs B, cost about the
   same as before. The most recent system's matrices stay in memory until a call uses a different
   system. In continuous time that is about 15 N² floats (about 19 MB at N = 400).
+- `ComputeControlEnergy` also solves consecutive tasks that share a system (`B`, `S`, `rho`) together,
+  in memory-bounded batches; that is most of its gain in the table above. A transition that
+  completes (both error terms below 1e-8) agrees with `get_control_inputs` to rounding (within
+  1e-13 relative in tests; batched and single products round differently). A transition that does
+  not complete is solved again on its own, so its energy is exactly what it was.
 - `minimum_energy_fast` documents that it accepts k transitions at once, as `(N, k)` columns of
   initial and target states.
 

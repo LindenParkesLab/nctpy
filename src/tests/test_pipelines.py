@@ -3,10 +3,12 @@
 import contextlib
 import io
 import unittest
+from unittest import mock
 
 import numpy as np
 
 from nctpy.energies import get_control_inputs, integrate_u
+from nctpy import pipelines
 from nctpy.pipelines import ComputeControlEnergy, ComputeOptimizedControlEnergy
 from nctpy.utils import matrix_normalization, normalize_state
 
@@ -48,19 +50,65 @@ def quietly(fn):
 
 
 class TestComputeControlEnergy(unittest.TestCase):
+    """Tasks sharing a system are solved together (Roadmap 2.6b, D21).
+
+    A transition that completes agrees with a direct call to rounding; one that does not complete is solved again
+    on its own, so it equals the direct call exactly.
+    """
+
+    def assertMatchesDirectCalls(self, pipeline, A_norm, tasks, system, T):
+        self.assertEqual(pipeline.E.shape, (len(tasks),))
+        for i, task in enumerate(tasks):
+            _, _, err = get_control_inputs(
+                A_norm, T, task["B"], task["x0"], task["xf"], system=system, rho=task["rho"], S=task["S"],
+                xr=task.get("xr", "zero"),
+            )  # fmt: skip
+            expected = direct_energy(A_norm, task, system, T)
+            if max(err) < 1e-8:
+                np.testing.assert_allclose(pipeline.E[i], expected, rtol=1e-10)
+            else:
+                self.assertEqual(pipeline.E[i], expected)
+
     def test_matches_direct_calls_in_task_order(self):
         A = connectome()
+        partial = np.diag((np.arange(N) % 3 > 0).astype(float))
         for system, T in (("continuous", 1), ("discrete", 3)):
-            for extra in ({}, {"xr": "midpoint"}):
-                with self.subTest(system=system, **extra):
+            for extra in ({}, {"xr": "midpoint"}, {"rho": 1e-3, "B": partial}):  # the last does not complete
+                with self.subTest(system=system, **{k: v for k, v in extra.items() if k != "B"}):
                     tasks = make_tasks(**extra)
                     pipeline = ComputeControlEnergy(A=A, control_tasks=tasks, system=system, c=1, T=T)
                     quietly(pipeline.run)
                     A_norm = matrix_normalization(A, system=system, c=1)
                     np.testing.assert_array_equal(pipeline.A_norm, A_norm)
-                    expected = [direct_energy(A_norm, task, system, T) for task in tasks]
-                    np.testing.assert_array_equal(pipeline.E, expected)
-                    self.assertEqual(pipeline.E.shape, (len(tasks),))
+                    self.assertMatchesDirectCalls(pipeline, A_norm, tasks, system, T)
+
+    def test_mixed_systems_and_small_batches(self):
+        # tasks alternate between two control sets; a tiny memory budget forces batches of one or two
+        A = connectome()
+        partial = np.diag((np.arange(N) % 3 > 0).astype(float))
+        tasks = make_tasks()
+        for i in range(0, len(tasks), 2):
+            tasks[i]["B"] = partial
+        A_norm = matrix_normalization(A, system="continuous")
+        for budget in (pipelines.BATCH_BYTES, 3 * 8 * N * 1001 * 2):
+            with self.subTest(budget=budget), mock.patch.object(pipelines, "BATCH_BYTES", budget):
+                pipeline = ComputeControlEnergy(A=A, control_tasks=tasks, system="continuous")
+                quietly(pipeline.run)
+                self.assertMatchesDirectCalls(pipeline, A_norm, tasks, "continuous", 1)
+
+    def test_unusual_tasks_are_solved_on_their_own(self):
+        # S given as 'identity', or a task the batch cannot take, goes through get_control_inputs as before
+        A = connectome()
+        A_norm = matrix_normalization(A, system="continuous")
+        tasks = make_tasks(S="identity")
+        pipeline = ComputeControlEnergy(A=A, control_tasks=tasks, system="continuous")
+        quietly(pipeline.run)
+        expected = make_tasks()
+        self.assertMatchesDirectCalls(pipeline, A_norm, expected, "continuous", 1)
+
+        tasks[4]["xr"] = "target"  # not a reference state: fails as a direct call does
+        with self.assertRaises(TypeError):
+            quietly(ComputeControlEnergy(A=A, control_tasks=tasks, system="continuous").run)
 
     def test_xr_key_is_used(self):
         A = connectome()

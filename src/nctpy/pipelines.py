@@ -5,15 +5,18 @@ is called, and compute energy as the sum over nodes of :func:`nctpy.energies.int
 from :func:`nctpy.energies.get_control_inputs`.
 """
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import numpy.typing as npt
 import scipy.linalg as la
 from tqdm import tqdm
 
-from nctpy.energies import get_control_inputs, integrate_u
+from nctpy.energies import DT, _as_float, _column, _control_inputs, _reference, get_control_inputs, integrate_u
 from nctpy.utils import matrix_normalization
+
+COMPLETE = 1e-8  # a transition completed if both its error terms are below this (the protocol paper's threshold)
+BATCH_BYTES = 256e6  # memory budget for one batch of trajectories in ComputeControlEnergy
 
 
 class _ControlEnergyPipeline:
@@ -97,11 +100,64 @@ class ComputeControlEnergy(_ControlEnergyPipeline):
         self.T = T
 
     def run(self) -> None:
-        """Compute the energy of every task and store it in ``self.E``."""
+        """Compute the energy of every task and store it in ``self.E``.
+
+        Consecutive tasks that share a system (B, S and rho) are solved together. A transition that does not
+        complete (an error term of 1e-8 or more) is solved again on its own, so its energy is exactly what
+        :func:`nctpy.energies.get_control_inputs` gives; completed transitions agree with it to rounding.
+        """
         self._check_inputs()
-        self.E = np.array(
-            [self._energy(task, B=task["B"], xr=task.get("xr", "zero")) for task in tqdm(self.control_tasks)]
+        tasks = [self._prepare(task) for task in self.control_tasks]
+        n_t = int(np.round(self.T / DT)) + 1 if self.system == "continuous" else int(self.T) + 1
+        max_batch = max(1, int(BATCH_BYTES // (3 * 8 * self.n_nodes * n_t)))
+
+        E = np.empty(len(tasks))
+        with tqdm(total=len(tasks)) as progress:
+            start = 0
+            while start < len(tasks):
+                stop = start + 1
+                while stop < len(tasks) and stop - start < max_batch and _same_system(tasks[start], tasks[stop]):
+                    stop += 1
+                E[start:stop] = self._batch_energy(start, stop, tasks)
+                progress.update(stop - start)
+                start = stop
+        self.E = E
+
+    def _prepare(self, task: dict[str, Any]) -> tuple[Any, ...] | None:
+        """A task's system key, B, S and states as columns; None if it should be solved on its own."""
+        B, S = task["B"], task["S"]  # read in the order a single solve reads them, so errors are the same
+        x0, xf = _column(_as_float(task["x0"])), _column(_as_float(task["xf"]))
+        xr = _reference(task.get("xr", "zero"), x0, xf, self.n_nodes)
+        if isinstance(S, str) and S == "identity":
+            S = np.eye(self.n_nodes)
+        if isinstance(S, str) or any(isinstance(a, str) or a.shape != (self.n_nodes, 1) for a in (x0, xf, xr)):
+            return None
+        B, S = _as_float(B), _as_float(S)
+        key = (B.dtype.str, B.shape, B.tobytes(), S.dtype.str, S.shape, S.tobytes(), type(task["rho"]), task["rho"])
+        return key, B, S, x0, xf, xr
+
+    def _batch_energy(self, start: int, stop: int, tasks: list[tuple[Any, ...] | None]) -> list[np.float64]:
+        def alone(i: int) -> np.float64:
+            task = self.control_tasks[i]
+            return self._energy(task, B=task["B"], xr=task.get("xr", "zero"))
+
+        if stop - start == 1:
+            return [alone(start)]
+        _, B, S, *_ = cast(tuple[Any, ...], tasks[start])
+        X0, XF, XR = (
+            np.concatenate([cast(tuple[Any, ...], tasks[i])[c] for i in range(start, stop)], axis=1) for c in (3, 4, 5)
         )
+        _, u, err = _control_inputs(
+            self.A_norm, self.T, B, X0, XF, XR, S, self.system, self.control_tasks[start]["rho"], "scipy"
+        )
+        return [
+            np.sum(integrate_u(u[:, :, j])) if all(e < COMPLETE for e in err[j]) else alone(start + j)
+            for j in range(stop - start)
+        ]
+
+
+def _same_system(a: tuple[Any, ...] | None, b: tuple[Any, ...] | None) -> bool:
+    return a is not None and b is not None and a[0] == b[0]
 
 
 class ComputeOptimizedControlEnergy(_ControlEnergyPipeline):
