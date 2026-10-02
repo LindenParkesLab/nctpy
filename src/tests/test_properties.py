@@ -7,9 +7,10 @@ Each property below holds by theory. Where theory needs a condition, the test st
   grows, is independent of rho) are guaranteed for minimum-energy control, S = 0. With S != 0 the
   solver trades trajectory cost against input cost, so input energy alone is not guaranteed to be
   monotone; those cases are not asserted here.
-- Discrete ave_control (the Schur-based formula) equals the diagonal of the infinite-horizon
-  discrete Gramian exactly only for normal (e.g. symmetric) A; for directed A it approximates it,
-  so that property is checked on symmetric A only.
+- ave_control is the trace of the Gramian with input at node i alone (Gu et al.), i.e. the diagonal
+  of the Gramian of A^T (D15); for symmetric A, of A. modal_control reads the diagonal of a real Schur
+  decomposition, which is the eigendecomposition only for normal (e.g. symmetric) A, so its
+  relabelling property is checked on symmetric A, and is a known failure for directed A.
 - sim_state_eq integrates continuous time with forward Euler steps of 0.001, so it agrees with
   exact solutions to O(dt); discrete-time simulation is exact.
 
@@ -19,6 +20,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg as la
+from scipy.integrate import simpson
 
 from nctpy.energies import get_control_inputs, integrate_u, gramian, minimum_energy_fast, sim_state_eq
 from nctpy.metrics import ave_control, modal_control
@@ -148,38 +150,57 @@ class TestRelabelling(PropertyTestCase):
             with self.subTest(connectome=name):
                 np.testing.assert_allclose(ave_control(P @ A_c @ P.T, 'continuous'), ave_control(A_c, 'continuous')[p],
                                            rtol=1e-10)
+                np.testing.assert_allclose(ave_control(P @ A_d @ P.T, 'discrete'), ave_control(A_d, 'discrete')[p],
+                                           rtol=1e-10)
                 np.testing.assert_allclose(matrix_normalization(P @ A @ P.T, system='continuous'), P @ A_c @ P.T,
                                            atol=1e-14)
 
-    def test_schur_metrics_permute_for_symmetric_A(self):
+    def test_modal_control_permutes_for_symmetric_A(self):
         p = np.random.default_rng(2).permutation(N)
         P = np.eye(N)[p]
         A, A_c, A_d = self.systems['symmetric']
-        np.testing.assert_allclose(ave_control(P @ A_d @ P.T, 'discrete'), ave_control(A_d, 'discrete')[p], rtol=1e-10)
         np.testing.assert_allclose(modal_control(P @ A_d @ P.T), modal_control(A_d)[p], rtol=1e-10)
 
     @unittest.expectedFailure
-    def test_schur_metrics_permute_for_directed_A(self):
-        # Known limitation (Roadmap D15): discrete ave_control and modal_control read only the diagonal of a
-        # real Schur decomposition. That is exact for normal (e.g. symmetric) A, but for directed A the result
-        # depends on node order: relabelling changes them by ~5e-4 relative here, while the exact quantity (the
-        # infinite-horizon Gramian diagonal) does not change. Remove the decorator if the formulas are changed.
+    def test_modal_control_permutes_for_directed_A(self):
+        # Known, documented limitation (Roadmap D15): modal_control reads the diagonal of a real Schur
+        # decomposition, which is the eigendecomposition only for normal (e.g. symmetric) A. For directed A the
+        # result depends on node order (~5e-4 relative here). Modal controllability is defined for undirected
+        # connectomes.
         p = np.random.default_rng(2).permutation(N)
         P = np.eye(N)[p]
         A, A_c, A_d = self.systems['directed']
-        np.testing.assert_allclose(ave_control(P @ A_d @ P.T, 'discrete'), ave_control(A_d, 'discrete')[p], rtol=1e-10)
         np.testing.assert_allclose(modal_control(P @ A_d @ P.T), modal_control(A_d)[p], rtol=1e-10)
 
 
 class TestAverageControllability(PropertyTestCase):
-    def test_continuous_is_gramian_diagonal(self):
+    """Average controllability of node i = trace of the Gramian with input at node i alone (Gu et al.; D15)."""
+
+    def test_is_diagonal_of_the_gramian_of_A_transpose(self):
         for name, (A, A_c, A_d) in self.systems.items():
             with self.subTest(connectome=name):
-                np.testing.assert_allclose(ave_control(A_c, 'continuous'), np.diag(gramian(A_c, 1, 'continuous')),
+                np.testing.assert_allclose(ave_control(A_c, 'continuous'), np.diag(gramian(A_c.T, 1, 'continuous')),
                                            rtol=1e-12)
+                np.testing.assert_allclose(ave_control(A_d, 'discrete'), np.diag(gramian(A_d.T, np.inf, 'discrete')),
+                                           rtol=1e-10)
 
-    def test_discrete_is_infinite_gramian_diagonal_for_symmetric_A(self):
+    def test_matches_the_definition(self):
+        # computed from the definition, independently: input at node i alone, sum_k ||A^k e_i||^2 (discrete)
+        # and the integral over [0, 1] of ||e^{At} e_i||^2 (continuous, Simpson's rule)
+        for name, (A, A_c, A_d) in self.systems.items():
+            with self.subTest(connectome=name):
+                total, Ak = np.zeros(N), np.eye(N)
+                for _ in range(3000):
+                    total += np.sum(Ak ** 2, axis=0)
+                    Ak = A_d @ Ak
+                np.testing.assert_allclose(ave_control(A_d, 'discrete'), total, rtol=1e-10)
+                t = np.linspace(0, 1, 201)
+                integrand = np.array([np.sum(la.expm(A_c * s) ** 2, axis=0) for s in t])
+                np.testing.assert_allclose(ave_control(A_c, 'continuous'), simpson(integrand, x=t, axis=0), rtol=1e-6)
+
+    def test_symmetric_A_is_diagonal_of_the_gramian_of_A(self):
         A, A_c, A_d = self.systems['symmetric']
+        np.testing.assert_allclose(ave_control(A_c, 'continuous'), np.diag(gramian(A_c, 1, 'continuous')), rtol=1e-12)
         np.testing.assert_allclose(ave_control(A_d, 'discrete'), np.diag(gramian(A_d, np.inf, 'discrete')), rtol=1e-10)
 
 

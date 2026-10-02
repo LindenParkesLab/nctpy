@@ -1,8 +1,8 @@
 {
  "description": "nctpy regression fixtures: a drift alarm, see make_regression_fixtures.py",
- "generated": "2026-09-30",
+ "generated": "2026-10-01",
  "environment": {
-  "nctpy_commit": "a7377c17f8086318cf4dfaa2ca5a527a781880fb",
+  "nctpy_commit": "5a8ea7a94efed289b10144265e814a9193086b5a",
   "nctpy_worktree_clean": false,
   "python": "3.11.13",
   "numpy": "2.3.5",
@@ -1637,10 +1637,10 @@
   }
  },
  "files": {
-  "directed.npz": "274228cdfd58b6740ba7196a7fafda045356077824eb5c0d2e6ad3a74188bc03",
-  "disconnected.npz": "1de9be12ef9428fcfe14ca3d6cc99cc99e157ff0083961aea8746d5760802a9a",
-  "legacy.npz": "09432e755bc63efa79535451fe181402e03c708e6f01319e7ab2591d8b50947e",
-  "undirected.npz": "a1d643e3446ae5e361fbeb05e71a1a1372725027b0a6e56e54dc4e89675501dd",
+  "directed.npz": "b004cee00a14e417ee3d112284a54fb6352b157a49ef93e63618f979cdb51118",
+  "disconnected.npz": "4ac4322d97a737a93bd4c8a7c85fd1f0eaa601c4427e0adf2d024f009726b852",
+  "legacy.npz": "36c8b7c0415b23b492ee9b56eced5d27d7c9edd7715bfdf9bec2d1fbd72a0522",
+  "undirected.npz": "be0ba62142554cb744e4041a83ba6f156fe4f526e135d01b65c4913a3983eeb3",
   "utils.npz": "fca1b00b66ec5a4a791c7520e15b08d018961efb983bbf2cc7577e0940b3c300"
  }
 }

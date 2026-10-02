@@ -45,6 +45,23 @@
 - `get_null_p` raises `ValueError` for an unknown `version`. Previously it failed with
   `UnboundLocalError`.
 
+### Changed — directed connectomes only
+
+- **`ave_control` on directed connectomes now follows Gu et al. (2015) in both systems.** The
+  average controllability of node i is the trace of the controllability Gramian when input enters
+  at node i alone: how much input at node i spreads into the network. Previously, for a directed
+  `A`, continuous-time `ave_control` returned the diagonal of the Gramian with input at every node
+  (how strongly each node is driven: a different quantity, about 2% off on a test matrix).
+  Discrete-time `ave_control` used a formula based on the real Schur decomposition that is exact
+  only for symmetric `A`. It depended on the order of the nodes, and was off by up to 64% at single
+  nodes on a test matrix. **Symmetric (undirected) connectomes are unaffected**: continuous-time
+  values are bit-identical, and discrete-time values agree to rounding (within 2e-13 relative).
+  The protocol paper and its Supplementary Information use `ave_control` only on undirected
+  connectomes.
+- `modal_control`'s docstring now states that modal controllability is defined for undirected
+  connectomes; for a directed `A` its values are an approximation that depends on node order. Its
+  results are unchanged.
+
 ### Performance
 
 - Computing many transitions on one system is much faster. The parts of `get_control_inputs` and
