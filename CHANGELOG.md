@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 (2026-10-02)
+
+**Upgrading from 1.1:** the code in the Nature Protocols paper runs and gives the same results. Check the
+[upgrading notes](https://nctpy.readthedocs.io/en/latest/pages/upgrading.html) if you use `ave_control` on directed
+connectomes, pass `rho <= 0`, or call `gramian` without `system`.
 
 ### Changed
 
