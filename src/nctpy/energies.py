@@ -161,9 +161,9 @@ def get_control_inputs(
     system : {'continuous', 'discrete'}
         Whether A_norm was normalised for a continuous-time or a discrete-time system. Required.
     rho : float, default 1
-        Mixing parameter. Determines the extent to which the state trajectory is constrained alongside the
-        control signals. rho=1 equals maximum constraint. Must be > 0, and has no effect if S is all zeros
-        (``S=np.zeros((N, N))``, minimum-energy control).
+        Mixing parameter: the weight of the control signals' cost relative to the state trajectory's, in the cost
+        above. rho=1 weights them equally; a smaller rho constrains the state trajectory more, a larger one less.
+        Must be > 0, and has no effect if S is all zeros (``S=np.zeros((N, N))``, minimum-energy control).
     S : (N, N) array_like or 'identity', default 'identity'
         Constraint matrix for the state trajectory. Determines which nodes in the state trajectory are
         constrained. By default, all nodes' neural activity is constrained.

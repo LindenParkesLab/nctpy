@@ -175,6 +175,9 @@
 - The `nctpy.energies` docstrings use numpydoc format and now state each function's return shapes,
   including the discrete-time trajectory lengths (`T + 1` states, `T` inputs), what the two error
   terms measure, and `gramian`'s infinite-horizon and unstable cases.
+- `get_control_inputs`' docstring no longer says that `rho=1` "equals maximum constraint". `rho`
+  weights the cost of the control signals against that of the state trajectory: a smaller `rho`
+  constrains the trajectory more, a larger one less.
 - The `nctpy.plotting` functions have docstrings, and `get_p_val_string`, `roi_to_vtx` and the
   `null_models.geomsurr` functions use numpydoc format.
 - The documentation has an API reference covering every public function and class, generated from
