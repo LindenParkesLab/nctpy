@@ -212,6 +212,12 @@
   each), normalising the connectome (`c`, a shared `l`, self-connections and `zero_diagonal`,
   per-node `decay`, checking stability) and defining a control task (states, control sets, `S`,
   `rho`, `xr` and `T`).
+- User-guide pages on error terms and failed transitions (what the two errors measure, the
+  protocol paper's troubleshooting table, and further causes to check), on the measures of control
+  energy (their scales, including that `integrate_u`'s continuous-time energies are 1000 times the
+  time integral, and the infinite-horizon measures) and on the controllability metrics (Gu et al.'s
+  definition of average controllability for directed connectomes, and the scope of modal
+  controllability).
 
 ### Repository
 

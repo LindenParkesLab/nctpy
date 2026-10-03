@@ -10,4 +10,7 @@ decision, what nctpy does by default, and what to check. For worked, executed ex
 time_systems
 normalisation
 control_tasks
+errors
+energies
+metrics
 ```
