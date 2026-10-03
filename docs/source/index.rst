@@ -20,5 +20,8 @@ Contents
     pages/examples/index
     pages/reproducing
     api/index
+    pages/upgrading
+    pages/changelog
+    pages/contributing
     pages/references
 

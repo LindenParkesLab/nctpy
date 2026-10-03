@@ -47,7 +47,9 @@ Every push and pull request runs:
   (pre-commit runs the ruff checks locally);
 - **test:** the built wheel, on Ubuntu and macOS, Python 3.10–3.13, with numpy 1.x and 2.x;
 - **coverage:** no module's test coverage may fall below the baseline in `src/tests/baseline.json`;
-- **docs:** the Sphinx documentation must build without warnings.
+- **docs:** the Sphinx documentation must build without warnings;
+- **docs notebooks:** the documentation's notebooks (Getting started, two of the examples and every tutorial) must
+  execute against the current code.
 
 Some existing files are exempt from parts of the ruff checks (see `pyproject.toml`). These
 exemptions are being removed module by module. New files must pass in full.
@@ -57,7 +59,8 @@ exemptions are being removed module by module. New files must pass in full.
 - **Never change a public signature.** Within 1.x, new behaviour arrives as new keyword arguments
   whose defaults reproduce the existing behaviour exactly. Renaming or removing a parameter, or
   changing a return type or shape, breaks printed code. If you add a public function, regenerate
-  `src/tests/fixtures/api_contract.json` with `make_api_contract.py`.
+  `src/tests/fixtures/api_contract.json` with `make_api_contract.py`, and list the function on its
+  page of the API reference (see below).
 - **Numbers may drift; behaviour may not.** A change that alters results at floating-point level
   (for example `solve` instead of `inv`) is fine if it is explained and within the regression
   tolerances. A change to what a function computes (normalisation, defaults, how inputs enter the
@@ -75,6 +78,69 @@ exemptions are being removed module by module. New files must pass in full.
   traced to a single change.
 - **Add a changelog entry** under `## Unreleased` in `CHANGELOG.md` for anything a user would
   notice.
+
+## Documentation
+
+The documentation is built with Sphinx, pydata-sphinx-theme, MyST Markdown and myst-nb. Its sources are in
+`docs/source/`.
+
+### Building it locally
+
+```bash
+pip install -e ".[docs]"
+python -m sphinx -b html docs/source docs/_build/html
+```
+
+Then open `docs/_build/html/index.html`, or serve the folder (`python -m http.server -d docs/_build/html`). For a
+build that updates as you edit, `pip install sphinx-autobuild` and run
+`sphinx-autobuild docs/source docs/_build/html`. CI builds with `-W --keep-going`, so warnings are errors; do the
+same before opening a pull request.
+
+The build only renders notebooks, with the outputs committed in them; it never executes them.
+
+### Docstrings and the API reference
+
+Docstrings use NumPy style. Cross-reference with roles such as ``{func}`~nctpy.energies.get_control_inputs` `` so
+that the pages link up.
+
+The API reference pages, `docs/source/api/*.md`, list the public functions and classes by area, and autosummary
+builds a page for each from its docstring. nctpy's modules have no `__all__`; the list of public symbols is
+`src/tests/fixtures/api_contract.json`. `src/tests/test_docs.py` fails if a public symbol is missing from the API
+pages, or if they list one that is not public.
+
+### Notebooks
+
+Getting started (`docs/source/pages/getting_started/index.ipynb`), the tutorials (`docs/source/tutorials/`) and two
+of the examples are notebooks that CI executes. The other examples analyse real data and are static pages.
+
+- **Use synthetic, seeded data only.** Nothing derived from real data may be committed, and these notebooks must
+  run anywhere.
+- **Commit them with their outputs.** Read the Docs shows what is committed. After changing a notebook, or code it
+  depends on, refresh its outputs:
+
+  ```bash
+  pip install -e ".[docs,plot,optimize]"
+  python docs/execute_notebooks.py --write tutorials/your_tutorial.ipynb   # path relative to docs/source
+  ```
+
+  Without `--write` the script only checks that the notebooks run, as CI does. CI does not check that the
+  committed outputs are current.
+- **Keep the outputs reproducible**, so that refreshing a notebook changes only what really changed. The script
+  turns off progress bars and merges each cell's printed output; avoid unseeded randomness in figures too (for
+  example the bootstrapped confidence band of a regression line, or the jitter of a strip plot).
+- **Keep each notebook to a minute or so.** Reduce permutation counts and say so in the text.
+- A new tutorial goes in `docs/source/tutorials/` and in the toctree of `docs/source/tutorials/index.md`; the script
+  finds it automatically.
+
+### The "Reproducing the papers" page
+
+`docs/source/pages/reproducing.md` gives the protocol paper's main-text code with its typesetting repairs. The code
+must be exactly the blocks in `src/tests/test_paper_code.py` with their repairs applied; `test_docs.py` checks this.
+
+## Performance
+
+`benchmarks/transitions.py` times control energy over all transitions between seven brain states. Run it before and
+after a change that could affect speed, with the same number of threads (e.g. `OMP_NUM_THREADS=8`).
 
 ## Reporting problems
 

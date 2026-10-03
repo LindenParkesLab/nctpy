@@ -230,6 +230,10 @@
   Numerics page corrects its Simpson's-rule formula, replaces its MATLAB example with Python, and
   describes how nctpy computes Gramians, optimal control in both time systems, its error terms, what
   it reuses between calls, and the scale of `integrate_u`'s energies.
+- An Upgrading page lists what to check when upgrading from 1.0 or 1.1: results that can change,
+  calls that now raise instead of returning a value, and what is new. The documentation also
+  includes this changelog and the contributing guide, which now covers building the documentation,
+  the API reference, the documentation's notebooks and the benchmark.
 
 ### Repository
 
