@@ -5,11 +5,11 @@
 
 .. include:: ../../README.rst
 
-Contents
---------
+.. The table of contents drives the navigation bar and sidebars; it is hidden here so the landing page stays short.
 
 .. toctree::
     :maxdepth: 3
+    :hidden:
 
     pages/installation
     pages/getting_started/index

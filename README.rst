@@ -22,17 +22,21 @@ ways? Given a set of control nodes, how can the system be driven to a specific t
 states, by means of internal or external control input?
 
 ``nctpy`` is a Python toolbox that provides researchers with a set of tools to conduct some of the
-common NCT analyses reported in the literature. Below, we list select publications that serve as a primer for
-these tools and their use cases:
+common NCT analyses reported in the literature. It implements the methods of two papers:
 
-1. Parkes, L., Kim, J. Z., et al. A network control theory pipeline for studying the dynamics of the structural connectome. 
-In press at Nature Protocols (2024). https://www.biorxiv.org/content/10.1101/2023.08.23.554519v1
+1. Parkes, L., Kim, J. Z., et al. A network control theory pipeline for studying the dynamics of the structural
+connectome. Nature Protocols 19, 3721–3749 (2024). https://doi.org/10.1038/s41596-024-01023-w
 
-2. Karrer, T. M., Kim, J. Z., Stiso, J. et al. A practical guide to methodological considerations in the
+2. Kim, J. Z., ..., Parkes, L. Inferring intrinsic neural timescales using optimal control theory.
+Nature Communications 16, 11639 (2025). https://doi.org/10.1038/s41467-025-66542-w
+
+The following publications serve as a primer for these tools and their use cases:
+
+3. Karrer, T. M., Kim, J. Z., Stiso, J. et al. A practical guide to methodological considerations in the
 controllability of structural brain networks.
 Journal of Neural Engineering (2020). https://doi.org/10.1088/1741-2552/ab6e8b
 
-3. Kim, J. Z., & Bassett, D. S. Linear dynamics & control of brain networks.
+4. Kim, J. Z., & Bassett, D. S. Linear dynamics & control of brain networks.
 arXiv (2019). https://arxiv.org/abs/1902.03309
 
 .. _readme_requirements:
