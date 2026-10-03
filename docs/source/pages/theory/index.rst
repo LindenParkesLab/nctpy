@@ -6,7 +6,7 @@ Theory
 .. note::
     :class: sphx-glr-download-link-note
 
-    Relevant publication: `Kim et al. 2020 Neural Engineering <https://link.springer.com/chapter/10.1007/978-3-030-43395-6_17>`_. Much of the inspiration for the derivations came from `Dr. George Pappas' <https://www.georgejpappas.org/>`_ course ESE 500 on Linear Systems Theory at UPenn.
+    Relevant publications: `Kim & Bassett 2020, Neural Engineering <https://link.springer.com/chapter/10.1007/978-3-030-43395-6_17>`_; `Parkes, Kim et al. 2024, Nature Protocols <https://doi.org/10.1038/s41596-024-01023-w>`_; `Kim et al. 2025, Nature Communications <https://doi.org/10.1038/s41467-025-66542-w>`_. Much of the inspiration for the derivations came from `Dr. George Pappas' <https://www.georgejpappas.org/>`_ course ESE 500 on Linear Systems Theory at UPenn.
 
 When we talk about the "control" of a system, we broadly refer to some input or change to the system that alters its behavior in a desired way. To more precisely discuss control, we first have to discuss the object that is being controlled: the system. In the network control framework, what is being controlled is a **dynamical system**.
 
@@ -31,7 +31,7 @@ When we say dynamic (states are changing), we mean to say that the states are ch
 
 "in geometric space"
 __________________________
-When we say "geometric," we *usually* mean the colloquial usage of the word. That is, Euclidean space. We live in 3-dimensional Euclidean space, where every point is described by 3 coordinates: :math:`(x,y,z)`. In a dynamical system, there is no need to restrict ourselves to 3 dimensions. In the train example, we can represent the position of the train along the track, :math:`x`, on a number line. Even if the track itself is not straight, we can "straighten out" the track to form a 1-dimensional line. As another exmple, the FitzHugh-Nagumo model is a 2-dimensional simplification of a Hodgkin-Huxley neuron, with two states, :math:`v` and :math:`w`. We can plot these states separately over time (left,center), or we can plot them together in a 2-dimensional geometric space, where each axis represents either :math:`v` or :math:`w` (right).
+When we say "geometric," we *usually* mean the colloquial usage of the word. That is, Euclidean space. We live in 3-dimensional Euclidean space, where every point is described by 3 coordinates: :math:`(x,y,z)`. In a dynamical system, there is no need to restrict ourselves to 3 dimensions. In the train example, we can represent the position of the train along the track, :math:`x`, on a number line. Even if the track itself is not straight, we can "straighten out" the track to form a 1-dimensional line. As another example, the FitzHugh-Nagumo model is a 2-dimensional simplification of a Hodgkin-Huxley neuron, with two states, :math:`v` and :math:`w`. We can plot these states separately over time (left,center), or we can plot them together in a 2-dimensional geometric space, where each axis represents either :math:`v` or :math:`w` (right).
 
 .. image:: ./fig_cycle.gif
    :align: center
@@ -59,7 +59,7 @@ An equation is a relation that equates the items left of the equal sign to the i
 .. math::
     c^2 = a^2 + b^2
 
-This equation has thre evariables that are related by one equation. Hence, if I fix :math:`a` and :math:`b,` then I know what :math:`c` has to be for the triangle to be a right triangle.
+This equation has three variables that are related by one equation. Hence, if I fix :math:`a` and :math:`b,` then I know what :math:`c` has to be for the triangle to be a right triangle.
 
 "that relates one or more functions and their derivatives."
 ________________________________________________________________
@@ -111,7 +111,7 @@ and at every point :math:`(v,w)`, we will draw an arrow pointing towards :math:`
 
 We observe that at every point in the state space, we can draw an arrow defined by the dynamical equations. Additionally, we observe that the evolution of the system states, :math:`v(t)` and :math:`w(t),` follow these arrows. Hence, the differential equations define the flow of the system states over time.
 
-For convenience, we will name all of our state varibles :math:`x_1,x_2,\dotsm,x_N,` and collect them into an :math:`N`-dimensional vector :math:`\mathbf{x}.` For an additional convenience, instead of always writing the fraction :math:`\frac{\mathrm{d}x}{\mathrm{d}t},` we will use :math:`\dot{x}` to represent the time derivative of :math:`x.`
+For convenience, we will name all of our state variables :math:`x_1,x_2,\dotsm,x_N,` and collect them into an :math:`N`-dimensional vector :math:`\mathbf{x}.` For an additional convenience, instead of always writing the fraction :math:`\frac{\mathrm{d}x}{\mathrm{d}t},` we will use :math:`\dot{x}` to represent the time derivative of :math:`x.`
 
 |
 |
@@ -136,7 +136,7 @@ We can make this system a bit more general, and look at
 .. math::
     \frac{\mathrm{d}x}{\mathrm{d}t} = ax,
 
-where :math:`a` is a constant real number. Using some basic calculus, we can actually solve for the trajectory :math:`x(t).` First, we divide both sides by :math:`x` and multiply both sides by :math:`a` to match terms,
+where :math:`a` is a constant real number. Using some basic calculus, we can actually solve for the trajectory :math:`x(t).` First, we divide both sides by :math:`x` and multiply both sides by :math:`\mathrm{d}t` to separate the variables,
 
 .. math::
     \frac{1}{x}\mathrm{d}x = a\mathrm{d}t.
@@ -161,8 +161,8 @@ which tells us exactly what the state of our system will be at every point in ti
 
 .. math::
     \frac{\mathrm{d}}{\mathrm{d}t}e^{at} &= \frac{\mathrm{d}}{\mathrm{d}t} \left( 1 + \frac{at}{1!} + \frac{a^2t^2}{2!} + \frac{a^3t^3}{3!} + \dotsm + \frac{a^kt^k}{k!} + \dotsm\right)\\
-    &= 0 + \frac{a}{1!} + 2\frac{a^2t}{2!} + 3\frac{a^3t^2}{3!} + \dotsm + k\frac{a^lt^{k-1}}{k!} + \dotsm\\
-    &= a\left(1 + \frac{at}{1!} + \frac{a^2t^2}{2!} + \dotsm + \frac{a^kt^k}{k!}\right)\\
+    &= 0 + \frac{a}{1!} + 2\frac{a^2t}{2!} + 3\frac{a^3t^2}{3!} + \dotsm + k\frac{a^kt^{k-1}}{k!} + \dotsm\\
+    &= a\left(1 + \frac{at}{1!} + \frac{a^2t^2}{2!} + \dotsm + \frac{a^kt^k}{k!} + \dotsm\right)\\
     &= ae^{at}.
 
 Hence, the derivative of :math:`e^{at}` is equal to :math:`ae^{at},` such that the left-hand side of the dynamical equation equals the right-hand side.
@@ -173,7 +173,7 @@ _________________________
 Of course, systems like the brain typically have many states, and writing down the equations for all of those states would be quite tedious. Fortunately, we can obtain all of the results in scalar LTI systems for vector LTI systems using matrix notation. In matrix form, the state-space LTI dynamics are written as
 
 .. math::
-    \underbrace{\begin{bmatrix} \dot{x}_1\\\dot{x}_2\\\vdots\\\dot{x}_N \end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} a_{11} & a_{12} & \dotsm & a_{1N}\\ a_{21} & a_{22} & \dotsm & a_{2N}\\ \vdots & \vdots & \ddots & \vdots\\ a_{N1} & a_{N2} & \dotsm & a_{NN} \end{bmatrix}}_{A} \underbrace{\begin{bmatrix} \dot{x}_1\\\dot{x}_2\\\vdots\\\dot{x}_N \end{bmatrix}}_{\mathbf{x}},
+    \underbrace{\begin{bmatrix} \dot{x}_1\\\dot{x}_2\\\vdots\\\dot{x}_N \end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} a_{11} & a_{12} & \dotsm & a_{1N}\\ a_{21} & a_{22} & \dotsm & a_{2N}\\ \vdots & \vdots & \ddots & \vdots\\ a_{N1} & a_{N2} & \dotsm & a_{NN} \end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\x_2\\\vdots\\x_N \end{bmatrix}}_{\mathbf{x}},
 
 or, more compactly, as 
 
@@ -185,10 +185,10 @@ Here, :math:`a_{ij}` is the element in the :math:`i`-th row and :math:`j`-th col
 Now, it might be too much to hope that the solution to the vector LTI system is simply a matrix version of the scalar form, perhaps something like :math:`\mathbf{x}(t) = e^{At}\mathbf{x}(0).` However, this form is precisely the solution to the vector dynamical equation! Exactly as in the scalar version, we can write the *matrix exponential*, :math:`e^{At},` as a Taylor series such that :math:`e^{At} = \sum_{k=0}^\infty \frac{(At)^k}{k!},` and again take the time derivative of each term to get
 
 .. math::
-    \frac{\mathrm{d}}{\mathrm{d}t}e^{At} &= \frac{\mathrm{d}}{\mathrm{d}t} \left( 1 + \frac{At}{1!} + \frac{A^2t^2}{2!} + \frac{A^3t^3}{3!} + \dotsm + \frac{A^kt^k}{k!} + \dotsm\right)\\
-    &= 0 + \frac{A}{1!} + 2\frac{A^2t}{2!} + 3\frac{A^3t^2}{3!} + \dotsm + k\frac{A^lt^{k-1}}{k!} + \dotsm\\
-    &= A\left(1 + \frac{At}{1!} + \frac{A^2t^2}{2!} + \dotsm + \frac{A^kt^k}{k!}\right)\\
-    &= Ae^{at}.
+    \frac{\mathrm{d}}{\mathrm{d}t}e^{At} &= \frac{\mathrm{d}}{\mathrm{d}t} \left( I + \frac{At}{1!} + \frac{A^2t^2}{2!} + \frac{A^3t^3}{3!} + \dotsm + \frac{A^kt^k}{k!} + \dotsm\right)\\
+    &= 0 + \frac{A}{1!} + 2\frac{A^2t}{2!} + 3\frac{A^3t^2}{3!} + \dotsm + k\frac{A^kt^{k-1}}{k!} + \dotsm\\
+    &= A\left(I + \frac{At}{1!} + \frac{A^2t^2}{2!} + \dotsm + \frac{A^kt^k}{k!} + \dotsm\right)\\
+    &= Ae^{At}.
 
 Hence, the trajectory of a vector LTI system is given simply by
 
@@ -232,7 +232,7 @@ ______________________
 While this property might not seem so impressive at first glance, the implications are actually quite powerful. Specifically, this linearity allows us to write all possible trajectories of our system as a simple weighted sum of initial conditions. Hence, rather than having to simulate all initial states to see if we reach a particular final state, we can reconstruct the initial state that yields a desired final state. To demonstrate, consider the following simple 2-dimensional system
 
 .. math::
-    \begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix} = \begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix},
+    \begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix} = \begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix} \begin{bmatrix} x_1\\ x_2\end{bmatrix},
 
 and two initial conditions
 
@@ -262,7 +262,7 @@ Because of the linearity of the system, we know that weighted sums of the initia
 and solve for the weights through simple matrix inversion
 
 .. math::
-    \begin{bmatrix} a\\b \end{bmatrix} = \begin{bmatrix} \mathbf{x}_1(T) & \mathbf{x}_2(T)\end{bmatrix}^{-1} \mathbf{x}^*(T) = \begin{bmatrix}-0.7\\-0.5\end{bmatrix}.
+    \begin{bmatrix} a\\b \end{bmatrix} = \begin{bmatrix} \mathbf{x}_1(T) & \mathbf{x}_2(T)\end{bmatrix}^{-1} \mathbf{x}^*(T) \approx \begin{bmatrix}-0.70\\-0.50\end{bmatrix}.
 
 Then, if we use the same weighted sums of the initial states, then the new initial state is guaranteed to reach the desired target state,
 
@@ -289,7 +289,7 @@ While the previous reconstruction example was useful, the linearity of the impul
 So, we know :math:`A,` and we know the desired target state, :math:`\mathbf{x}(T),` so we just multiply both sides of the equation by the inverse of :math:`e^{AT}` to yield the correct initial state
 
 .. math::
-    \mathbf{x}(0) = e^{-AT} \mathbf{x}(T) = \begin{bmatrix} -0.7\\ -0.5 \end{bmatrix}.
+    \mathbf{x}(0) = e^{-AT} \mathbf{x}(T) \approx \begin{bmatrix} -0.70\\ -0.50 \end{bmatrix}.
 
 And... that's kind of it. And fundamentally, the control of these systems uses the exact same idea. That is, we find some *linear* operation that takes us from the control input to the final state, then solve for the input using some fancy versions of matrix inverses.
 
@@ -319,22 +319,22 @@ So the first thing we will try to do is, as before, move all of the same variabl
 .. math::
     \dot{\mathbf{x}} - A\mathbf{x} = B\mathbf{u}.
 
-Then, as before, we want to integrate the time derivative. However, simply integrating both sides will yield a :math:`\int A\mathbf{x}` term, which we do not want. To combine the :math:`\dot{\mathbf{x}}` and :math:`A\mathbf{x}` terms, we will first mutiply the equation by :math:e^{-At},
+Then, as before, we want to integrate the time derivative. However, simply integrating both sides will yield a :math:`\int A\mathbf{x}` term, which we do not want. To combine the :math:`\dot{\mathbf{x}}` and :math:`A\mathbf{x}` terms, we will first multiply the equation by :math:`e^{-At}`,
 
 .. math::
-    e^{At}\dot{\mathbf{x}} - e^{At}A\mathbf{x} = e^{At}B\mathbf{u},
+    e^{-At}\dot{\mathbf{x}} - e^{-At}A\mathbf{x} = e^{-At}B\mathbf{u},
 
-and notice that we can actually perform the reverse of the product rule on the left-hand side. Specifically, :math:`\frac{\mathrm{d}}{\mathrm{d}t} e^{At}\mathbf{x} = e^{At}\dot{\mathbf{x}} - e^{At}A\mathbf{x}` (small note, :math:`e^{-At}A = Ae^{-At}` because a matrix and functions of that matrix `commute <https://en.wikipedia.org/wiki/Commuting_matrices>`_). Substituting this expression into the left-hand side, we get
+and notice that we can actually perform the reverse of the product rule on the left-hand side. Specifically, :math:`\frac{\mathrm{d}}{\mathrm{d}t} e^{-At}\mathbf{x} = e^{-At}\dot{\mathbf{x}} - e^{-At}A\mathbf{x}` (small note, :math:`e^{-At}A = Ae^{-At}` because a matrix and functions of that matrix `commute <https://en.wikipedia.org/wiki/Commuting_matrices>`_). Substituting this expression into the left-hand side, we get
 
 .. math::
-    \frac{\mathrm{d}}{\mathrm{d}t} e^{At}\mathbf{x} = e^{At}B\mathbf{u}
+    \frac{\mathrm{d}}{\mathrm{d}t} e^{-At}\mathbf{x} = e^{-At}B\mathbf{u}
 
 Now we are almost done, as we integrate both sides from :math:`t = 0` to :math:`t = T` to yield
 
 .. math::
     e^{-AT} \mathbf{x}(T) - \mathbf{x}(0) = \int_0^T e^{-At} B\mathbf{u}(t) \mathrm{d}t
     
-Finally, we isolate the term :math:`\mathbf{x}(T)` by adding both sides of the equation by :math:`\mathbf{x}(0),` and multiplying through by :math:`e^{AT}` to yield
+Finally, we isolate the term :math:`\mathbf{x}(T)` by adding :math:`\mathbf{x}(0)` to both sides of the equation, and multiplying through by :math:`e^{AT}` to yield
 
 .. math::
     \underbrace{\mathbf{x}(T)}_{\mathrm{target}} = \underbrace{e^{AT}\mathbf{x}(0)}_{\mathrm{natural}} + \underbrace{\int_0^T e^{A(T-t)} B\mathbf{u}(t) \mathrm{d}t}_{\mathrm{controlled}}
@@ -394,22 +394,22 @@ Minimum Energy Control
 ==================================
 Of course, this process is all a bit tedious, because we first have to simulate controlled trajectories, then take combinations of those trajectories. Is there a faster and easier way to solve for control inputs that perform a state transition without having to run simulations? The answer is yes, because the controlled response operator :math:`\mathcal L(\mathbf{u})` is linear, but requires a bit of care.
 
-So first, let's think about a typical linear regression problem, :math:`M\mathbf{v} = \mathbf{b},` where :math:`M` is an :math:`k \times n` matrix, :math:`\mathbf{v}` is an :math:`n` dimensional vector, and :math:`\mathbf{b}` is an :math:`k` dimensional vector,
+So first, let's think about a typical linear system of equations, :math:`M\mathbf{v} = \mathbf{b},` where :math:`M` is a :math:`k \times n` matrix, :math:`\mathbf{v}` is an :math:`n` dimensional vector, and :math:`\mathbf{b}` is an :math:`k` dimensional vector,
 
 .. math::
     \underbrace{\begin{bmatrix} m_{11} & m_{12} & m_{13} & \dotsm & m_{1n}\\ m_{21} & m_{22} & m_{23} & \dotsm & m_{2n}\\ \vdots & \vdots & \vdots & \ddots & \vdots \\ m_{k1} & m_{k2} & m_{k3} & \dotsm & m_{kn} \end{bmatrix}}_{M} \underbrace{\begin{bmatrix} v_1\\v_2\\v_3\\ \vdots\\ v_n \end{bmatrix}}_{\mathbf{v}} = \underbrace{\begin{bmatrix}b_1\\b_2\\ \vdots \\b_k \end{bmatrix}}_{\mathbf{b}}.
 
-One solution to this regression problem is :math:`\mathbf{v}^* = A^\top (AA^\top)^{-1} \mathbf{b},` where :math:`A^+ = A^\top (AA^\top)` is called the `pseudoinverse <https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse>`_. In fact, this pseudoinverse is quite special, because when a solution to the system of equations exists, :math:`\mathbf{v}^*` is the *smallest*, or *least squares* solution, where the magnitude is measured simply by the inner product, which in the case of :math:`n`-dimensional vectors is
+One solution to this problem is :math:`\mathbf{v}^* = M^\top (MM^\top)^{-1} \mathbf{b},` where :math:`M^+ = M^\top (MM^\top)^{-1}` is called the `pseudoinverse <https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse>`_. In fact, this pseudoinverse is quite special, because when a solution to the system of equations exists, :math:`\mathbf{v}^*` is the *smallest*, or *minimum-norm*, solution, where the magnitude is measured simply by the inner product, which in the case of :math:`n`-dimensional vectors is
 
 .. math::
     <\mathbf{a},\mathbf{b}>_{\mathbb R^n} = \mathbf{a}^\top \mathbf{b} = a_1b_1 + a_2b_2 + \dotsm + a_nb_n,
 
-where the subscript :math:`\mathbb R^n` indicates that the inner product is on the space of :math:`n`-dimensional vectors. We can extend the exact same equations to our control problem. Explicitly, instead of a matrix :math:`M,` we will use our control response operator :math:`\mathcal L.` Instead of a vector of numbers :math:`\mathbf{v},` we will use a vector of functions :math:`\mathbf{u}(t).` And instead of dependent variable :math:`\mathbf{b},` we will use the state transition :math:`\mathbf{x}(T) - e^{AT}\mathbf{x}_0.` Then the solution to our least squares solution will be
+where the subscript :math:`\mathbb R^n` indicates that the inner product is on the space of :math:`n`-dimensional vectors. We can extend the exact same equations to our control problem. Explicitly, instead of a matrix :math:`M,` we will use our control response operator :math:`\mathcal L.` Instead of a vector of numbers :math:`\mathbf{v},` we will use a vector of functions :math:`\mathbf{u}(t).` And instead of dependent variable :math:`\mathbf{b},` we will use the state transition :math:`\mathbf{x}(T) - e^{AT}\mathbf{x}_0.` Then the minimum-norm solution will be
 
 .. math::
     \mathbf{u}^*(t) = \mathcal L^* (\mathcal L \mathcal L^*)^{-1} (\mathbf{x}(T) - e^{AT}\mathbf{x}(0)).
 
-Now, you may have noticed a slight problem, which has to do with the fact that our inputs are no longer vectors of *numbers*, but rather vectors of *functions*. This problem shows up in the transpose, or `adjoint <https://en.wikipedia.org/wiki/Hermitian_adjoint>`_ :math:`M^\top.` In our linear regression example, because the operator :math:`M` is a matrix, it makes sense to take it's tranpose. And this transpose satisfies an important property, which is that it preserves the *inner product* of input and output vectors. So if :math:`M\mathbf{v}` is an :math:`n`-dimensional vector, and :math:`M^\top\mathbf{b}` is an :math:`k`-dimensional vector, then :math:`M^\top` is defined such that
+Now, you may have noticed a slight problem, which has to do with the fact that our inputs are no longer vectors of *numbers*, but rather vectors of *functions*. This problem shows up in the transpose, or `adjoint <https://en.wikipedia.org/wiki/Hermitian_adjoint>`_ :math:`M^\top.` In our linear regression example, because the operator :math:`M` is a matrix, it makes sense to take its transpose. And this transpose satisfies an important property, which is that it preserves the *inner product* of input and output vectors. So if :math:`M\mathbf{v}` is a :math:`k`-dimensional vector, and :math:`M^\top\mathbf{b}` is an :math:`n`-dimensional vector, then :math:`M^\top` is defined such that
 
 .. math::
     <M\mathbf{v},\mathbf{b}>_{\mathbb R^k} &= <\mathbf{v},M^\top \mathbf{b}>_{\mathbb R^n}\\
@@ -426,7 +426,7 @@ where the subscript :math:`\mathbb \Omega^k` indicates that the inner product is
 .. math::
     <\mathcal L(\mathbf{u}(t)),\mathbf{b}>_{\mathbb R^n} &= <\mathbf{u}(t),\mathcal L^* (\mathbf{b})>_{\mathbb \Omega^k}\\
     \mathcal L(\mathbf{u}(t))^\top \mathbf{b} &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t\\
-    \left(\int_0^T e^{A(T-t)}B\mathbf{u}(t)\right)^\top \mathrm{d}t \mathbf{b} &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t\\
+    \left(\int_0^T e^{A(T-t)}B\mathbf{u}(t) \mathrm{d}t\right)^\top \mathbf{b} &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t\\
     \int_0^T \mathbf{u}(t)^\top B^\top e^{A^\top (T-t)} \mathbf{b} \mathrm{d}t &= \int_0^T \mathbf{u}(t)^\top \mathcal L^*(\mathbf{b}) \mathrm{d}t,
 
 and we see that for the left and right sides to be equal, the adjoint must be equal to :math:`\mathcal L^* = B^\top e^{A^\top (T-t)}.` Intuitively, this makes sense because if the original operator :math:`\mathcal L` took functions of time as inputs and output a vector of numbers, then the adjoint should take vectors of numbers as inputs and output functions of time. Finally, plugging this adjoint back into our solution, we get
@@ -438,7 +438,7 @@ and we see that for the left and right sides to be equal, the adjoint must be eq
 where for convenience, we will refer to the bracketed quantity as the *controllability Gramian*. To compute the magnitude of this control input, we simply take the norm of this solution to get
 
 .. math::
-    E^* = <\mathbf{u}^*(t), \mathbf{u}^*(t)> &= \int_0^T e^{A(T-t)} B B^\top e^{A^\top (T-t)} W_c^{-1} \mathbf{b} ~\mathrm{d}t\\
+    E^* = <\mathbf{u}^*(t), \mathbf{u}^*(t)> &= \int_0^T \mathbf{b}^\top W_c^{-1} e^{A(T-t)} B B^\top e^{A^\top (T-t)} W_c^{-1} \mathbf{b} ~\mathrm{d}t\\
                                                          &= \mathbf{b}^\top W_c^{-1} \int_0^T e^{A(T-t)} B B^\top e^{A^\top (T-t)} \mathrm{d}t ~W_c^{-1} \mathbf{b}\\
                                                          &= \mathbf{b}^\top W_c^{-1} W_c W_c^{-1} \mathbf{b}\\
                                                          &= \mathbf{b}^\top W_c^{-1} \mathbf{b}.
@@ -472,7 +472,7 @@ We observe that the state takes a rather roundabout trajectory to reach the targ
 .. math::
     \underbrace{\begin{bmatrix} \dot{x}_1\\ \dot{x}_2\end{bmatrix}}_{\dot{\mathbf{x}}} = \underbrace{\begin{bmatrix} -1 & -2\\ 1 & 0\end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x_1\\ x_2\end{bmatrix}}_{\mathbf{x}} + \underbrace{\begin{bmatrix} 0 \\ 1\end{bmatrix}}_{B} \underbrace{\begin{bmatrix} u_1 \end{bmatrix}}_{\mathbf{u}},
 
-then we get the trajectory in the center subplot. Notice that the dynamics don't push the system straight downard, but rather follows the natura dynamics upwards for a while before moving downard. This is because it costs less energy (input) to fight the weaker natural upward dynamics near the center of the vector field, as opposed to fighting the stronger natural upward dynamics near the right of the vector field.
+then we get the trajectory in the center subplot. Notice that the dynamics don't push the system straight downward, but rather follow the natural dynamics upwards for a while before moving downward. This is because it costs less energy (input) to fight the weaker natural upward dynamics near the center of the vector field, as opposed to fighting the stronger natural upward dynamics near the right of the vector field.
 
 Finally, if we are able to independently influence both of the system states,
 
@@ -484,3 +484,63 @@ then we get the controlled trajectory and inputs in the right subplot.
 
 
 
+
+|
+|
+
+Optimal Control: Constraining the Trajectory
+===============================================
+Minimum energy control only asks for the smallest input. On the way from :math:`\mathbf{x}(0)` to :math:`\mathbf{x}(T),` the state may take large excursions, as in the examples above. If we also care about the path, we can add a cost for the state's distance from a reference state, :math:`\mathbf{x}_r,` at the nodes selected by a diagonal matrix :math:`S,` and weigh it against the cost of the input with a positive number :math:`\rho`:
+
+.. math::
+    J = \int_0^T (\mathbf{x}(t) - \mathbf{x}_r)^\top S (\mathbf{x}(t) - \mathbf{x}_r) + \rho\, \mathbf{u}(t)^\top \mathbf{u}(t) ~\mathrm{d}t.
+
+This is the cost that :func:`nctpy.energies.get_control_inputs` minimises (see :doc:`/guide/control_tasks` for the choice of :math:`S,` :math:`\rho` and :math:`\mathbf{x}_r`).
+
+The input that minimises :math:`J` follows from `Pontryagin's minimum principle <https://en.wikipedia.org/wiki/Pontryagin%27s_maximum_principle>`_. We introduce a *costate*, :math:`\mathbf{p}(t),` one value per node, and the Hamiltonian
+
+.. math::
+    H = (\mathbf{x} - \mathbf{x}_r)^\top S (\mathbf{x} - \mathbf{x}_r) + \rho\, \mathbf{u}^\top \mathbf{u} + \mathbf{p}^\top (A\mathbf{x} + B\mathbf{u}).
+
+The optimal input minimises :math:`H` at every moment, so :math:`\partial H/\partial \mathbf{u} = 2\rho\mathbf{u} + B^\top\mathbf{p} = 0,` which gives
+
+.. math::
+    \mathbf{u}^*(t) = -\frac{1}{2\rho} B^\top \mathbf{p}(t),
+
+and the costate evolves as :math:`\dot{\mathbf{p}} = -\partial H / \partial \mathbf{x} = -2S(\mathbf{x} - \mathbf{x}_r) - A^\top \mathbf{p}.` Substituting the optimal input into the dynamics, the state and the costate evolve together as one linear system:
+
+.. math::
+    \begin{bmatrix} \dot{\mathbf{x}} \\ \dot{\mathbf{p}} \end{bmatrix} = \underbrace{\begin{bmatrix} A & -\frac{1}{2\rho} BB^\top \\ -2S & -A^\top \end{bmatrix}}_{M} \begin{bmatrix} \mathbf{x} \\ \mathbf{p} \end{bmatrix} + \begin{bmatrix} \mathbf{0} \\ 2S\mathbf{x}_r \end{bmatrix}.
+
+This system is linear, so everything above applies: its solution at any time is given by the matrix exponential :math:`e^{Mt}.` We know the initial state, :math:`\mathbf{x}(0),` and the final state, :math:`\mathbf{x}(T),` but not the initial costate, :math:`\mathbf{p}(0).` Writing :math:`\mathbf{x}(T)` in terms of :math:`\mathbf{x}(0)` and :math:`\mathbf{p}(0)` through :math:`e^{MT}` gives a linear system of equations for :math:`\mathbf{p}(0).` Once we have it, the whole trajectory and the input follow. :doc:`../numerics/index` describes how nctpy computes this.
+
+When :math:`S = 0,` the trajectory is unconstrained, and the costate evolves on its own, :math:`\mathbf{p}(t) = e^{-A^\top t}\mathbf{p}(0).` The input is then :math:`\mathbf{u}^*(t) \propto B^\top e^{-A^\top t}\mathbf{p}(0),` which is the minimum energy input derived above. A different :math:`\rho` only rescales :math:`\mathbf{p}(0)` and leaves the input unchanged, which is why :math:`\rho` has no effect without a trajectory constraint.
+
+In discrete time, the same reasoning applies step by step: the state and costate equations for every time step together form one large linear system, which nctpy solves at once.
+
+|
+|
+
+The Infinite Horizon and Controllability Metrics
+==================================================
+The controllability Gramian,
+
+.. math::
+    W_c(T) = \int_0^T e^{A\tau} BB^\top e^{A^\top \tau} \mathrm{d}\tau,
+
+grows with the time horizon :math:`T.` For a stable system, every term of the integral decays, and as :math:`T` grows the Gramian converges to the *infinite-horizon* Gramian, :math:`W_c,` which solves the `Lyapunov equation <https://en.wikipedia.org/wiki/Lyapunov_equation>`_
+
+.. math::
+    AW_c + W_cA^\top + BB^\top = 0
+
+(in discrete time, :math:`AW_cA^\top - W_c + BB^\top = 0`). It needs no integration. Two measures of control energy follow from it (see :doc:`/guide/energies`).
+
+* The minimum energy to reach a target state from rest over an infinite horizon, :math:`\mathbf{x}(T)^\top W_c^{-1} \mathbf{x}(T),` which is the limit of the minimum energy above as :math:`T` grows (:func:`nctpy.energies.minimum_energy_infinite`).
+* The trace of the inverse Gramian, :math:`\mathrm{tr}(W_c^{-1}),` the sum of the minimum energies to reach each node's unit state, a measure of how hard the system is to control on average (:func:`nctpy.energies.average_energy_infinite`).
+
+The Gramian also gives the *controllability metrics* of each node (Gu et al., *Nat Commun* 2015; see :doc:`/guide/metrics`). The **average controllability** of node :math:`i` is the trace of the Gramian when input enters at node :math:`i` alone, :math:`B = \mathbf{e}_i`:
+
+.. math::
+    \mathrm{tr}\left( \int_0^T e^{A\tau} \mathbf{e}_i \mathbf{e}_i^\top e^{A^\top \tau} \mathrm{d}\tau \right) = \int_0^T \lVert e^{A\tau}\mathbf{e}_i \rVert^2 \mathrm{d}\tau,
+
+the total response of the system to an impulse at node :math:`i`: how much input at that node spreads through the network. nctpy uses :math:`T = 1` in continuous time and an infinite horizon in discrete time. The **modal controllability** of node :math:`i` describes its ability to drive the system into modes that decay quickly, which are hard to reach: :math:`\sum_j v_{ij}^2 (1 - \lambda_j^2)` for a discrete-time system with eigenvalues :math:`\lambda_j` and eigenvectors :math:`\mathbf{v}_j.`

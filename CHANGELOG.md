@@ -223,6 +223,13 @@
   rates), on optimising decay rates (the objective, defaults and options), on null models
   (`geomsurr`'s surrogates and scope, p-values, and surrogate brain maps from other packages) and on
   performance (reuse within a system, choosing a function, threads).
+- The Theory page corrects errors in its derivations (a sign in the controlled response, the
+  derivative of the matrix exponential, the pseudoinverse, and the minimum-energy expansion) and adds
+  sections on optimal control with a trajectory constraint (`S`, `rho`, `xr`, through the
+  state-costate system) and on the infinite-horizon Gramian and the controllability metrics. The
+  Numerics page corrects its Simpson's-rule formula, replaces its MATLAB example with Python, and
+  describes how nctpy computes Gramians, optimal control in both time systems, its error terms, what
+  it reuses between calls, and the scale of `integrate_u`'s energies.
 
 ### Repository
 
