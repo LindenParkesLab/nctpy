@@ -13,4 +13,8 @@ control_tasks
 errors
 energies
 metrics
+pipelines
+optimising_decay_rates
+null_models
+performance
 ```

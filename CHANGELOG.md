@@ -218,6 +218,11 @@
   time integral, and the infinite-horizon measures) and on the controllability metrics (Gu et al.'s
   definition of average controllability for directed connectomes, and the scope of modal
   controllability).
+- User-guide pages on the pipeline classes (how `ComputeControlEnergy` batches transitions, and how
+  `ComputeOptimizedControlEnergy`'s optimisation of control weights differs from optimising decay
+  rates), on optimising decay rates (the objective, defaults and options), on null models
+  (`geomsurr`'s surrogates and scope, p-values, and surrogate brain maps from other packages) and on
+  performance (reuse within a system, choosing a function, threads).
 
 ### Repository
 
