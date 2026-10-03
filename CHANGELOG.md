@@ -194,6 +194,12 @@
   (`mask_control_set`, `random_control_set`, `baseline`), incomplete transitions and their error terms,
   `average_energy_infinite` and `minimum_energy_infinite` across control-set sizes, and checking
   `xf_reached` before trusting either with sparse control sets.
+- The examples comparing controllability metrics and comparing `minimum_energy_fast` with
+  `get_control_inputs` now run on synthetic data and are executed in CI, like the tutorials. They
+  used to load real data from hard-coded paths and called `reg_plot` with arguments it no longer
+  takes. The `minimum_energy_fast` example no longer claims a ~300-fold speed-up: `get_control_inputs`
+  now reuses its work across a loop of transitions, and the page shows the timings measured when it
+  was run. The other examples, which analyse real data that cannot be shared, remain as static pages.
 
 ### Repository
 

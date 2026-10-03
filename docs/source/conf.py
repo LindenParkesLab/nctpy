@@ -39,8 +39,10 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "Thumbs.db",
     ".DS_Store",
-    # The example notebooks are rendered through their .rst copies until each page is converted.
-    "pages/examples/*.ipynb",
+    # The real-data examples are a static gallery, rendered through their .rst copies; their notebooks are records.
+    "pages/examples/age_effects_metrics.ipynb",
+    "pages/examples/gradient_metric_correlations.ipynb",
+    "pages/examples/optimal_energy_ieeg_stim.ipynb",
 ]
 
 # -- Autodoc / autosummary ---------------------------------------------------------------------

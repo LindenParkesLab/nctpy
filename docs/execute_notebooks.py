@@ -1,8 +1,9 @@
-"""Execute the documentation's notebooks: Getting started and every tutorial.
+"""Execute the documentation's notebooks: Getting started, the two method examples and every tutorial.
 
 Read the Docs only renders the notebooks, with the outputs committed in them; CI runs this script so that a change
 that breaks a notebook fails there instead of leaving a stale page. Every notebook run here uses synthetic, seeded
-data only. The real-data examples under pages/examples/ are a static gallery and are never executed.
+data only. The other examples under pages/examples/ use real data; they are a static gallery and are never
+executed.
 
     python docs/execute_notebooks.py           # execute; fail if any cell raises
     python docs/execute_notebooks.py --write   # also save the fresh outputs into the notebooks, to commit
@@ -22,7 +23,12 @@ from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError
 
 SOURCE = Path(__file__).resolve().parent / "source"
-NOTEBOOKS = [SOURCE / "pages" / "getting_started" / "index.ipynb", *sorted((SOURCE / "tutorials").glob("*.ipynb"))]
+NOTEBOOKS = [
+    SOURCE / "pages" / "getting_started" / "index.ipynb",
+    SOURCE / "pages" / "examples" / "metric_correlations.ipynb",
+    SOURCE / "pages" / "examples" / "minimum_energy_fast.ipynb",
+    *sorted((SOURCE / "tutorials").glob("*.ipynb")),
+]
 
 
 def main() -> int:

@@ -3,6 +3,10 @@
 Examples
 ---------
 
+The first two examples run on synthetic data and are executed with every change to nctpy, like the tutorials. The
+others show analyses of real data (structural connectomes from the Philadelphia Neurodevelopmental Cohort, and
+intracranial EEG with diffusion imaging and stimulation); those data cannot be shared, so these pages are a static record of results and are not executed.
+
 .. toctree::
     :maxdepth: 2
 
