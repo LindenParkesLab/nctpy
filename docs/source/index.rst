@@ -17,6 +17,7 @@ Contents
     pages/theory/index
     pages/numerics/index
     pages/examples/index
+    pages/reproducing
     api/index
     pages/references
 

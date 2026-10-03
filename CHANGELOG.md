@@ -200,6 +200,11 @@
   takes. The `minimum_energy_fast` example no longer claims a ~300-fold speed-up: `get_control_inputs`
   now reuses its work across a loop of transitions, and the page shows the timings measured when it
   was run. The other examples, which analyse real data that cannot be shared, remain as static pages.
+- A "Reproducing the papers" page. It gives the protocol paper's main-text code in a form that runs
+  when copied, lists the seven typesetting defects that stop the printed code from running (and
+  one misprinted output), gives the printed outputs to expect, and notes the differences older
+  versions of nctpy show. It also points users of Kim et al. (2025) to the paper's repository and
+  to `nctpy.optimize`. A test checks that the page's code is the paper's, with only those repairs.
 
 ### Repository
 
