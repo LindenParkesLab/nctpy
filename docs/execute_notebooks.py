@@ -40,8 +40,15 @@ def main() -> int:
     failures = []
     for path in notebooks:
         nb = nbformat.read(path, as_version=4)
+        # No per-cell timings, and each cell's printed output in one piece however the kernel happened to flush
+        # it, so that re-executing a notebook does not change its committed outputs.
         client = NotebookClient(
-            nb, timeout=900, kernel_name="python3", record_timing=False, resources={"metadata": {"path": path.parent}}
+            nb,
+            timeout=900,
+            kernel_name="python3",
+            record_timing=False,
+            coalesce_streams=True,
+            resources={"metadata": {"path": path.parent}},
         )
         started = time.time()
         try:

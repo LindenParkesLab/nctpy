@@ -9,4 +9,5 @@ from the code shown above them, run against the current version of nctpy.
 
 protocol_workflow
 decay_rates
+partial_control
 ```

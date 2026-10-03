@@ -190,6 +190,10 @@
 - A tutorial on fitting nodes' decay rates with `optimize_decay_rates` (Kim et al. 2025): the fit and its
   training traces, the fitted rates, the fitted matrix in use, rebuilding it with
   `matrix_normalization(..., decay=...)`, and fitting several transitions at once.
+- A tutorial on partial control sets and infinite-horizon energy: control sets from a mask or at random
+  (`mask_control_set`, `random_control_set`, `baseline`), incomplete transitions and their error terms,
+  `average_energy_infinite` and `minimum_energy_infinite` across control-set sizes, and checking
+  `xf_reached` before trusting either with sparse control sets.
 
 ### Repository
 
