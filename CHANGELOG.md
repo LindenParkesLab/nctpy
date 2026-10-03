@@ -205,6 +205,10 @@
   one misprinted output), gives the printed outputs to expect, and notes the differences older
   versions of nctpy show. It also points users of Kim et al. (2025) to the paper's repository and
   to `nctpy.optimize`. A test checks that the page's code is the paper's, with only those repairs.
+- A User guide section, starting with pages on choosing a time system (and which functions support
+  each), normalising the connectome (`c`, a shared `l`, self-connections and `zero_diagonal`,
+  per-node `decay`, checking stability) and defining a control task (states, control sets, `S`,
+  `rho`, `xr` and `T`).
 
 ### Repository
 
