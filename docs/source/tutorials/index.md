@@ -8,4 +8,5 @@ from the code shown above them, run against the current version of nctpy.
 :maxdepth: 1
 
 protocol_workflow
+decay_rates
 ```

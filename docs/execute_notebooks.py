@@ -6,8 +6,9 @@ data only. The real-data examples under pages/examples/ are a static gallery and
 
     python docs/execute_notebooks.py           # execute; fail if any cell raises
     python docs/execute_notebooks.py --write   # also save the fresh outputs into the notebooks, to commit
+    python docs/execute_notebooks.py --write tutorials/decay_rates.ipynb   # only the notebooks named
 
-Needs nctpy with the docs and plot extras (and torch for a notebook that uses nctpy.optimize).
+Needs nctpy with the docs, plot and optimize extras.
 """
 
 import argparse
@@ -27,7 +28,9 @@ NOTEBOOKS = [SOURCE / "pages" / "getting_started" / "index.ipynb", *sorted((SOUR
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--write", action="store_true", help="save the executed notebooks in place")
+    parser.add_argument("notebooks", nargs="*", type=Path, help="paths relative to docs/source (default: all)")
     args = parser.parse_args()
+    notebooks = [SOURCE / path for path in args.notebooks] or NOTEBOOKS
 
     # A forced backend (CI sets MPLBACKEND=Agg) stops the kernel's inline backend from emitting figures as outputs.
     os.environ.pop("MPLBACKEND", None)
@@ -35,7 +38,7 @@ def main() -> int:
     os.environ["TQDM_DISABLE"] = "1"
 
     failures = []
-    for path in NOTEBOOKS:
+    for path in notebooks:
         nb = nbformat.read(path, as_version=4)
         client = NotebookClient(
             nb, timeout=900, kernel_name="python3", record_timing=False, resources={"metadata": {"path": path.parent}}
@@ -54,7 +57,7 @@ def main() -> int:
     if failures:
         print(f"\nNotebooks failed to execute: {', '.join(map(str, failures))}")
         return 1
-    print(f"\nAll {len(NOTEBOOKS)} notebook(s) executed cleanly.")
+    print(f"\nAll {len(notebooks)} notebook(s) executed cleanly.")
     return 0
 
 

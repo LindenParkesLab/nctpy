@@ -187,6 +187,9 @@
 - A Tutorials section, starting with the protocol workflow on a synthetic, spatially embedded
   connectome: control energy for one transition (Procedures 1 and 2, Box 1), energies for every
   pair of states with `ComputeControlEnergy`, and spatial null networks with `geomsurr`.
+- A tutorial on fitting nodes' decay rates with `optimize_decay_rates` (Kim et al. 2025): the fit and its
+  training traces, the fitted rates, the fitted matrix in use, rebuilding it with
+  `matrix_normalization(..., decay=...)`, and fitting several transitions at once.
 
 ### Repository
 
