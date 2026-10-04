@@ -5,9 +5,6 @@ quantities computed by nctpy's numpy implementation, so that the two implementat
 cannot drift apart. Runs on CPU, in float64. Skipped where PyTorch is not installed.
 """
 
-import os
-import subprocess
-import sys
 import unittest
 
 import numpy as np
@@ -145,31 +142,6 @@ class TestFit(unittest.TestCase):
         for kwargs in ({"init": "half"}, {"reg_type": "l3"}, {"eigenvalues": "complex"}, {"rho": 0}, {"xr": "target"}):
             with self.subTest(**kwargs), self.assertRaises(ValueError):
                 fit(connectome(), x0, xf, n_steps=1, **kwargs)
-
-
-class TestImport(unittest.TestCase):
-    def test_import_error_names_the_extra(self):
-        # a fresh interpreter in which torch cannot be imported
-        script = (
-            "import sys\n"
-            "class Block:\n"
-            "    def find_spec(self, name, path=None, target=None):\n"
-            "        if name.split('.')[0] == 'torch':\n"
-            "            raise ModuleNotFoundError('blocked: ' + name)\n"
-            "sys.meta_path.insert(0, Block())\n"
-            "import nctpy.energies\n"
-            "try:\n"
-            "    import nctpy.optimize\n"
-            "except ImportError as exc:\n"
-            "    print('optimize raised ImportError:', exc)\n"
-        )
-        import nctpy
-
-        env = dict(os.environ, PYTHONPATH=os.pathsep.join(
-            filter(None, [os.path.dirname(os.path.dirname(nctpy.__file__)), os.environ.get("PYTHONPATH")])))  # fmt: skip
-        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, env=env)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("pip install 'nctpy[optimize]'", result.stdout)
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ LITERALS = (type(None), bool, int, float, str)
 
 def import_module(name):
     """Import a contract module; modules with optional dependencies are skipped when those are missing."""
-    optional = {'nctpy.plotting': 'nilearn.datasets', 'nctpy.optimize': 'torch'}
+    optional = {'nctpy.plotting': 'nilearn.datasets'}
     if name in optional:
         try:
             importlib.import_module(optional[name])

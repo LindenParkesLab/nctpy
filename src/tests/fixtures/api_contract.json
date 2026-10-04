@@ -1053,6 +1053,13 @@
           "default": {
             "value": true
           }
+        },
+        {
+          "name": "method",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "adam"
+          }
         }
       ]
     },

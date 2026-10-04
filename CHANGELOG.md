@@ -2,7 +2,18 @@
 
 ## Unreleased
 
+### Changed
+
+- `nctpy.optimize` can be imported without PyTorch. Only `optimize_decay_rates(method="adam")`, the
+  default, needs it, and now raises the `ImportError` naming `pip install "nctpy[optimize]"` when it is
+  called, rather than when the module is imported.
+
 ### Added
+
+- `optimize_decay_rates(..., method="lbfgs")`: a much faster fit of nodes' decay rates. It minimises
+  the same loss as Kim et al.'s Adam optimiser (the default, `method="adam"`, unchanged), with L-BFGS
+  on closed forms of the loss and its gradient, for undirected connectomes with `B` and `S` multiples
+  of the identity. It needs only numpy and SciPy.
 
 - `modal_control(..., system="continuous")`: modal controllability in continuous time, as defined by
   Karrer et al. (J Neural Eng 2020, Eq. 8): φᵢ = Σⱼ (1 − e^{λⱼ}) vᵢⱼ², for a connectome normalised for
