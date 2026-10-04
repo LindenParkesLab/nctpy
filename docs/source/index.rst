@@ -12,16 +12,11 @@
     :hidden:
 
     pages/installation
-    pages/getting_started/index
-    tutorials/index
-    guide/index
-    pages/theory/index
-    pages/numerics/index
-    pages/examples/index
-    pages/reproducing
+    using
+    background
     api/index
+    pages/references
     pages/upgrading
     pages/changelog
     pages/contributing
-    pages/references
 

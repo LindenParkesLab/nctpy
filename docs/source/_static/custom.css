@@ -19,3 +19,9 @@ table.autosummary td:first-child {
 .bd-content h1 {
     margin-bottom: 0.5rem;
 }
+
+/* Reserve room for the scrollbar on every page. The header is centred, so without this it moved
+   sideways by half a scrollbar's width between short pages (no scrollbar) and long ones. */
+html {
+    scrollbar-gutter: stable;
+}

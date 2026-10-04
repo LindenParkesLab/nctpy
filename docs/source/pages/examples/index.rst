@@ -1,7 +1,7 @@
 .. _examples:
 
-Examples
----------
+Gallery
+-------
 
 The first two examples run on synthetic data and are executed with every change to nctpy, like the tutorials. The
 others show analyses of real data (structural connectomes from the Philadelphia Neurodevelopmental Cohort, and
