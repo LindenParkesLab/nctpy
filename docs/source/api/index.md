@@ -18,7 +18,7 @@ null_models
 | Page | What it covers |
 | --- | --- |
 | [Control energy](energies.md) | Control inputs, trajectories, energies and Gramians (`nctpy.energies`) |
-| [Controllability metrics](metrics.md) | Average and modal controllability (`nctpy.metrics`) |
+| [Controllability metrics](metrics.md) | Average, modal and boundary controllability (`nctpy.metrics`) |
 | [Pipelines](pipelines.md) | Control energy for many control tasks at once (`nctpy.pipelines`) |
 | [Optimising decay rates](optimize.md) | Fitting nodes' decay rates to a transition (`nctpy.optimize`) |
 | [Utilities](utils.md) | Normalisation, control sets, brain states, p-values (`nctpy.utils`) |

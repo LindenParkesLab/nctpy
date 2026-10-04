@@ -46,6 +46,7 @@ error if `system` is missing.
 | {func}`~nctpy.energies.minimum_energy_fast` | ✓ | |
 | {func}`~nctpy.metrics.ave_control` | ✓ | ✓ |
 | {func}`~nctpy.metrics.modal_control` | ✓ | ✓ |
+| {func}`~nctpy.metrics.boundary_control` | ✓ | ✓ |
 | {class}`~nctpy.pipelines.ComputeControlEnergy`, {class}`~nctpy.pipelines.ComputeOptimizedControlEnergy` | ✓ | ✓ |
 | {func}`~nctpy.optimize.optimize_decay_rates` | ✓ | |
 

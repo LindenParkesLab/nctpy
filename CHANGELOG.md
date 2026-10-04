@@ -8,6 +8,11 @@
   Karrer et al. (J Neural Eng 2020, Eq. 8): φᵢ = Σⱼ (1 − e^{λⱼ}) vᵢⱼ², for a connectome normalised for
   continuous time. The new keyword-only `system` defaults to `"discrete"`, so existing calls give
   unchanged results, bit for bit.
+- `boundary_control(A, partition, system, rho=0.2)`: boundary controllability (Gu et al., Nat Commun
+  2015), in discrete and continuous time. It implements Gu et al.'s released code faithfully and agrees
+  with it exactly; its documentation describes the code's behaviour in large networks and where the
+  code differs from the paper's text. It takes the connectome as measured and a partition of the
+  nodes into communities.
 
 ## 1.2.0 (2026-10-02)
 

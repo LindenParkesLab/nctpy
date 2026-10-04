@@ -272,6 +272,36 @@
       ]
     },
     {
+      "module": "nctpy.metrics",
+      "name": "boundary_control",
+      "tier": "public-unlisted",
+      "kind": "function",
+      "params": [
+        {
+          "name": "A",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "partition",
+          "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": null
+          }
+        },
+        {
+          "name": "rho",
+          "kind": "POSITIONAL_OR_KEYWORD",
+          "default": {
+            "value": 0.2
+          }
+        }
+      ]
+    },
+    {
       "module": "nctpy.pipelines",
       "name": "ComputeControlEnergy",
       "tier": "contract",

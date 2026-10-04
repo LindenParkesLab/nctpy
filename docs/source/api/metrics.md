@@ -1,6 +1,6 @@
 # Controllability metrics
 
-Average and modal controllability of each node (Gu et al., *Nat Commun* 2015).
+Average, modal and boundary controllability of each node (Gu et al., *Nat Commun* 2015).
 
 ```{eval-rst}
 .. currentmodule:: nctpy.metrics
@@ -11,4 +11,5 @@ Average and modal controllability of each node (Gu et al., *Nat Commun* 2015).
 
    ave_control
    modal_control
+   boundary_control
 ```

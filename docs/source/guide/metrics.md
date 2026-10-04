@@ -1,7 +1,7 @@
 # Controllability metrics
 
 Controllability metrics describe each node's general capacity to steer the system, without reference to any
-particular transition. nctpy provides two, both from Gu et al. (*Nat Commun* 2015).
+particular transition. nctpy provides three, all from Gu et al. (*Nat Commun* 2015).
 
 ## Average controllability
 
@@ -49,6 +49,36 @@ every value does too.
 Modal controllability is defined for **undirected** connectomes: nctpy computes it from the real Schur
 decomposition, which equals the eigendecomposition for a symmetric matrix. For a directed one the values are only
 an approximation, and depend on the order of the nodes.
+
+## Boundary controllability
+
+{func}`~nctpy.metrics.boundary_control` ranks nodes by how early they are found on the boundaries between network
+communities, as the communities are split recursively: an indicator of a node's role in coupling or decoupling
+modules. It needs a partition of the nodes into communities, for example functional systems or the result of a
+modularity analysis.
+
+```python
+from nctpy.metrics import boundary_control
+
+bc = boundary_control(A, partition, system="discrete", rho=0.2)  # A as measured: not normalised
+```
+
+The algorithm (Gu et al., following Pasqualetti et al. 2014) starts from the partition's own boundary nodes, those
+with enough connection weight (`rho`, relative to the largest weight) to other communities. It then repeatedly
+splits the least controllable community, the one whose nodes as control nodes give the Gramian with the smallest
+eigenvalue, by its Fiedler vector, and adds that split's boundary nodes. Nodes found earlier get higher values: 1
+for the first boundary nodes.
+
+nctpy implements Gu et al.'s released code faithfully, and agrees with it exactly. Three of its properties matter
+when you interpret the results, and are described in the function's documentation:
+
+- the Gramians it compares are badly conditioned, so in large networks the order of splits, and of the values, can
+  depend on rounding error;
+- a node found again in a later split moves to the newest tier, as in the code;
+- `rho` = 0.2 was chosen for Gu et al.'s parcellation, and may not suit others.
+
+`A` is passed as measured, not normalised: the algorithm scales and normalises it itself, as Gu et al.'s code does.
+In continuous time it uses the continuous-time Gramian, the continuous form of Gu et al.'s Supplementary Methods.
 
 ## Relationships between the metrics
 
