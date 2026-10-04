@@ -29,18 +29,26 @@ matrices (see the changelog).
 ## Modal controllability
 
 {func}`~nctpy.metrics.modal_control` measures a node's ability to drive the system into states that are hard to
-reach, those of its fast-decaying modes: $\sum_j U_{ij}^2 (1 - \lambda_j^2)$, where $U$ holds the eigenvectors of
-$A$ and $\lambda_j$ its eigenvalues.
+reach, those of its fast-decaying modes. With $U$ the eigenvectors of $A$ and $\lambda_j$ its eigenvalues:
+
+- in **discrete time** (Gu et al. 2015): $\sum_j U_{ij}^2 (1 - \lambda_j^2)$;
+- in **continuous time** (Karrer et al., *J Neural Eng* 2020, Eq. 8, adapted from the discrete form):
+  $\sum_j U_{ij}^2 (1 - e^{\lambda_j})$.
 
 ```python
 from nctpy.metrics import modal_control
 
-mc = modal_control(matrix_normalization(A, system="discrete"))
+mc = modal_control(matrix_normalization(A, system="discrete"))  # discrete time, the default
+mc = modal_control(matrix_normalization(A, system="continuous"), system="continuous")
 ```
 
-It is defined for **discrete-time** systems, so normalise for discrete time. It is also defined for **undirected**
-connectomes: nctpy computes it from the real Schur decomposition, which equals the eigendecomposition for a
-symmetric matrix. For a directed one the values are only an approximation, and depend on the order of the nodes.
+Normalise for the time system you pass. Discrete time is the default, for compatibility with earlier versions,
+in which it was the only option. In both systems, each mode's weight lies between 0 and 1 for a stable system, so
+every value does too.
+
+Modal controllability is defined for **undirected** connectomes: nctpy computes it from the real Schur
+decomposition, which equals the eigendecomposition for a symmetric matrix. For a directed one the values are only
+an approximation, and depend on the order of the nodes.
 
 ## Relationships between the metrics
 

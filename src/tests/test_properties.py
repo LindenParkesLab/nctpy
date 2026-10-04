@@ -160,6 +160,8 @@ class TestRelabelling(PropertyTestCase):
         P = np.eye(N)[p]
         A, A_c, A_d = self.systems['symmetric']
         np.testing.assert_allclose(modal_control(P @ A_d @ P.T), modal_control(A_d)[p], rtol=1e-10)
+        np.testing.assert_allclose(modal_control(P @ A_c @ P.T, system='continuous'),
+                                   modal_control(A_c, system='continuous')[p], rtol=1e-10)
 
     @unittest.expectedFailure
     def test_modal_control_permutes_for_directed_A(self):
@@ -171,6 +173,36 @@ class TestRelabelling(PropertyTestCase):
         P = np.eye(N)[p]
         A, A_c, A_d = self.systems['directed']
         np.testing.assert_allclose(modal_control(P @ A_d @ P.T), modal_control(A_d)[p], rtol=1e-10)
+
+
+class TestModalControllability(PropertyTestCase):
+    """Modal controllability of a symmetric A from its eigendecomposition A = V diag(lambda) V^T.
+
+    Discrete time (Gu et al. 2015): phi_i = sum_j v_ij^2 (1 - lambda_j^2). Continuous time (Karrer et al. 2020,
+    Eq. 8): phi_i = sum_j v_ij^2 (1 - exp(lambda_j)). Both weights lie in (0, 1) for a stable system, and the rows
+    of V^2 sum to 1, so every value lies in (0, 1) and the values sum to the sum of the weights.
+    """
+
+    def setUp(self):
+        super().setUp()
+        A, A_c, A_d = self.systems['symmetric']
+        self.cases = {
+            'discrete': (A_d, lambda lam: 1 - lam**2),
+            'continuous': (A_c, lambda lam: 1 - np.exp(lam)),
+        }
+
+    def test_formula(self):
+        for system, (A_norm, weight) in self.cases.items():
+            with self.subTest(system=system):
+                lam, V = np.linalg.eigh(A_norm)
+                np.testing.assert_allclose(modal_control(A_norm, system=system), (V**2) @ weight(lam), rtol=1e-12)
+
+    def test_bounds_and_sum(self):
+        for system, (A_norm, weight) in self.cases.items():
+            with self.subTest(system=system):
+                phi = modal_control(A_norm, system=system)
+                self.assertTrue(np.all((phi > 0) & (phi < 1)))
+                self.assertAlmostEqual(np.sum(phi), np.sum(weight(np.linalg.eigvalsh(A_norm))), places=12)
 
 
 class TestAverageControllability(PropertyTestCase):

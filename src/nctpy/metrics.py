@@ -52,27 +52,51 @@ def ave_control(A_norm: npt.ArrayLike, system: str | None = None) -> FloatArray:
     return np.diag(la.solve_discrete_lyapunov(A_T, np.eye(A_norm.shape[0])))
 
 
-def modal_control(A_norm: npt.ArrayLike) -> FloatArray:
-    """Compute the modal controllability of each node, for a discrete-time system.
+def modal_control(A_norm: npt.ArrayLike, *, system: str | None = "discrete") -> FloatArray:
+    """Compute the modal controllability of each node.
+
+    Modal controllability measures a node's ability to control the system's modes, weighted towards the
+    fast-decaying ones, which are hard to reach. With ``A_norm = U T U^T`` its real Schur decomposition and
+    t = diag(T):
+
+    - discrete time (Gu et al. 2015, following Pasqualetti et al. 2014): ``sum over j of U_ij^2 (1 - t_j^2)``;
+    - continuous time (Karrer et al. 2020, Eq. 8, adapted from the discrete form): ``sum over j of
+      U_ij^2 (1 - exp(t_j))``.
 
     Parameters
     ----------
     A_norm : (N, N) array_like
-        Normalised structural connectivity matrix, for a discrete-time system.
+        Normalised structural connectivity matrix, normalised for the time system given by `system`.
+    system : {'discrete', 'continuous'}, default 'discrete', keyword-only
+        Time system that A_norm was normalised for. The default, discrete time, was the only option in earlier
+        versions, and its results are unchanged.
 
     Returns
     -------
     phi : (N,) ndarray
-        Modal controllability of each node: ``sum over j of U_ij^2 (1 - t_j^2)``, where ``A_norm = U T U^T`` is the
-        real Schur decomposition and t = diag(T).
+        Modal controllability of each node. For a stable symmetric A_norm every value lies between 0 and 1.
+
+    Raises
+    ------
+    Exception
+        If `system` is None or not one of the two options.
 
     Notes
     -----
     Modal controllability is defined for undirected (symmetric) connectomes, for which the Schur decomposition is
     the eigendecomposition: U holds the eigenvectors and t the eigenvalues. For a directed A it is not, so the
     values are an approximation and depend on the order of the nodes.
+
+    References
+    ----------
+    Gu, S. et al. Controllability of structural brain networks. Nat. Commun. 6, 8414 (2015).
+    Karrer, T. M. et al. A practical guide to methodological considerations in the controllability of structural
+    brain networks. J. Neural Eng. 17, 026031 (2020).
     """
+    _check_system(system)
     A_norm = _as_float(A_norm)
     T, U = schur(A_norm, "real")
     t = np.diag(T)
+    if system == "continuous":
+        return np.sum(U**2 * (1 - np.exp(t)), axis=1)
     return np.sum(U**2 * (1 - t**2), axis=1)

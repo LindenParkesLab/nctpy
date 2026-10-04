@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `modal_control(..., system="continuous")`: modal controllability in continuous time, as defined by
+  Karrer et al. (J Neural Eng 2020, Eq. 8): φᵢ = Σⱼ (1 − e^{λⱼ}) vᵢⱼ², for a connectome normalised for
+  continuous time. The new keyword-only `system` defaults to `"discrete"`, so existing calls give
+  unchanged results, bit for bit.
+
 ## 1.2.0 (2026-10-02)
 
 **Upgrading from 1.1:** the code in the Nature Protocols paper runs and gives the same results. Check the

@@ -28,9 +28,10 @@ class TestInputs(unittest.TestCase):
     def test_lower_precision_input_computed_in_float64(self):
         for system in ("continuous", "discrete"):
             A32 = matrix_normalization(connectome(), system=system).astype(np.float32)
-            metrics = [("ave_control", lambda A, s=system: ave_control(A, system=s))]
-            if system == "discrete":
-                metrics.append(("modal_control", modal_control))
+            metrics = [
+                ("ave_control", lambda A, s=system: ave_control(A, system=s)),
+                ("modal_control", lambda A, s=system: modal_control(A, system=s)),
+            ]
             for name, fn in metrics:
                 with self.subTest(system=system, metric=name):
                     got = fn(A32)
@@ -47,8 +48,23 @@ class TestInputs(unittest.TestCase):
     def test_one_value_per_node(self):
         for system in ("continuous", "discrete"):
             with self.subTest(system=system):
-                self.assertEqual(ave_control(matrix_normalization(connectome(), system=system), system).shape, (N,))
-        self.assertEqual(modal_control(matrix_normalization(connectome(), system="discrete")).shape, (N,))
+                A_norm = matrix_normalization(connectome(), system=system)
+                self.assertEqual(ave_control(A_norm, system).shape, (N,))
+                self.assertEqual(modal_control(A_norm, system=system).shape, (N,))
+
+
+class TestModalControlTimeSystem(unittest.TestCase):
+    """modal_control's system keyword: discrete by default, as before it existed."""
+
+    def test_default_is_discrete(self):
+        A_d = matrix_normalization(connectome(), system="discrete")
+        np.testing.assert_array_equal(modal_control(A_d), modal_control(A_d, system="discrete"))
+
+    def test_invalid_system_raises(self):
+        A_c = matrix_normalization(connectome(), system="continuous")
+        for system in (None, "cont"):
+            with self.subTest(system=system), self.assertRaises(Exception):
+                modal_control(A_c, system=system)
 
 
 if __name__ == "__main__":

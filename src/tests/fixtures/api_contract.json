@@ -261,6 +261,13 @@
         {
           "name": "A_norm",
           "kind": "POSITIONAL_OR_KEYWORD"
+        },
+        {
+          "name": "system",
+          "kind": "KEYWORD_ONLY",
+          "default": {
+            "value": "discrete"
+          }
         }
       ]
     },
